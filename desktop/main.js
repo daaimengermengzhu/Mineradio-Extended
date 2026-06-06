@@ -431,6 +431,16 @@ ipcMain.handle('mineradio-open-update-installer', async (_event, filePath) => {
   }
 });
 
+ipcMain.handle('mineradio-restart-app', async () => {
+  try {
+    app.relaunch();
+    app.exit(0);
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: e.message || 'RESTART_FAILED' };
+  }
+});
+
 async function createWindow() {
   htmlFullscreenActive = false;
   windowFullscreenActive = false;

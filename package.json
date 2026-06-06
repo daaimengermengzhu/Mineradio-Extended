@@ -1,7 +1,7 @@
 {
   "name": "mineradio",
   "productName": "Mineradio",
-  "version": "0.9.10",
+  "version": "0.9.11",
   "description": "Mineradio desktop app",
   "author": "Mineradio",
   "main": "desktop/main.js",

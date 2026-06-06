@@ -62,8 +62,11 @@ const QQ_COOKIE_FILE = process.env.QQ_COOKIE_FILE || path.join(__dirname, '.qq-c
 const UPDATE_DOWNLOAD_DIR = process.env.MINERADIO_UPDATE_DIR || path.join(__dirname, 'updates');
 const BEATMAP_CACHE_DIR = process.env.MINERADIO_BEAT_CACHE_DIR || 'D:\\MineradioCache\\beatmaps';
 const APP_PACKAGE = readPackageInfo();
-const APP_VERSION = process.env.MINERADIO_VERSION || APP_PACKAGE.version || '0.9.10';
+const APP_VERSION = process.env.MINERADIO_VERSION || APP_PACKAGE.version || '0.9.11';
 const UPDATE_CONFIG = readUpdateConfig(APP_PACKAGE);
+const PATCH_MAX_BYTES = 12 * 1024 * 1024;
+const PATCH_ALLOWED_ROOTS = new Set(['public', 'desktop', 'build']);
+const PATCH_ALLOWED_FILES = new Set(['server.js', 'dj-analyzer.js', 'package.json', 'package-lock.json']);
 const UPDATE_FALLBACK_NOTES = [
   '电影镜头节奏更松',
   '音源失败自动换源',
@@ -229,6 +232,28 @@ function pickReleaseAsset(assets) {
     downloadUrl: preferred.browser_download_url || '',
   };
 }
+function pickPatchAsset(assets, currentVersion, latestVersion) {
+  const list = Array.isArray(assets) ? assets : [];
+  const current = normalizeVersion(currentVersion || APP_VERSION);
+  const latest = normalizeVersion(latestVersion || '');
+  const normalizedCurrent = current.replace(/\./g, '[._-]?');
+  const normalizedLatest = latest.replace(/\./g, '[._-]?');
+  const exact = latest
+    ? new RegExp('(?:^|[^0-9])' + normalizedCurrent + '\\s*(?:to|-|_)\\s*' + normalizedLatest + '(?:[^0-9]|$)', 'i')
+    : null;
+  const preferred = list.find(a => {
+    const name = String(a && a.name || '');
+    if (!/\.(patch\.json|patch|json)$/i.test(name)) return false;
+    return exact ? exact.test(name) : name.toLowerCase().includes('patch');
+  }) || list.find(a => /\.(patch\.json|patch)$/i.test(a && a.name || ''));
+  if (!preferred) return null;
+  return {
+    name: preferred.name || '',
+    size: preferred.size || 0,
+    contentType: preferred.content_type || '',
+    downloadUrl: preferred.browser_download_url || '',
+  };
+}
 function updateAssetNameFromUrl(value) {
   try {
     const u = new URL(String(value || ''));
@@ -251,6 +276,16 @@ function normalizeManifestUpdateInfo(data) {
     || APP_VERSION
   ) || APP_VERSION;
   const downloadUrl = release.downloadUrl || data.downloadUrl || asset.downloadUrl || asset.browser_download_url || '';
+  const patch = release.patch || data.patch || null;
+  const patchInfo = patch && patch.downloadUrl ? {
+    name: patch.name || updateAssetNameFromUrl(patch.downloadUrl) || `Mineradio-${APP_VERSION}-to-${latestVersion}.patch.json`,
+    size: Number(patch.size || 0) || 0,
+    contentType: patch.contentType || patch.content_type || 'application/json',
+    downloadUrl: patch.downloadUrl,
+    from: normalizeVersion(patch.from || APP_VERSION),
+    to: normalizeVersion(patch.to || latestVersion),
+    sha256: patch.sha256 || '',
+  } : null;
   const notes = Array.isArray(release.notes) && release.notes.length
     ? release.notes.slice(0, 4).map(cleanReleaseLine).filter(Boolean)
     : (extractReleaseNotes(release.body || data.body).length ? extractReleaseNotes(release.body || data.body) : UPDATE_FALLBACK_NOTES);
@@ -274,6 +309,8 @@ function normalizeManifestUpdateInfo(data) {
       htmlUrl: release.htmlUrl || release.html_url || data.htmlUrl || '',
       downloadUrl,
       asset: assetInfo,
+      patch: patchInfo,
+      patchAvailable: !!(patchInfo && patchInfo.downloadUrl && compareVersions(latestVersion, APP_VERSION) > 0),
       summary: release.summary || data.summary || notes[0] || '发现新版本，建议更新。',
       notes,
     },
@@ -405,6 +442,7 @@ async function fetchLatestUpdateInfo() {
     const data = await resp.json();
     const latestVersion = normalizeVersion(data.tag_name || data.name || APP_VERSION) || APP_VERSION;
     const asset = pickReleaseAsset(data.assets);
+    const patch = pickPatchAsset(data.assets, APP_VERSION, latestVersion);
     const notes = extractReleaseNotes(data.body).length ? extractReleaseNotes(data.body) : UPDATE_FALLBACK_NOTES;
     return {
       configured: true,
@@ -420,6 +458,8 @@ async function fetchLatestUpdateInfo() {
         htmlUrl: data.html_url || '',
         downloadUrl: asset ? asset.downloadUrl : '',
         asset,
+        patch,
+        patchAvailable: !!(patch && patch.downloadUrl && compareVersions(latestVersion, APP_VERSION) > 0),
         summary: notes[0] || '发现新版本，建议更新。',
         notes,
       },
@@ -448,6 +488,11 @@ function publicUpdateJob(job) {
     progress: job.progress || 0,
     received: job.received || 0,
     total: job.total || 0,
+    speedBps: job.speedBps || 0,
+    etaSeconds: job.etaSeconds || 0,
+    mode: job.mode || 'installer',
+    message: job.message || '',
+    restartRequired: !!job.restartRequired,
     fileName: job.fileName || '',
     filePath: job.status === 'ready' ? job.filePath : '',
     version: job.version || '',
@@ -483,7 +528,12 @@ async function downloadUpdateAsset(job) {
     job.total = totalHeader || job.total || 0;
     job.received = 0;
     job.progress = 0;
+    job.speedBps = 0;
+    job.etaSeconds = 0;
+    job.message = job.total ? '正在下载完整安装包' : '正在下载完整安装包，等待服务器返回大小';
     job.updatedAt = Date.now();
+    let speedWindowAt = Date.now();
+    let speedWindowBytes = 0;
 
     const writer = fs.createWriteStream(tmpPath);
     const reader = resp.body.getReader();
@@ -493,7 +543,21 @@ async function downloadUpdateAsset(job) {
         if (chunk.done) break;
         const buf = Buffer.from(chunk.value);
         job.received += buf.length;
-        if (job.total > 0) job.progress = Math.max(1, Math.min(99, Math.round((job.received / job.total) * 100)));
+        speedWindowBytes += buf.length;
+        const now = Date.now();
+        if (now - speedWindowAt >= 900) {
+          job.speedBps = Math.round(speedWindowBytes / Math.max(0.001, (now - speedWindowAt) / 1000));
+          speedWindowAt = now;
+          speedWindowBytes = 0;
+        }
+        if (job.total > 0) {
+          job.progress = Math.max(1, Math.min(99, Math.round((job.received / job.total) * 100)));
+          job.etaSeconds = job.speedBps > 0 ? Math.max(0, Math.round((job.total - job.received) / job.speedBps)) : 0;
+        } else {
+          const kb = Math.max(1, job.received / 1024);
+          job.progress = Math.max(1, Math.min(88, Math.round(Math.log10(kb + 1) * 24)));
+        }
+        job.message = job.total > 0 ? '正在下载完整安装包' : '正在下载完整安装包，服务器未提供总大小';
         job.updatedAt = Date.now();
         if (!writer.write(buf)) await once(writer, 'drain');
       }
@@ -506,6 +570,7 @@ async function downloadUpdateAsset(job) {
     fs.renameSync(tmpPath, job.filePath);
     job.status = 'ready';
     job.progress = 100;
+    job.message = '安装包已下载';
     job.updatedAt = Date.now();
   } catch (e) {
     try { if (fs.existsSync(tmpPath)) fs.unlinkSync(tmpPath); } catch (_) {}
@@ -535,6 +600,7 @@ function startUpdateDownloadJob(info) {
     progress: 0,
     received: 0,
     total: asset.size || 0,
+    mode: 'installer',
     fileName,
     filePath,
     version,
@@ -547,6 +613,162 @@ function startUpdateDownloadJob(info) {
   updateDownloadJobs.set(job.id, job);
   trimUpdateJobs();
   downloadUpdateAsset(job);
+  return publicUpdateJob(job);
+}
+function sha256Hex(buffer) {
+  return crypto.createHash('sha256').update(buffer).digest('hex');
+}
+function safePatchRelativePath(value) {
+  const rel = String(value || '').replace(/\\/g, '/').replace(/^\/+/, '').trim();
+  if (!rel || rel.includes('\0')) return '';
+  const parts = rel.split('/').filter(Boolean);
+  if (!parts.length || parts.some(part => part === '..' || part === '.')) return '';
+  const root = parts[0];
+  if (PATCH_ALLOWED_FILES.has(rel)) return rel;
+  if (!PATCH_ALLOWED_ROOTS.has(root)) return '';
+  if (/\.(exe|dll|node|msi|bat|cmd|ps1|pfx|pem|key)$/i.test(rel)) return '';
+  return parts.join('/');
+}
+function patchTargetPath(rel) {
+  const safeRel = safePatchRelativePath(rel);
+  if (!safeRel) return null;
+  const target = path.resolve(__dirname, safeRel);
+  const root = path.resolve(__dirname);
+  if (target !== root && !target.startsWith(root + path.sep)) return null;
+  return target;
+}
+function decodePatchFile(file) {
+  if (!file || typeof file !== 'object') return null;
+  if (typeof file.contentBase64 === 'string') return Buffer.from(file.contentBase64, 'base64');
+  if (typeof file.content === 'string') return Buffer.from(file.content, file.encoding === 'base64' ? 'base64' : 'utf8');
+  return null;
+}
+function backupPatchTarget(job, rel, target) {
+  if (!fs.existsSync(target)) return;
+  const backup = path.join(UPDATE_DOWNLOAD_DIR, 'patch-backups', job.id, rel);
+  fs.mkdirSync(path.dirname(backup), { recursive: true });
+  fs.copyFileSync(target, backup);
+}
+function writePatchFile(job, file) {
+  const rel = safePatchRelativePath(file.path || file.name);
+  const target = rel ? patchTargetPath(rel) : null;
+  const content = decodePatchFile(file);
+  if (!rel || !target || !content) throw new Error('INVALID_PATCH_FILE');
+  if (content.length > PATCH_MAX_BYTES) throw new Error('PATCH_FILE_TOO_LARGE');
+  const expected = String(file.sha256 || '').trim().toLowerCase();
+  const actual = sha256Hex(content);
+  if (expected && expected !== actual) throw new Error('PATCH_HASH_MISMATCH:' + rel);
+  backupPatchTarget(job, rel, target);
+  fs.mkdirSync(path.dirname(target), { recursive: true });
+  const tmp = target + '.mineradio-patch';
+  fs.writeFileSync(tmp, content);
+  fs.renameSync(tmp, target);
+  if (expected && sha256Hex(fs.readFileSync(target)) !== expected) throw new Error('PATCH_WRITE_VERIFY_FAILED:' + rel);
+  return rel;
+}
+function normalizePatchPayload(payload) {
+  if (!payload || typeof payload !== 'object') throw new Error('INVALID_PATCH_PAYLOAD');
+  const type = String(payload.type || payload.kind || '');
+  if (type && type !== 'mineradio-resource-patch') throw new Error('UNSUPPORTED_PATCH_TYPE');
+  const from = normalizeVersion(payload.from || payload.baseVersion || '');
+  const to = normalizeVersion(payload.to || payload.version || payload.targetVersion || '');
+  const files = Array.isArray(payload.files) ? payload.files : [];
+  if (!from || compareVersions(from, APP_VERSION) !== 0) throw new Error('PATCH_VERSION_MISMATCH');
+  if (!to || compareVersions(to, APP_VERSION) <= 0) throw new Error('PATCH_TARGET_VERSION_INVALID');
+  if (!files.length) throw new Error('PATCH_EMPTY');
+  if (files.length > 40) throw new Error('PATCH_TOO_MANY_FILES');
+  return { from, to, files, restartRequired: payload.restartRequired !== false };
+}
+async function downloadAndApplyPatch(job) {
+  const chunks = [];
+  try {
+    fs.mkdirSync(UPDATE_DOWNLOAD_DIR, { recursive: true });
+    job.status = 'downloading';
+    job.mode = 'patch';
+    job.message = '正在下载快速补丁';
+    job.updatedAt = Date.now();
+
+    const resp = await fetch(job.downloadUrl, {
+      headers: { 'User-Agent': `Mineradio/${APP_VERSION}` },
+    });
+    if (!resp.ok) throw new Error('Patch download failed ' + resp.status);
+
+    job.total = parseInt(resp.headers.get('content-length') || '0', 10) || job.total || 0;
+    job.received = 0;
+    const reader = resp.body.getReader();
+    while (true) {
+      const chunk = await reader.read();
+      if (chunk.done) break;
+      const buf = Buffer.from(chunk.value);
+      job.received += buf.length;
+      if (job.received > PATCH_MAX_BYTES) throw new Error('PATCH_TOO_LARGE');
+      chunks.push(buf);
+      job.progress = job.total > 0
+        ? Math.max(1, Math.min(84, Math.round((job.received / job.total) * 84)))
+        : Math.max(1, Math.min(76, Math.round(Math.log10(job.received / 1024 + 1) * 24)));
+      job.updatedAt = Date.now();
+    }
+
+    const raw = Buffer.concat(chunks);
+    const expectedPatchHash = String(job.sha256 || '').trim().toLowerCase();
+    if (expectedPatchHash && sha256Hex(raw) !== expectedPatchHash) throw new Error('PATCH_PACKAGE_HASH_MISMATCH');
+    const patch = normalizePatchPayload(JSON.parse(raw.toString('utf8').replace(/^\uFEFF/, '')));
+    job.version = patch.to;
+    job.message = '正在应用快速补丁';
+    job.progress = 88;
+    job.updatedAt = Date.now();
+    const changed = [];
+    patch.files.forEach(file => changed.push(writePatchFile(job, file)));
+    job.changedFiles = changed;
+    job.status = 'ready';
+    job.progress = 100;
+    job.restartRequired = patch.restartRequired;
+    job.message = patch.restartRequired ? '快速补丁已应用，重启后生效' : '快速补丁已应用';
+    job.updatedAt = Date.now();
+  } catch (e) {
+    job.status = 'error';
+    job.error = e.message || 'PATCH_APPLY_FAILED';
+    job.message = '快速补丁失败，可改用完整安装包';
+    job.updatedAt = Date.now();
+  }
+}
+function startUpdatePatchJob(info) {
+  const release = info && info.release ? info.release : {};
+  const patch = release.patch || {};
+  const downloadUrl = patch.downloadUrl || '';
+  if (!info || !info.configured) return { ok: false, error: 'UPDATE_REPOSITORY_NOT_CONFIGURED' };
+  if (!info.updateAvailable) return { ok: false, error: 'NO_UPDATE_AVAILABLE' };
+  if (!release.patchAvailable || !/^https?:\/\//i.test(downloadUrl)) return { ok: false, error: 'PATCH_ASSET_MISSING' };
+
+  const version = info.latestVersion || release.version || patch.to || '';
+  const existing = Array.from(updateDownloadJobs.values())
+    .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))
+    .find(job => job.mode === 'patch' && job.version === version && (job.status === 'queued' || job.status === 'downloading' || job.status === 'ready'));
+  if (existing) return publicUpdateJob(existing);
+
+  const now = Date.now();
+  const job = {
+    id: 'patch-' + now.toString(36) + '-' + Math.random().toString(36).slice(2, 8),
+    status: 'queued',
+    progress: 0,
+    received: 0,
+    total: patch.size || 0,
+    mode: 'patch',
+    fileName: patch.name || safeUpdateFileName('', version).replace(/\.exe$/i, '.patch.json'),
+    filePath: '',
+    version,
+    downloadUrl,
+    releaseUrl: release.htmlUrl || '',
+    sha256: patch.sha256 || '',
+    restartRequired: true,
+    message: '等待下载快速补丁',
+    createdAt: now,
+    updatedAt: now,
+    error: '',
+  };
+  updateDownloadJobs.set(job.id, job);
+  trimUpdateJobs();
+  downloadAndApplyPatch(job);
   return publicUpdateJob(job);
 }
 function readRequestBody(req) {
@@ -782,11 +1004,21 @@ async function handleSearch(keywords, limit) {
 async function handleDiscoverHome() {
   const info = await getLoginInfo();
   const loggedIn = !!(info && info.loggedIn);
+  if (!loggedIn) {
+    return {
+      loggedIn: false,
+      user: null,
+      dailySongs: [],
+      playlists: [],
+      podcasts: [],
+      mode: 'starter',
+    };
+  }
   const tasks = [
     personalized({ limit: 8, cookie: userCookie, timestamp: Date.now() }),
     dj_hot({ limit: 6, offset: 0, cookie: userCookie, timestamp: Date.now() }),
-    loggedIn ? recommend_resource({ cookie: userCookie, timestamp: Date.now() }) : Promise.resolve(null),
-    loggedIn ? recommend_songs({ cookie: userCookie, timestamp: Date.now() }) : Promise.resolve(null),
+    recommend_resource({ cookie: userCookie, timestamp: Date.now() }),
+    recommend_songs({ cookie: userCookie, timestamp: Date.now() }),
   ];
   const result = await Promise.allSettled(tasks);
 
@@ -1805,6 +2037,27 @@ const server = http.createServer(async (req, res) => {
     const job = id
       ? updateDownloadJobs.get(id)
       : Array.from(updateDownloadJobs.values()).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))[0];
+    sendJSON(res, publicUpdateJob(job), job ? 200 : 404);
+    return;
+  }
+
+  if (pn === '/api/update/patch') {
+    try {
+      const info = await fetchLatestUpdateInfo();
+      const job = startUpdatePatchJob(info);
+      sendJSON(res, job, job.ok ? 200 : 400);
+    } catch (err) {
+      console.error('[UpdatePatch]', err);
+      sendJSON(res, { ok: false, error: err.message || 'UPDATE_PATCH_START_FAILED' }, 500);
+    }
+    return;
+  }
+
+  if (pn === '/api/update/patch/status') {
+    const id = url.searchParams.get('id') || '';
+    const job = id
+      ? updateDownloadJobs.get(id)
+      : Array.from(updateDownloadJobs.values()).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0)).find(item => item.mode === 'patch');
     sendJSON(res, publicUpdateJob(job), job ? 200 : 404);
     return;
   }

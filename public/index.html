@@ -585,6 +585,10 @@ body.login-guide-active #login-guide-canvas{opacity:1}
 .modal h2{font-size:18px;font-weight:500;letter-spacing:.5px;margin-bottom:18px;color:rgba(255,255,255,0.95)}
 .modal .desc{font-size:12.5px;color:rgba(255,255,255,0.5);margin-bottom:20px;line-height:1.6}
 .dual-login-modal,.dual-user-modal{width:min(470px,92vw);max-width:min(470px,92vw)}
+.login-intro{margin:-6px 0 16px;padding:14px 15px;border-radius:14px;border:1px solid rgba(255,255,255,.075);background:linear-gradient(135deg,rgba(255,83,103,.09),rgba(244,210,138,.055),rgba(255,255,255,.025));text-align:left}
+.login-intro-kicker{font-size:10px;font-weight:780;letter-spacing:.18em;color:rgba(244,210,138,.72);text-transform:uppercase;margin-bottom:6px}
+.login-intro-title{font-size:18px;font-weight:760;line-height:1.18;color:rgba(255,255,255,.95);letter-spacing:0;margin-bottom:6px}
+.login-intro-body{font-size:12px;line-height:1.58;color:rgba(255,255,255,.56)}
 .login-platform-tabs,.user-platform-tabs{display:flex;gap:8px;margin:0 auto 18px;padding:4px;border-radius:999px;border:1px solid rgba(255,255,255,.075);background:rgba(255,255,255,.035)}
 .login-platform-tabs button,.user-platform-tabs button{flex:1;min-width:0;height:32px;border:0;border-radius:999px;background:transparent;color:rgba(255,255,255,.48);font-family:inherit;font-size:11.5px;font-weight:700;letter-spacing:.45px;cursor:pointer;transition:background .22s,color .22s,box-shadow .22s,transform .22s;white-space:nowrap}
 .login-platform-tabs button:hover,.user-platform-tabs button:hover{color:rgba(255,255,255,.82)}
@@ -623,6 +627,7 @@ body.login-guide-active #login-guide-canvas{opacity:1}
 .account-modal-actions .modal-btn{padding:8px 10px}
 .account-hint{margin-top:10px;font-size:11px;line-height:1.45;color:rgba(255,255,255,.38)}
 .modal .btn-row{display:flex;gap:10px;justify-content:center;margin-top:16px}
+.dual-login-modal .btn-row{flex-wrap:wrap}
 .modal-btn{padding:8px 20px;font-size:12.5px;border-radius:8px;border:1px solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.05);color:#fff;cursor:pointer;letter-spacing:.5px;transition:all .2s;font-family:inherit}
 .modal-btn:hover{background:rgba(255,255,255,0.12);border-color:rgba(255,255,255,0.3)}
 .modal-btn.primary{background:rgba(244,210,138,0.14);border-color:rgba(244,210,138,0.50);color:var(--champagne)}
@@ -1092,16 +1097,16 @@ body.desktop-shell.diy-mode #bottom-bar.stage-mode{left:50%;width:min(1080px,cal
         <div class="home-card-sub" id="home-playlist-sub">从一张歌单开始</div>
         <div class="home-card-art" id="home-playlist-art"></div>
       </button>
-      <button class="home-card" type="button" onclick="openHomePodcast(0)">
-        <div class="home-card-label">Radio</div>
+      <button class="home-card" type="button" onclick="openHomeThirdCard()">
+        <div class="home-card-label" id="home-third-label">Radio</div>
         <div class="home-card-title" id="home-podcast-title">热门播客</div>
         <div class="home-card-sub" id="home-podcast-sub">长内容也能进入 DJ 视觉</div>
         <div class="home-card-art" id="home-podcast-art"></div>
       </button>
       <button class="home-card" type="button" onclick="openHomeLibrary()">
         <div class="home-card-label">Library</div>
-        <div class="home-card-title">我的歌单</div>
-        <div class="home-card-sub">登录后同步网易云与 QQ 音乐</div>
+        <div class="home-card-title" id="home-library-title">我的歌单</div>
+        <div class="home-card-sub" id="home-library-sub">登录后同步网易云与 QQ 音乐</div>
         <div class="home-card-art" id="home-library-art"></div>
       </button>
     </div>
@@ -1367,6 +1372,11 @@ body.desktop-shell.diy-mode #bottom-bar.stage-mode{left:50%;width:min(1080px,cal
       <button id="login-provider-netease" class="netease active" type="button" onclick="setLoginProvider('netease')">网易云</button>
       <button id="login-provider-qq" class="qq" type="button" onclick="setLoginProvider('qq')">QQ 音乐</button>
     </div>
+    <div class="login-intro">
+      <div class="login-intro-kicker">Mineradio</div>
+      <div class="login-intro-title">音乐播放器，也是一座视觉舞台</div>
+      <div class="login-intro-body">搜索或导入一首歌即可播放；登录后会同步歌单、红心和播客，让封面、歌词和粒子跟着音乐动起来。</div>
+    </div>
     <h2 id="login-modal-title">扫码登录网易云音乐</h2>
     <div id="login-modal-desc" class="desc">使用 <b>网易云音乐 App</b> 扫码，可同步歌单、红心与播客。</div>
     <div id="qr-shell" class="qr-shell">
@@ -1383,6 +1393,7 @@ body.desktop-shell.diy-mode #bottom-bar.stage-mode{left:50%;width:min(1080px,cal
     </div>
     <div class="btn-row">
       <button class="modal-btn" onclick="closeLoginModal()">取消</button>
+      <button class="modal-btn" onclick="skipLoginAndFocusSearch()">先搜索一首歌</button>
       <button id="login-both-btn" class="modal-btn" onclick="requestDualLoginMode()">我两个都要</button>
       <button id="qq-cookie-toggle-btn" class="modal-btn" type="button" onclick="toggleQQCookiePanel()">手动导入</button>
       <button id="refresh-qr-btn" class="modal-btn primary" onclick="refreshQr()">刷新二维码</button>
@@ -1513,7 +1524,7 @@ body.desktop-shell.diy-mode #bottom-bar.stage-mode{left:50%;width:min(1080px,cal
         <div>
           <div class="update-kicker">MINERADIO</div>
           <div id="update-modal-title" class="update-title">New release</div>
-          <div id="update-modal-version" class="update-version">v0.9.10</div>
+          <div id="update-modal-version" class="update-version">v0.9.11</div>
         </div>
       </div>
       <div class="update-hero">
@@ -1627,7 +1638,7 @@ var visualGuideState = { bottomWasVisible: false, searchWasPeek: false, manual: 
 var emptyHomeActive = false;
 var homeForcedOpen = false;
 var homeSuppressed = false;
-var homeDiscoverState = { loading: false, loaded: false, songs: [], playlists: [], podcasts: [], error: '' };
+var homeDiscoverState = { loading: false, loaded: false, loggedIn: false, mode: 'starter', songs: [], playlists: [], podcasts: [], error: '' };
 var homeDiscoverToken = 0;
 var queueViewTab = 'queue', playMode = 'loop', miniQueueOpen = false;
 var miniQueueRenderSeq = 0, queueRenderSeq = 0, playlistRenderSeq = 0;
@@ -1643,15 +1654,25 @@ var updatePreviewState = {
   timer: null,
   pollTimer: null,
   downloadJobId: '',
+  patchJobId: '',
+  mode: 'installer',
   installerPath: '',
   installerOpened: false,
-  currentVersion: '0.9.10',
-  version: '0.9.10',
+  currentVersion: '0.9.11',
+  version: '0.9.11',
   configured: false,
   preview: true,
   updateAvailable: false,
   releaseUrl: '',
   downloadUrl: '',
+  patchAvailable: false,
+  patchUrl: '',
+  received: 0,
+  total: 0,
+  speedBps: 0,
+  etaSeconds: 0,
+  message: '',
+  restartRequired: false,
   hero: '当前版本，更新检测已就绪。',
   notes: [
     '电影镜头节奏更松',
@@ -10279,11 +10300,11 @@ function compactHomeCount(n) {
 }
 function fallbackHomeTiles() {
   return [
-    { kind: 'search', title: '华语新歌', sub: '搜索', query: '华语新歌' },
-    { kind: 'search', title: '夜晚电子', sub: '搜索', query: '电子 氛围' },
-    { kind: 'search', title: '独立流行', sub: '搜索', query: '独立音乐' },
-    { kind: 'podcastSearch', title: '播客电台', sub: 'Podcast', query: '' },
-    { kind: 'library', title: '我的歌单', sub: 'Library' },
+    { kind: 'login', title: '登录同步歌单', sub: '网易云 / QQ 音乐' },
+    { kind: 'search', title: '搜索一首歌', sub: '原唱优先', query: '' },
+    { kind: 'local', title: '导入本地音乐', sub: '本地文件也能可视化' },
+    { kind: 'podcastSearch', title: '搜索播客', sub: '长内容 / 电台' },
+    { kind: 'guide', title: '看看视觉舞台', sub: '粒子 / 歌词 / 封面' },
   ];
 }
 function homeTileCover(item) {
@@ -10311,21 +10332,24 @@ function renderHomeTiles() {
   var note = document.getElementById('home-rail-note');
   if (!row) return;
   var tiles = [];
-  homeDiscoverState.songs.slice(0, 2).forEach(function(song, i){
-    tiles.push({ kind: 'song', index: i, song: song, title: song.name || '今日歌曲', sub: song.artist || songSourceLabel(song) });
-  });
-  homeDiscoverState.playlists.slice(0, 3).forEach(function(pl, i){
-    tiles.push({ kind: 'playlist', index: i, title: pl.name || '推荐歌单', sub: (pl.trackCount ? pl.trackCount + ' 首' : 'Playlist') + (pl.playCount ? ' · ' + compactHomeCount(pl.playCount) + ' 播放' : ''), cover: pl.cover });
-  });
-  if (tiles.length < 5) {
-    homeDiscoverState.podcasts.slice(0, 5 - tiles.length).forEach(function(p, i){
-      tiles.push({ kind: 'podcast', index: i, title: p.name || '热门播客', sub: p.djName || p.category || 'Podcast', cover: p.cover });
+  var loggedOutHome = !homeDiscoverState.loggedIn && !hasAnyPlatformLogin();
+  if (!loggedOutHome) {
+    homeDiscoverState.songs.slice(0, 2).forEach(function(song, i){
+      tiles.push({ kind: 'song', index: i, song: song, title: song.name || '今日歌曲', sub: song.artist || songSourceLabel(song) });
     });
+    homeDiscoverState.playlists.slice(0, 3).forEach(function(pl, i){
+      tiles.push({ kind: 'playlist', index: i, title: pl.name || '推荐歌单', sub: (pl.trackCount ? pl.trackCount + ' 首' : 'Playlist') + (pl.playCount ? ' · ' + compactHomeCount(pl.playCount) + ' 播放' : ''), cover: pl.cover });
+    });
+    if (tiles.length < 5) {
+      homeDiscoverState.podcasts.slice(0, 5 - tiles.length).forEach(function(p, i){
+        tiles.push({ kind: 'podcast', index: i, title: p.name || '热门播客', sub: p.djName || p.category || 'Podcast', cover: p.cover });
+      });
+    }
   }
   if (!tiles.length) tiles = fallbackHomeTiles();
   tiles = tiles.slice(0, 5);
-  if (title) title.textContent = homeDiscoverState.songs.length ? '今日可以先听这些' : '为你准备';
-  if (note) note.textContent = homeDiscoverState.loading ? '正在整理推荐' : (homeDiscoverState.error ? '离线精选' : '点击即可播放');
+  if (title) title.textContent = loggedOutHome ? '先从这里开始' : (homeDiscoverState.songs.length ? '今日可以先听这些' : '为你准备');
+  if (note) note.textContent = homeDiscoverState.loading ? '正在整理推荐' : (loggedOutHome ? '不会自动拉取外部推荐' : (homeDiscoverState.error ? '离线精选' : '点击即可播放'));
   row.innerHTML = tiles.map(function(item, i){
     var cover = homeTileCover(item);
     return '<button class="home-tile' + (!cover && homeDiscoverState.loading ? ' home-skeleton' : '') + '" type="button" onclick="handleHomeTileClick(' + i + ')">' +
@@ -10339,7 +10363,10 @@ function renderHomeTiles() {
 }
 function renderHomeDiscover() {
   var sub = document.getElementById('home-subtitle');
-  if (sub) sub.textContent = hasAnyPlatformLogin() ? '你的歌单和推荐都在这里，点一下就能开播。' : '先搜索一首歌，也可以直接从推荐开始。';
+  var loggedOutHome = !homeDiscoverState.loggedIn && !hasAnyPlatformLogin();
+  if (sub) sub.textContent = loggedOutHome
+    ? 'Mineradio 是音乐播放器 + 视觉舞台：搜索或导入一首歌，封面、歌词和粒子会跟着音乐动起来。'
+    : '你的歌单和推荐都在这里，点一下就能开播。';
   var daily = homeDiscoverState.songs[0] || null;
   var playlistItem = homeDiscoverState.playlists[0] || null;
   var podcastItem = homeDiscoverState.podcasts[0] || null;
@@ -10349,16 +10376,38 @@ function renderHomeDiscover() {
   var plSub = document.getElementById('home-playlist-sub');
   var podTitle = document.getElementById('home-podcast-title');
   var podSub = document.getElementById('home-podcast-sub');
-  if (dailyTitle) dailyTitle.textContent = daily ? '每日推荐' : '今日热歌';
-  if (dailySub) dailySub.textContent = daily ? (homeDiscoverState.songs.length + ' 首 · 从 ' + (daily.name || '第一首') + ' 开始') : '未登录时会从搜索入口开始';
-  if (plTitle) plTitle.textContent = playlistItem ? playlistItem.name : '推荐歌单';
-  if (plSub) plSub.textContent = playlistItem ? ((playlistItem.trackCount || 0) + ' 首' + (playlistItem.creator ? ' · ' + playlistItem.creator : '')) : '从一张歌单开始';
-  if (podTitle) podTitle.textContent = podcastItem ? podcastItem.name : '热门播客';
-  if (podSub) podSub.textContent = podcastItem ? (podcastItem.djName || podcastItem.category || 'Podcast') : '长内容也能进入 DJ 视觉';
-  setHomeArt('home-daily-art', daily && daily.cover, 280);
-  setHomeArt('home-playlist-art', playlistItem && playlistItem.cover, 280);
-  setHomeArt('home-podcast-art', podcastItem && podcastItem.cover, 280);
-  setHomeArt('home-library-art', (userPlaylists[0] && userPlaylists[0].cover) || (playlistItem && playlistItem.cover), 280);
+  var thirdLabel = document.getElementById('home-third-label');
+  var libTitle = document.getElementById('home-library-title');
+  var libSub = document.getElementById('home-library-sub');
+  if (loggedOutHome) {
+    if (dailyTitle) dailyTitle.textContent = '登录同步歌单';
+    if (dailySub) dailySub.textContent = '同步网易云、QQ 音乐歌单与红心';
+    if (plTitle) plTitle.textContent = '搜索一首歌';
+    if (plSub) plSub.textContent = '输入歌名或歌手，结果会优先原唱';
+    if (thirdLabel) thirdLabel.textContent = 'Local';
+    if (podTitle) podTitle.textContent = '导入本地音乐';
+    if (podSub) podSub.textContent = '本地文件也能进入可视化舞台';
+    if (libTitle) libTitle.textContent = '了解怎么使用';
+    if (libSub) libSub.textContent = '用 3 步看懂播放器和视觉舞台';
+    setHomeArt('home-daily-art', '', 280);
+    setHomeArt('home-playlist-art', '', 280);
+    setHomeArt('home-podcast-art', '', 280);
+    setHomeArt('home-library-art', '', 280);
+  } else {
+    if (dailyTitle) dailyTitle.textContent = daily ? '每日推荐' : '今日推荐';
+    if (dailySub) dailySub.textContent = daily ? (homeDiscoverState.songs.length + ' 首 · 从 ' + (daily.name || '第一首') + ' 开始') : '登录后同步你的今日歌曲';
+    if (plTitle) plTitle.textContent = playlistItem ? playlistItem.name : '推荐歌单';
+    if (plSub) plSub.textContent = playlistItem ? ((playlistItem.trackCount || 0) + ' 首' + (playlistItem.creator ? ' · ' + playlistItem.creator : '')) : '从一张歌单开始';
+    if (thirdLabel) thirdLabel.textContent = 'Radio';
+    if (podTitle) podTitle.textContent = podcastItem ? podcastItem.name : '热门播客';
+    if (podSub) podSub.textContent = podcastItem ? (podcastItem.djName || podcastItem.category || 'Podcast') : '长内容也能进入 DJ 视觉';
+    if (libTitle) libTitle.textContent = '我的歌单';
+    if (libSub) libSub.textContent = '登录后同步网易云与 QQ 音乐';
+    setHomeArt('home-daily-art', daily && daily.cover, 280);
+    setHomeArt('home-playlist-art', playlistItem && playlistItem.cover, 280);
+    setHomeArt('home-podcast-art', podcastItem && podcastItem.cover, 280);
+    setHomeArt('home-library-art', (userPlaylists[0] && userPlaylists[0].cover) || (playlistItem && playlistItem.cover), 280);
+  }
   renderHomeTiles();
 }
 async function loadHomeDiscover(force) {
@@ -10371,9 +10420,11 @@ async function loadHomeDiscover(force) {
   try {
     var data = await apiJson('/api/discover/home?t=' + Date.now());
     if (token !== homeDiscoverToken) return;
-    homeDiscoverState.songs = (data && data.dailySongs || []).map(cloneSong);
-    homeDiscoverState.playlists = data && data.playlists || [];
-    homeDiscoverState.podcasts = data && data.podcasts || [];
+    homeDiscoverState.loggedIn = !!(data && data.loggedIn);
+    homeDiscoverState.mode = data && data.mode || (homeDiscoverState.loggedIn ? 'member' : 'starter');
+    homeDiscoverState.songs = homeDiscoverState.loggedIn ? (data && data.dailySongs || []).map(cloneSong) : [];
+    homeDiscoverState.playlists = homeDiscoverState.loggedIn ? (data && data.playlists || []) : [];
+    homeDiscoverState.podcasts = homeDiscoverState.loggedIn ? (data && data.podcasts || []) : [];
     homeDiscoverState.loaded = true;
   } catch (e) {
     console.warn('home discover failed:', e);
@@ -10412,8 +10463,19 @@ function updateEmptyHomeVisibility(opts) {
   if (!show) setHomeControlsLocked(false);
   if (show) {
     setPeek(document.getElementById('search-area'), true, 'search');
-    renderHomeDiscover();
-    loadHomeDiscover(!!opts.forceLoad);
+    if (!hasAnyPlatformLogin()) {
+      homeDiscoverState.loading = false;
+      homeDiscoverState.loaded = true;
+      homeDiscoverState.loggedIn = false;
+      homeDiscoverState.mode = 'starter';
+      homeDiscoverState.songs = [];
+      homeDiscoverState.playlists = [];
+      homeDiscoverState.podcasts = [];
+      renderHomeDiscover();
+    } else {
+      renderHomeDiscover();
+      loadHomeDiscover(!!opts.forceLoad);
+    }
   }
   return show;
 }
@@ -10435,10 +10497,30 @@ function runHomeSearch(query, mode) {
   else if (searchMode === 'podcast') loadPodcastHot();
   else renderSearchHistory();
 }
+function skipLoginAndFocusSearch() {
+  closeLoginModal();
+  setTimeout(function(){ runHomeSearch(''); }, 180);
+}
+function openHomeLocalImport() {
+  homeForcedOpen = false;
+  homeSuppressed = false;
+  setHomeControlsLocked(false);
+  updateEmptyHomeVisibility();
+  var input = document.getElementById('file-input');
+  if (input) input.click();
+}
+function openHomeProductGuide() {
+  closeLoginModal();
+  setTimeout(function(){ startVisualGuide({ manual: true, source: 'home' }); }, 160);
+}
 function playHomeDaily() {
   homeForcedOpen = false;
   homeSuppressed = false;
   setHomeControlsLocked(false);
+  if (!hasAnyPlatformLogin() && !homeDiscoverState.loggedIn) {
+    showLoginModal({ source: 'home-daily' });
+    return;
+  }
   if (!homeDiscoverState.songs.length) {
     runHomeSearch('每日推荐');
     return;
@@ -10462,6 +10544,10 @@ function openHomePlaylist(index) {
   homeForcedOpen = false;
   homeSuppressed = false;
   setHomeControlsLocked(false);
+  if (!hasAnyPlatformLogin() && !homeDiscoverState.loggedIn) {
+    runHomeSearch('');
+    return;
+  }
   var item = homeDiscoverState.playlists[index];
   if (!item || !item.id) {
     openHomeLibrary();
@@ -10481,7 +10567,18 @@ function openHomePodcast(index) {
   }
   loadPodcastRadioIntoQueue(item.id, true, item.name || '');
 }
+function openHomeThirdCard() {
+  if (!hasAnyPlatformLogin() && !homeDiscoverState.loggedIn) {
+    openHomeLocalImport();
+    return;
+  }
+  openHomePodcast(0);
+}
 function openHomeLibrary() {
+  if (!hasAnyPlatformLogin() && !homeDiscoverState.loggedIn) {
+    openHomeProductGuide();
+    return;
+  }
   homeSuppressed = false;
   setHomeControlsLocked(false);
   switchPlaylistTab('playlists');
@@ -10519,6 +10616,9 @@ function handleHomeTileClick(index) {
   var item = row && row._homeTiles && row._homeTiles[index];
   if (!item) return;
   if (item.kind === 'song') playHomeSong(item.index);
+  else if (item.kind === 'login') showLoginModal({ source: 'home-tile' });
+  else if (item.kind === 'local') openHomeLocalImport();
+  else if (item.kind === 'guide') openHomeProductGuide();
   else if (item.kind === 'playlist') openHomePlaylist(item.index);
   else if (item.kind === 'podcast') openHomePodcast(item.index);
   else if (item.kind === 'podcastSearch') { setSearchMode('podcast'); loadPodcastHot(); }
@@ -13803,6 +13903,29 @@ function setCamMode(m) {
 // ============================================================
 //  更新提示预览
 // ============================================================
+function formatUpdateBytes(bytes) {
+  bytes = Number(bytes) || 0;
+  if (bytes >= 1024 * 1024 * 1024) return (bytes / (1024 * 1024 * 1024)).toFixed(2).replace(/\.00$/, '') + ' GB';
+  if (bytes >= 1024 * 1024) return (bytes / (1024 * 1024)).toFixed(1).replace(/\.0$/, '') + ' MB';
+  if (bytes >= 1024) return Math.round(bytes / 1024) + ' KB';
+  return bytes + ' B';
+}
+function formatUpdateSpeed(bytesPerSecond) {
+  bytesPerSecond = Number(bytesPerSecond) || 0;
+  return bytesPerSecond > 0 ? (formatUpdateBytes(bytesPerSecond) + '/s') : '';
+}
+function updateProgressDetailText() {
+  var parts = [];
+  if (updatePreviewState.received > 0) {
+    parts.push(updatePreviewState.total > 0
+      ? (formatUpdateBytes(updatePreviewState.received) + ' / ' + formatUpdateBytes(updatePreviewState.total))
+      : ('已下载 ' + formatUpdateBytes(updatePreviewState.received)));
+  }
+  var speed = formatUpdateSpeed(updatePreviewState.speedBps);
+  if (speed) parts.push(speed);
+  if (updatePreviewState.etaSeconds > 0 && updatePreviewState.etaSeconds < 3600) parts.push('约 ' + updatePreviewState.etaSeconds + ' 秒');
+  return parts.join(' · ');
+}
 function initUpdatePreview() {
   renderUpdatePreviewPanel();
   setUpdatePreviewVisible(true);
@@ -13851,6 +13974,8 @@ function applyLatestUpdateInfo(data) {
   updatePreviewState.updateAvailable = !!data.updateAvailable;
   updatePreviewState.releaseUrl = release.htmlUrl || data.htmlUrl || '';
   updatePreviewState.downloadUrl = release.downloadUrl || data.downloadUrl || '';
+  updatePreviewState.patchAvailable = !!(release.patchAvailable && release.patch && release.patch.downloadUrl);
+  updatePreviewState.patchUrl = updatePreviewState.patchAvailable ? release.patch.downloadUrl : '';
   updatePreviewState.hero = release.summary || (updatePreviewState.updateAvailable ? '发现新版本，建议更新。' : '当前版本，更新检测已就绪。');
   if (Array.isArray(release.notes) && release.notes.length) {
     updatePreviewState.notes = release.notes.slice(0, 4);
@@ -13908,6 +14033,7 @@ function syncUpdatePreviewStateClass() {
   var isDownloading = updatePreviewState.status === 'downloading';
   var isReady = updatePreviewState.status === 'ready';
   var isOpening = updatePreviewState.status === 'opening';
+  var isPatch = updatePreviewState.mode === 'patch';
   if (entry) {
     entry.classList.toggle('downloading', isDownloading || isOpening);
     entry.classList.toggle('ready', isReady);
@@ -13918,16 +14044,24 @@ function syncUpdatePreviewStateClass() {
   var canDownloadUpdate = updatePreviewState.configured && updatePreviewState.updateAvailable && updatePreviewState.downloadUrl;
   var canOpenRelease = updatePreviewState.configured && updatePreviewState.updateAvailable && !updatePreviewState.downloadUrl && updatePreviewState.releaseUrl;
   if (label) {
-    if (isDownloading) label.textContent = '正在下载 ' + Math.round(updatePreviewState.progress) + '%';
+    if (isDownloading) label.textContent = (isPatch ? '快速补丁 ' : '正在下载 ') + Math.round(updatePreviewState.progress) + '%';
     else if (isOpening) label.textContent = '正在打开安装包';
+    else if (isReady && isPatch && updatePreviewState.restartRequired) label.textContent = '重启生效';
+    else if (isReady && isPatch) label.textContent = '补丁已应用';
     else if (isReady && updatePreviewState.installerOpened) label.textContent = '安装包已打开';
     else if (isReady && updatePreviewState.installerPath) label.textContent = '打开安装包';
     else if (isReady) label.textContent = updatePreviewState.configured ? '打开安装包' : '预览完成';
-    else label.textContent = (canDownloadUpdate || canOpenRelease) ? '立即更新' : '立即更新';
+    else label.textContent = updatePreviewState.patchAvailable ? '安装快速补丁' : ((canDownloadUpdate || canOpenRelease) ? '下载完整安装包' : '立即更新');
   }
   if (btn) btn.disabled = false;
   var foot = document.getElementById('update-footnote');
-  if (foot) foot.textContent = isReady ? '预览完成。正式版本会在这里调用重启安装。' : '预览版只演示更新手感，不会真的下载安装。';
+  if (foot) {
+    if (isDownloading) foot.textContent = (updatePreviewState.message || (isPatch ? '正在下载快速补丁' : '正在下载完整安装包')) + (updateProgressDetailText() ? ' · ' + updateProgressDetailText() : '');
+    else if (isReady && isPatch) foot.textContent = updatePreviewState.restartRequired ? '快速补丁已应用，重启 Mineradio 后生效。' : '快速补丁已应用。';
+    else if (isReady) foot.textContent = '安装包已准备好，按提示安装即可。';
+    else if (updatePreviewState.patchAvailable) foot.textContent = '优先使用轻量补丁，只更新缺失或变更的资源文件；不适用时可下载完整安装包。';
+    else foot.textContent = updatePreviewState.updateAvailable ? '没有可用快速补丁时会下载完整安装包。' : '当前版本已是最新。';
+  }
 }
 
 function updateUpdatePreviewProgress(progress) {
@@ -13998,9 +14132,15 @@ async function startRealUpdateDownload() {
   if (updatePreviewState.pollTimer) clearInterval(updatePreviewState.pollTimer);
   updatePreviewState.status = 'downloading';
   updatePreviewState.progress = 0;
+  updatePreviewState.mode = 'installer';
   updatePreviewState.downloadJobId = '';
   updatePreviewState.installerPath = '';
   updatePreviewState.installerOpened = false;
+  updatePreviewState.received = 0;
+  updatePreviewState.total = 0;
+  updatePreviewState.speedBps = 0;
+  updatePreviewState.etaSeconds = 0;
+  updatePreviewState.message = '正在下载完整安装包';
   updateUpdatePreviewProgress(0);
   try {
     var job = await apiJson('/api/update/download', { method: 'POST' });
@@ -14014,6 +14154,41 @@ async function startRealUpdateDownload() {
     updatePreviewState.status = 'idle';
     updateUpdatePreviewProgress(0);
     showToast('更新下载启动失败');
+  }
+}
+async function startRealUpdatePatch() {
+  if (updatePreviewState.status === 'downloading' || updatePreviewState.status === 'opening') return;
+  if (updatePreviewState.status === 'ready' && updatePreviewState.mode === 'patch') {
+    restartForAppliedPatch();
+    return;
+  }
+  if (updatePreviewState.timer) clearInterval(updatePreviewState.timer);
+  if (updatePreviewState.pollTimer) clearInterval(updatePreviewState.pollTimer);
+  updatePreviewState.status = 'downloading';
+  updatePreviewState.mode = 'patch';
+  updatePreviewState.progress = 0;
+  updatePreviewState.patchJobId = '';
+  updatePreviewState.installerPath = '';
+  updatePreviewState.installerOpened = false;
+  updatePreviewState.received = 0;
+  updatePreviewState.total = 0;
+  updatePreviewState.speedBps = 0;
+  updatePreviewState.etaSeconds = 0;
+  updatePreviewState.message = '正在下载快速补丁';
+  updateUpdatePreviewProgress(0);
+  try {
+    var job = await apiJson('/api/update/patch', { method: 'POST' });
+    if (!job || job.ok === false || !job.id) throw new Error((job && job.error) || 'UPDATE_PATCH_START_FAILED');
+    updatePreviewState.patchJobId = job.id;
+    applyUpdateDownloadJob(job);
+    updatePreviewState.pollTimer = setInterval(function(){
+      pollUpdatePatchJob(job.id);
+    }, 320);
+  } catch (e) {
+    updatePreviewState.status = 'idle';
+    updateUpdatePreviewProgress(0);
+    showToast('快速补丁不可用，改用完整安装包');
+    startRealUpdateDownload();
   }
 }
 
@@ -14030,6 +14205,19 @@ async function pollUpdateDownloadJob(id) {
     showToast('更新下载状态读取失败');
   }
 }
+async function pollUpdatePatchJob(id) {
+  if (!id) return;
+  try {
+    var job = await apiJson('/api/update/patch/status?id=' + encodeURIComponent(id) + '&t=' + Date.now());
+    applyUpdateDownloadJob(job);
+  } catch (e) {
+    if (updatePreviewState.pollTimer) clearInterval(updatePreviewState.pollTimer);
+    updatePreviewState.pollTimer = null;
+    updatePreviewState.status = 'idle';
+    updateUpdatePreviewProgress(0);
+    showToast('快速补丁状态读取失败');
+  }
+}
 
 function applyUpdateDownloadJob(job) {
   if (!job || job.ok === false || job.status === 'error') {
@@ -14041,6 +14229,14 @@ function applyUpdateDownloadJob(job) {
     return;
   }
   if (job.id) updatePreviewState.downloadJobId = job.id;
+  updatePreviewState.mode = job.mode || updatePreviewState.mode || 'installer';
+  if (updatePreviewState.mode === 'patch') updatePreviewState.patchJobId = job.id || updatePreviewState.patchJobId;
+  updatePreviewState.received = Number(job.received || 0);
+  updatePreviewState.total = Number(job.total || 0);
+  updatePreviewState.speedBps = Number(job.speedBps || 0);
+  updatePreviewState.etaSeconds = Number(job.etaSeconds || 0);
+  updatePreviewState.message = job.message || '';
+  updatePreviewState.restartRequired = !!job.restartRequired;
   if (job.status === 'downloading' || job.status === 'queued') {
     updatePreviewState.status = 'downloading';
     updateUpdatePreviewProgress(job.progress || 0);
@@ -14053,8 +14249,22 @@ function applyUpdateDownloadJob(job) {
     updatePreviewState.installerPath = job.filePath || '';
     updateUpdatePreviewProgress(100);
     pulseUpdateReady();
-    if (updatePreviewState.installerPath) openDownloadedUpdateInstaller(updatePreviewState.installerPath);
+    if (updatePreviewState.mode === 'patch') {
+      showToast(updatePreviewState.restartRequired ? '快速补丁已应用，重启后生效' : '快速补丁已应用');
+    } else if (updatePreviewState.installerPath) {
+      openDownloadedUpdateInstaller(updatePreviewState.installerPath);
+    }
   }
+}
+async function restartForAppliedPatch() {
+  if (!updatePreviewState.restartRequired) return;
+  try {
+    if (window.desktopWindow && typeof window.desktopWindow.restartApp === 'function') {
+      await window.desktopWindow.restartApp();
+      return;
+    }
+  } catch (e) {}
+  showToast('请手动重启 Mineradio 让补丁生效');
 }
 
 async function openDownloadedUpdateInstaller(filePath) {
@@ -14083,8 +14293,14 @@ async function openDownloadedUpdateInstaller(filePath) {
 
 function startUpdatePreviewDownload() {
   var releaseLink = updatePreviewState.downloadUrl || updatePreviewState.releaseUrl;
+  if (updatePreviewState.status === 'ready' && updatePreviewState.mode === 'patch') {
+    restartForAppliedPatch();
+    return;
+  }
   if (updatePreviewState.configured && updatePreviewState.updateAvailable) {
-    if (updatePreviewState.downloadUrl) {
+    if (updatePreviewState.patchAvailable && updatePreviewState.patchUrl) {
+      startRealUpdatePatch();
+    } else if (updatePreviewState.downloadUrl) {
       startRealUpdateDownload();
     } else if (releaseLink) {
       window.open(releaseLink, '_blank');
@@ -14267,7 +14483,10 @@ async function refreshLoginStatus(force) {
     if (loginStatus.loggedIn && !hasPlatformLogin(activeAccountProvider)) activeAccountProvider = 'netease';
     renderUserBtn();
     if (info && info.loggedIn) {
+      homeDiscoverState.loaded = false;
+      homeDiscoverState.loggedIn = true;
       refreshUserPlaylists(true);
+      loadHomeDiscover(true);
       syncLikeStatusForSongs(playQueue.concat(playlist || []));
     } else {
       userPlaylists = qqPlaylists.slice();
@@ -14293,6 +14512,9 @@ async function refreshQQLoginStatus() {
       qqPlaylists = [];
       userPlaylists = userPlaylists.filter(function(pl){ return pl.provider !== 'qq'; });
     } else if (!userPlaylists.some(function(pl){ return pl && pl.provider === 'qq'; })) {
+      homeDiscoverState.loaded = false;
+      homeDiscoverState.loggedIn = true;
+      loadHomeDiscover(true);
       refreshUserPlaylists(true);
     }
     if (!hasPlatformLogin(activeAccountProvider)) activeAccountProvider = firstLoggedProvider();
@@ -15265,48 +15487,36 @@ var visualGuideSteps = [
   {
     target: 'stage',
     kicker: '01 / Welcome',
-    title: '先看见 Mineradio 的舞台',
-    body: '第一次打开会先给你一个视觉入口：粒子、封面、歌词和歌单架都会围绕播放状态展开。'
+    title: 'Mineradio 是用来听歌的视觉播放器',
+    body: '它不是单纯歌单页：搜索或导入一首歌后，封面、歌词、粒子和镜头会跟着音乐一起动。'
   },
   {
     selector: '#search-box',
-    kicker: '02 / Start',
-    title: '先搜索一首歌',
-    body: '输入歌名、歌手或关键词，点击结果即可播放。默认模式只保留最短上手路径。'
+    kicker: '02 / Play',
+    title: '从搜索或导入开始',
+    body: '输入歌名、歌手或关键词即可播放；如果有本地音乐，也可以用导入入口直接放进舞台。'
   },
   {
     selector: '#bottom-bar',
-    kicker: '03 / Player',
-    title: '底部就是主控制台',
-    body: '播放、切歌、拖动进度和查看当前歌曲都在这里完成。复杂控制会留给 DIY 玩家模式。'
+    kicker: '03 / Control',
+    title: '播放以后看底部控制台',
+    body: '播放、切歌、进度、队列和歌词都集中在底部，先把它当作一个正常播放器使用就可以。'
   },
   {
-    selector: '#mini-queue-btn',
-    kicker: '04 / Listen',
-    title: '队列和歌词保留在默认模式',
-    body: '队列按钮管理接下来播放的歌，旁边的“词”按钮控制舞台歌词效果。'
-  },
-  {
-    selector: '#playlist-panel',
-    kicker: '05 / Library',
-    title: '左侧也可以打开歌单',
-    body: '靠近左侧边缘会唤出歌单和队列面板，可以浏览个人歌单、播客和当前播放列表。'
-  },
-  {
-    selector: '#immersive-btn',
-    kicker: '06 / Visual',
-    title: '沉浸式是快速入口',
-    body: '想专注看节奏、粒子和歌词效果时，直接进入沉浸式；移动到底部会唤出控制台。'
+    selector: '#user-btn',
+    kicker: '04 / Account',
+    title: '登录只是为了同步你的音乐库',
+    body: '登录后会同步歌单、红心和播客；不登录也可以搜索和播放，不会强制卡住你。'
   },
   {
     target: 'shelf',
-    kicker: '07 / Shelf',
-    title: '右侧是 3D 歌单架',
-    body: '光标移到右侧时，歌单架会半透明浮现并吸引粒子聚焦过去。点击卡片可以打开歌单或队列内容。'
+    kicker: '05 / Visual',
+    title: '进阶视觉都放在舞台周围',
+    body: '右侧 3D 歌单架和 DIY 玩家模式是进阶入口；先播放一首歌，再慢慢调视觉效果。'
   },
   {
     selector: '#diy-mode-btn',
-    kicker: '08 / DIY',
+    kicker: '06 / DIY',
     title: '高级功能在 DIY 玩家模式',
     body: '视觉控制台、上传/封面、自定义歌词、音质和更多面板都会在这里展开。'
   }
@@ -15360,6 +15570,7 @@ function markVisualGuideSeen() {
 }
 function maybeRunStartupVisualGuide(source) {
   if (visualGuideWasSeen() || visualGuideActive || immersiveMode || playing) return false;
+  if (source !== 'manual' && !hasAnyPlatformLogin()) return false;
   setTimeout(function(){
     if (!visualGuideWasSeen() || source === 'manual') startVisualGuide({ source: source || 'startup' });
   }, source === 'splash' ? 620 : 320);
@@ -16424,7 +16635,8 @@ function dismissSplash() {
     if (s && s.parentNode) s.style.display = 'none';
     var homeShown = updateEmptyHomeVisibility({ forceLoad: true });
     var guideStarted = maybeRunStartupVisualGuide('splash');
-    if (!guideStarted && !homeShown) maybeRunStartupLoginGuide('splash');
+    if (!guideStarted && !hasAnyPlatformLogin()) maybeRunStartupLoginGuide('splash');
+    else if (!guideStarted && !homeShown) maybeRunStartupLoginGuide('splash');
     setTimeout(maybeShowUploadTipOnce, 1800);
   }, 1180);
 }
@@ -16555,7 +16767,8 @@ if (startupLoginStatusPromise && startupLoginStatusPromise.then) {
     }
     if (document.body.classList.contains('splash-active')) return;
     var homeShown = updateEmptyHomeVisibility({ forceLoad: hasAnyPlatformLogin() });
-    if (!homeShown) maybeRunStartupLoginGuide('status');
+    if (!hasAnyPlatformLogin()) maybeRunStartupLoginGuide('status');
+    else if (!homeShown) maybeRunStartupLoginGuide('status');
   });
 }
 var collectNameInput = document.getElementById('collect-new-name');
