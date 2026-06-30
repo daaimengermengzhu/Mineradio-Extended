@@ -28,6 +28,7 @@ backups/
 .env.*
 
 # Local development noise
+agent_memory/
 .DS_Store
 Thumbs.db
 desktop.ini
