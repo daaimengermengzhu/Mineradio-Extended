@@ -16954,8 +16954,17 @@ function isCloudSong(song) {
   if (song.type === 'local' || song.type === 'podcast' || song.source === 'podcast') return false;
   return !song.provider || song.provider === 'netease' || song.source === 'netease' || song.type === 'song';
 }
+function songLikeKey(song) {
+  if (!song) return '';
+  var provider = songProviderKey(song);
+  var id = provider === 'kugou'
+    ? (song.hash || song.albumAudioId || song.album_audio_id || song.id || '')
+    : (song.id || '');
+  return id ? (provider + ':' + String(id).toLowerCase()) : '';
+}
 function isSongLiked(song) {
-  return !!(song && song.id && likedSongMap[String(song.id)]);
+  var key = songLikeKey(song);
+  return !!(key && likedSongMap[key]);
 }
 function ensureLoggedInForAction() {
   if (loginStatus.loggedIn) return true;
@@ -16966,7 +16975,8 @@ function ensureLoggedInForAction() {
 function updateLikeButtons(song) {
   song = song || currentCoverSong();
   var liked = isSongLiked(song);
-  var busy = !!(song && song.id && likeBusyMap[String(song.id)]);
+  var likeKey = songLikeKey(song);
+  var busy = !!(likeKey && likeBusyMap[likeKey]);
   var btn = document.getElementById('heart-btn');
   if (btn) {
     btn.classList.toggle('liked', liked);
@@ -16996,20 +17006,40 @@ function songActionHtml(kind, source, index, song) {
   return '<button class="song-action-btn" title="收藏到歌单" onclick="event.stopPropagation();collect' + source + '(' + index + ')">' + playlistPlusIconSvg() + '</button>';
 }
 function syncLikeStatusForSongs(songs) {
-  if (!loginStatus.loggedIn || !songs || !songs.length) return;
-  var ids = songs.filter(isCloudSong).map(function(s){ return String(s.id); });
-  if (!ids.length) return;
+  songs = Array.isArray(songs) ? songs : [];
+  if (!songs.length) return;
   var token = ++likeStatusToken;
-  apiJson('/api/song/like/check?ids=' + encodeURIComponent(ids.join(','))).then(function(r){
-    if (token < likeStatusToken - 3 || !r || !r.liked) return;
-    Object.keys(r.liked).forEach(function(id){ likedSongMap[String(id)] = !!r.liked[id]; });
+  var tasks = [];
+  var neteaseSongs = songs.filter(function(s){ return isCloudSong(s) && songProviderKey(s) === 'netease'; });
+  var kugouSongs = songs.filter(function(s){ return songProviderKey(s) === 'kugou' && songLikeKey(s); });
+  if (loginStatus.loggedIn && neteaseSongs.length) {
+    var ids = neteaseSongs.map(function(s){ return String(s.id); });
+    tasks.push(apiJson('/api/song/like/check?ids=' + encodeURIComponent(ids.join(','))).then(function(r){
+      if (!r || !r.liked) return;
+      neteaseSongs.forEach(function(song){
+        likedSongMap[songLikeKey(song)] = !!r.liked[String(song.id)];
+      });
+    }));
+  }
+  if (hasPlatformLogin('kugou') && kugouSongs.length) {
+    var kugouIds = kugouSongs.map(function(s){ return String(s.hash || s.albumAudioId || s.album_audio_id || s.id || '').toLowerCase(); });
+    tasks.push(apiJson('/api/kugou/song/like/check?ids=' + encodeURIComponent(kugouIds.join(','))).then(function(r){
+      if (!r || !r.liked) return;
+      kugouSongs.forEach(function(song, index){
+        likedSongMap[songLikeKey(song)] = !!r.liked[kugouIds[index]];
+      });
+    }));
+  }
+  if (!tasks.length) return;
+  Promise.all(tasks).then(function(){
+    if (token < likeStatusToken - 3) return;
     safeRenderQueuePanel('like-status-sync', { scrollCurrent: miniQueueOpen });
     if ($results && $results.classList.contains('show')) refreshSearchResultActionStates();
     updateLikeButtons();
   }).catch(function(err){ console.warn('like check failed:', err); });
 }
 function syncLikeStatusForSong(song) {
-  if (!isCloudSong(song)) { updateLikeButtons(song); return; }
+  if (!isCloudSong(song) && songProviderKey(song) !== 'kugou') { updateLikeButtons(song); return; }
   syncLikeStatusForSongs([song]);
 }
 function isLikedPlaylistContext(id, title, meta) {
@@ -17024,7 +17054,10 @@ function isLikedPlaylistContext(id, title, meta) {
 }
 function markSongsLiked(songs, liked) {
   (songs || []).forEach(function(song){
-    if (isCloudSong(song)) likedSongMap[String(song.id)] = !!liked;
+    if (isCloudSong(song) || songProviderKey(song) === 'kugou') {
+      var key = songLikeKey(song);
+      if (key) likedSongMap[key] = !!liked;
+    }
   });
 }
 function refreshSearchResultActionStates() {
@@ -17038,30 +17071,54 @@ function refreshSearchResultActionStates() {
   });
 }
 async function toggleLikeSong(song) {
-  if (!isCloudSong(song)) {
-    var provider = songProviderKey(song);
-    showToast(provider === 'qq' ? 'QQ 音乐红心同步待登录接口接入' : (provider === 'kugou' ? '酷狗概念版红心同步待接口接入' : '本地文件暂不支持红心同步'));
+  var provider = songProviderKey(song);
+  var providerReady = provider === 'kugou' ? hasPlatformLogin('kugou') : (provider === 'netease' && isCloudSong(song) && loginStatus.loggedIn);
+  if (provider === 'qq') {
+    showToast('QQ 音乐红心同步待登录接口接入');
     return;
   }
-  if (!ensureLoggedInForAction()) return;
-  var id = String(song.id);
-  if (likeBusyMap[id]) return;
-  var next = !likedSongMap[id];
-  likeBusyMap[id] = true;
-  likedSongMap[id] = next;
+  if (provider === 'kugou' && !providerReady) {
+    showToast('登录酷狗概念版后可同步红心');
+    openProviderLogin('kugou');
+    return;
+  }
+  if (provider !== 'kugou' && !isCloudSong(song)) {
+    showToast('本地文件暂不支持红心同步');
+    return;
+  }
+  if (provider === 'netease' && !providerReady && !ensureLoggedInForAction()) return;
+  var id = String(provider === 'kugou' ? (song.hash || song.albumAudioId || song.album_audio_id || song.id || '') : song.id);
+  var likeKey = songLikeKey(song);
+  if (!id || !likeKey || likeBusyMap[likeKey]) return;
+  var next = !likedSongMap[likeKey];
+  likeBusyMap[likeKey] = true;
+  likedSongMap[likeKey] = next;
   updateLikeButtons(song);
   safeRenderQueuePanel('like-toggle-optimistic', { scrollCurrent: miniQueueOpen });
   refreshSearchResultActionStates();
   try {
-    var r = await apiJson('/api/song/like?id=' + encodeURIComponent(id) + '&like=' + encodeURIComponent(String(next)));
+    var r = provider === 'kugou'
+      ? await apiJson('/api/kugou/song/like', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            like: next,
+            hash: song.hash || '',
+            id: song.id || '',
+            name: song.name || '',
+            albumId: song.albumId || song.album_id || '',
+            albumAudioId: song.albumAudioId || song.album_audio_id || ''
+          })
+        })
+      : await apiJson('/api/song/like?id=' + encodeURIComponent(id) + '&like=' + encodeURIComponent(String(next)));
     if (r && r.error) throw new Error(r.error);
-    likedSongMap[id] = next;
+    likedSongMap[likeKey] = next;
     showToast(next ? '已加入红心喜欢' : '已取消红心');
   } catch (err) {
-    likedSongMap[id] = !next;
+    likedSongMap[likeKey] = !next;
     showToast('红心操作失败');
   } finally {
-    delete likeBusyMap[id];
+    delete likeBusyMap[likeKey];
     updateLikeButtons(song);
     safeRenderQueuePanel('like-toggle-final', { scrollCurrent: miniQueueOpen });
     refreshSearchResultActionStates();
