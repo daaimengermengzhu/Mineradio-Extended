@@ -14,6 +14,13 @@ Implemented in `server.js`:
 - `GET /api/kugou/logout`
 - `GET /api/kugou/search?keywords=...&limit=...`
 - `GET /api/kugou/song/url?hash=...&albumId=...&albumAudioId=...&quality=...`
+- `GET /api/kugou/user/playlists`
+- `GET /api/kugou/playlist/tracks?id=...`
+- `GET /api/kugou/lyric?hash=...&albumAudioId=...`
+- `POST /api/kugou/playlist/create`
+- `POST /api/kugou/playlist/add-song`
+- `GET /api/kugou/song/like/check?ids=...`
+- `POST /api/kugou/song/like`
 
 Implemented in `public/index.html`:
 
@@ -24,6 +31,10 @@ Implemented in `public/index.html`:
 - Search mode tab `KG` for KuGou-only search.
 - `All` search now merges Netease, QQ, and KuGou results.
 - KuGou search results are playable through `/api/kugou/song/url`.
+- User playlist panels, playlist detail panels, queue loading, and the 3D playlist shelf can load KuGou playlists.
+- KuGou songs request lyrics through `/api/kugou/lyric` instead of falling back to Netease lyrics.
+- KuGou collect actions write to KuGou playlists, and the collect modal can create a KuGou playlist before adding the current song.
+- KuGou heart actions sync with the writable liked playlist instead of showing a placeholder message.
 
 The QR check route saves `userid` and `token` into the local KuGou cookie file after status `4`, but does not return the token to the frontend response.
 
@@ -49,11 +60,13 @@ The QR check route saves `userid` and `token` into the local KuGou cookie file a
 - KuGou login requests need signed params, including `dfid`, `mid`, `uuid`, `clientver`, and `clienttime`.
 - KuGou Android API requests use the lite signature salt `LnT6xpN3khm36zse0QzvmgTZ3waWdRSA`.
 - KuGou song URL requests also need a `key` generated from `hash`, lite sign-key salt, `appid`, `mid`, and `userid`.
+- KuGou `cloudlist.service` write routes such as `add_list` and `add_song` should follow EchoMusic/KuGouMusicApi and avoid forcing an extra `x-router` header.
 - The local cookie can contain display-only non-ASCII fields such as nickname. Outbound KuGou API `Cookie` headers must only include safe ASCII auth/device fields.
 - `.kugou-cookie` is local private state and must stay ignored by Git.
 - This integration must not bypass VIP, paid music, copyright, region, or platform restrictions.
 
 ## Next Steps
 
-- Add KuGou playlist, lyric, privilege, and account-library routes after search/playback is stable.
+- Add a more trustworthy KuGou VIP/member-detail route if one can be verified.
+- Keep write-route validation conservative because playlist creation, collect, and heart actions modify a real KuGou account.
 - Keep provider logic separate instead of forcing KuGou into existing Netease/QQ branches.
