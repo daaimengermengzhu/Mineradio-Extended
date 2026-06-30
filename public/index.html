@@ -196,8 +196,10 @@ body.empty-home-active.diy-mode #search-area:not(.has-results) #search-mode-tabs
 .tag-source{display:inline-flex;align-items:center;height:16px;padding:0 6px;border-radius:999px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.045);font-size:8.5px;font-weight:800;letter-spacing:.55px;line-height:1;flex-shrink:0}
 .tag-source.netease{color:#ffd8dd;border-color:rgba(217,91,103,.30);background:rgba(217,91,103,.075)}
 .tag-source.qq{color:#f0ffc8;border-color:rgba(191,214,107,.30);background:rgba(191,214,107,.075)}
+.tag-source.kugou{color:#c9ffef;border-color:rgba(92,204,166,.32);background:rgba(92,204,166,.085)}
 .search-result.qq-source:hover{background:rgba(191,214,107,.052)}
 .search-result.netease-source:hover{background:rgba(217,91,103,.045)}
+.search-result.kugou-source:hover{background:rgba(92,204,166,.052)}
 .podcast-result-head{display:flex;align-items:center;gap:10px;padding:11px 13px 9px;border-bottom:1px solid rgba(255,255,255,.04);background:rgba(255,255,255,.025)}
 .podcast-result-head img{width:40px;height:40px;border-radius:7px;object-fit:cover;background:rgba(255,255,255,.05);flex-shrink:0}
 .podcast-back-btn{width:28px;height:28px;border-radius:50%;border:1px solid rgba(255,255,255,.10);background:rgba(255,255,255,.045);color:rgba(255,255,255,.66);cursor:pointer;font-family:inherit;font-size:18px;line-height:1;display:flex;align-items:center;justify-content:center;transition:all .2s}
@@ -1915,6 +1917,7 @@ html.control-glass-svg-ok #visual-guide-btn:hover{
       <button id="search-mode-song" class="active" type="button" onclick="setSearchMode('song')" aria-selected="true">All</button>
       <button id="search-mode-netease" type="button" onclick="setSearchMode('netease')" aria-selected="false">NE</button>
       <button id="search-mode-qq" type="button" onclick="setSearchMode('qq')" aria-selected="false">QQ</button>
+      <button id="search-mode-kugou" type="button" onclick="setSearchMode('kugou')" aria-selected="false">KG</button>
       <button id="search-mode-podcast" type="button" onclick="setSearchMode('podcast')" aria-selected="false">Podcast</button>
     </div>
     <div id="search-results"></div>
@@ -10212,6 +10215,7 @@ function beatMapSongKey(song) {
   if (!song) return '';
   if (song.type === 'local' && song.localKey) return 'local:' + song.localKey;
   if (songProviderKey(song) === 'qq') return 'qq:' + (song.mid || song.songmid || song.id || (song.name + '|' + song.artist));
+  if (songProviderKey(song) === 'kugou') return 'kugou:' + (song.hash || song.albumAudioId || song.album_audio_id || song.id || (song.name + '|' + song.artist));
   if (song.id != null && song.id !== '') return 'song:' + song.id;
   return '';
 }
@@ -10317,16 +10321,29 @@ function normalizeBeatPrefetchState(state) {
   };
 }
 
+function kugouSongUrlApiPath(song, qualityParam) {
+  song = song || {};
+  var hash = song.hash || song.FileHash || song.fileHash || song.id || '';
+  var albumId = song.albumId || song.album_id || '';
+  var albumAudioId = song.albumAudioId || song.album_audio_id || song.mixSongId || song.MixSongID || '';
+  return '/api/kugou/song/url?hash=' + encodeURIComponent(hash) +
+    '&albumId=' + encodeURIComponent(albumId) +
+    '&albumAudioId=' + encodeURIComponent(albumAudioId) +
+    (qualityParam || '');
+}
+
 async function fetchBeatPrefetchAudioUrl(song) {
   if (!song) return null;
-  var isQQ = songProviderKey(song) === 'qq';
+  var provider = songProviderKey(song);
+  var isQQ = provider === 'qq';
+  var isKugou = provider === 'kugou';
   var requestedQuality = normalizePlaybackQuality(playbackQuality);
-  if (!isQQ && requestedQuality === 'jymaster' && !hasProviderSvip('netease', loginStatus)) requestedQuality = 'hires';
+  if (!isQQ && !isKugou && requestedQuality === 'jymaster' && !hasProviderSvip('netease', loginStatus)) requestedQuality = 'hires';
   if (isQQ && qqPlaybackQualityCeiling && (requestedQuality === 'jymaster' || requestedQuality === 'hires' || requestedQuality === 'lossless')) requestedQuality = qqPlaybackQualityCeiling;
   var qualityParam = '&quality=' + encodeURIComponent(requestedQuality);
   var data = isQQ
     ? await apiJson('/api/qq/song/url?mid=' + encodeURIComponent(song.mid || song.songmid || song.id || '') + '&mediaMid=' + encodeURIComponent(song.mediaMid || song.media_mid || '') + qualityParam)
-    : await apiJson('/api/song/url?id=' + encodeURIComponent(song.id) + qualityParam);
+    : (isKugou ? await apiJson(kugouSongUrlApiPath(song, qualityParam)) : await apiJson('/api/song/url?id=' + encodeURIComponent(song.id) + qualityParam));
   if (!data || !data.url || data.trial) return null;
   return '/api/audio?url=' + encodeURIComponent(data.url);
 }
@@ -15207,7 +15224,7 @@ function canReloadCurrentTrackForQuality() {
   if (!audio || !audio.src || audio.paused || audio.ended) return false;
   var song = playQueue[currentIdx];
   if (!song || song.type === 'local' || song.source === 'local') return false;
-  return songProviderKey(song) === 'netease' || songProviderKey(song) === 'qq';
+  return songProviderKey(song) === 'netease' || songProviderKey(song) === 'qq' || songProviderKey(song) === 'kugou';
 }
 function applyPlaybackQualityToCurrentTrack(nextQuality) {
   var label = playbackQualityLabel(nextQuality || playbackQuality);
@@ -16348,6 +16365,7 @@ function songDurationLabel(song) {
 function songSourceLabel(song) {
   if (!song) return '未知';
   if (song.provider === 'qq' || song.source === 'qq' || song.type === 'qq') return 'QQ 音乐';
+  if (song.provider === 'kugou' || song.source === 'kugou' || song.type === 'kugou') return '酷狗概念版';
   if (song.type === 'local') return '本地上传';
   if (song.type === 'podcast' || song.source === 'podcast') return '网易云播客';
   return '网易云音乐';
@@ -17018,7 +17036,8 @@ function refreshSearchResultActionStates() {
 }
 async function toggleLikeSong(song) {
   if (!isCloudSong(song)) {
-    showToast(songProviderKey(song) === 'qq' ? 'QQ 音乐红心同步待登录接口接入' : '本地文件暂不支持红心同步');
+    var provider = songProviderKey(song);
+    showToast(provider === 'qq' ? 'QQ 音乐红心同步待登录接口接入' : (provider === 'kugou' ? '酷狗概念版红心同步待接口接入' : '本地文件暂不支持红心同步'));
     return;
   }
   if (!ensureLoggedInForAction()) return;
@@ -17051,7 +17070,8 @@ function toggleLikeQueueIndex(i) { if (playQueue[i]) toggleLikeSong(playQueue[i]
 function toggleLikeDetailSong(song) { toggleLikeSong(song); }
 function openCollectModal(song) {
   if (!isCloudSong(song)) {
-    showToast(songProviderKey(song) === 'qq' ? 'QQ 音乐收藏到歌单待登录接口接入' : '本地文件暂不支持收藏到网易云歌单');
+    var provider = songProviderKey(song);
+    showToast(provider === 'qq' ? 'QQ 音乐收藏到歌单待登录接口接入' : (provider === 'kugou' ? '酷狗概念版收藏到歌单待接口接入' : '本地文件暂不支持收藏到网易云歌单'));
     return;
   }
   if (!ensureLoggedInForAction()) return;
@@ -17278,6 +17298,7 @@ function updateSearchModeTabs() {
   var songBtn = document.getElementById('search-mode-song');
   var neteaseBtn = document.getElementById('search-mode-netease');
   var qqBtn = document.getElementById('search-mode-qq');
+  var kugouBtn = document.getElementById('search-mode-kugou');
   var podcastBtn = document.getElementById('search-mode-podcast');
   if (songBtn) {
     songBtn.classList.toggle('active', searchMode === 'song');
@@ -17291,6 +17312,10 @@ function updateSearchModeTabs() {
     qqBtn.classList.toggle('active', searchMode === 'qq');
     qqBtn.setAttribute('aria-selected', searchMode === 'qq' ? 'true' : 'false');
   }
+  if (kugouBtn) {
+    kugouBtn.classList.toggle('active', searchMode === 'kugou');
+    kugouBtn.setAttribute('aria-selected', searchMode === 'kugou' ? 'true' : 'false');
+  }
   if (podcastBtn) {
     podcastBtn.classList.toggle('active', searchMode === 'podcast');
     podcastBtn.setAttribute('aria-selected', searchMode === 'podcast' ? 'true' : 'false');
@@ -17298,12 +17323,12 @@ function updateSearchModeTabs() {
   if ($input) {
     $input.placeholder = searchMode === 'podcast'
       ? '搜索播客、电台...'
-      : (searchMode === 'qq' ? '搜索 QQ 音乐...' : (searchMode === 'netease' ? '搜索网易云音乐...' : '搜索歌曲、歌手...'));
+      : (searchMode === 'qq' ? '搜索 QQ 音乐...' : (searchMode === 'kugou' ? '搜索酷狗概念版...' : (searchMode === 'netease' ? '搜索网易云音乐...' : '搜索歌曲、歌手...')));
   }
   requestAnimationFrame(updateSearchPillGlassDisplacementMap);
 }
 function setSearchMode(mode) {
-  mode = (mode === 'podcast' || mode === 'netease' || mode === 'qq') ? mode : 'song';
+  mode = (mode === 'podcast' || mode === 'netease' || mode === 'qq' || mode === 'kugou') ? mode : 'song';
   if (searchMode === mode) return;
   searchMode = mode;
   updateSearchModeTabs();
@@ -17517,12 +17542,13 @@ document.addEventListener('click', function(e){
 updateSearchModeTabs();
 
 function songProviderKey(song) {
+  if (song && (song.provider === 'kugou' || song.source === 'kugou' || song.type === 'kugou')) return 'kugou';
   if (song && (song.provider === 'qq' || song.source === 'qq' || song.type === 'qq')) return 'qq';
   return 'netease';
 }
 function songSourceTagHtml(song) {
   var key = songProviderKey(song);
-  var label = key === 'qq' ? 'QQ' : 'NE';
+  var label = key === 'qq' ? 'QQ' : (key === 'kugou' ? 'KG' : 'NE');
   return '<span class="tag-source ' + key + '">' + label + '</span>';
 }
 function searchResultMetaText(song) {
@@ -17530,6 +17556,7 @@ function searchResultMetaText(song) {
   if (song.artist) bits.push(song.artist);
   if (song.album) bits.push(song.album);
   if (songProviderKey(song) === 'qq' && !song.playable) bits.push('QQ 播放需会话/授权');
+  if (songProviderKey(song) === 'kugou' && !song.playable) bits.push('酷狗播放需会话/授权');
   return bits.join('  ·  ') || songSourceLabel(song);
 }
 function searchResultMetaHtml(song, index) {
@@ -17538,6 +17565,7 @@ function searchResultMetaHtml(song, index) {
   var bits = [];
   if (song.album) bits.push(song.album);
   if (songProviderKey(song) === 'qq' && !song.playable) bits.push('QQ 播放需会话/授权');
+  if (songProviderKey(song) === 'kugou' && !song.playable) bits.push('酷狗播放需会话/授权');
   var tail = bits.length ? (' · ' + escHtml(bits.join('  ·  '))) : '';
   if (!artist) return escHtml(searchResultMetaText(song));
   return '<button class="search-artist-link" type="button" onclick="event.stopPropagation();openSearchResultArtist(' + index + ')">' + escHtml(artist) + '</button>' + tail;
@@ -17631,6 +17659,7 @@ function scoreSongSearchResult(song, q, sourceIndex) {
   if (/周杰伦|周杰倫|jay\s*chou/i.test(String(q || '')) && !artistMentioned) score -= 28;
   if (album && nq && (album.indexOf(nq) >= 0 || nq.indexOf(album) >= 0)) score += 8;
   if (songProviderKey(song) === 'qq') score += searchIntentPrefersQQ(q) ? 48 : 4;
+  if (songProviderKey(song) === 'kugou') score += 5;
   if (song && song.playable === false) score -= 12;
   if (!qAsksDerivative) {
     if (derivative) score -= artistMentioned ? 76 : 96;
@@ -17640,12 +17669,12 @@ function scoreSongSearchResult(song, q, sourceIndex) {
   score -= (sourceIndex || 0) * 0.75;
   return score;
 }
-function mergeSongSearchResults(neteaseSongs, qqSongs, limit, q) {
+function mergeSongSearchResults(neteaseSongs, qqSongs, kugouSongs, limit, q) {
   var out = [];
   var seen = {};
   function push(song, sourceIndex) {
     if (!song || !song.name) return;
-    var key = songProviderKey(song) + ':' + (song.mid || song.id || (song.name + '|' + song.artist));
+    var key = songProviderKey(song) + ':' + (song.hash || song.albumAudioId || song.album_audio_id || song.mid || song.id || (song.name + '|' + song.artist));
     if (seen[key]) return;
     seen[key] = true;
     song._searchScore = scoreSongSearchResult(song, q, sourceIndex);
@@ -17653,26 +17682,34 @@ function mergeSongSearchResults(neteaseSongs, qqSongs, limit, q) {
   }
   (neteaseSongs || []).forEach(function(song, i){ push(song, i); });
   (qqSongs || []).forEach(function(song, i){ push(song, i); });
+  (kugouSongs || []).forEach(function(song, i){ push(song, i); });
   out.sort(function(a, b){ return (b._searchScore || 0) - (a._searchScore || 0); });
   return out.slice(0, limit);
 }
 async function fetchMusicSearchResults(q, mode) {
   if (mode === 'qq') {
     var qqOnly = await apiJson('/api/qq/search?keywords=' + encodeURIComponent(q) + '&limit=12');
-    return mergeSongSearchResults([], qqOnly.songs || [], 18, q);
+    return mergeSongSearchResults([], qqOnly.songs || [], [], 18, q);
+  }
+  if (mode === 'kugou') {
+    var kgOnly = await apiJson('/api/kugou/search?keywords=' + encodeURIComponent(q) + '&limit=14');
+    return mergeSongSearchResults([], [], kgOnly.songs || [], 18, q);
   }
   if (mode === 'netease') {
     var neOnly = await apiJson('/api/search?keywords=' + encodeURIComponent(q) + '&limit=18');
-    return mergeSongSearchResults(neOnly.songs || [], [], 18, q);
+    return mergeSongSearchResults(neOnly.songs || [], [], [], 18, q);
   }
   var result = await Promise.allSettled([
     apiJson('/api/search?keywords=' + encodeURIComponent(q) + '&limit=14'),
-    apiJson('/api/qq/search?keywords=' + encodeURIComponent(q) + '&limit=12')
+    apiJson('/api/qq/search?keywords=' + encodeURIComponent(q) + '&limit=12'),
+    apiJson('/api/kugou/search?keywords=' + encodeURIComponent(q) + '&limit=12')
   ]);
   var neteaseSongs = result[0].status === 'fulfilled' ? ((result[0].value && result[0].value.songs) || []) : [];
   var qqSongs = result[1].status === 'fulfilled' ? ((result[1].value && result[1].value.songs) || []) : [];
+  var kugouSongs = result[2].status === 'fulfilled' ? ((result[2].value && result[2].value.songs) || []) : [];
   if (result[1].status === 'rejected') console.warn('QQ search failed:', result[1].reason);
-  return mergeSongSearchResults(neteaseSongs, qqSongs, 18, q);
+  if (result[2].status === 'rejected') console.warn('KuGou search failed:', result[2].reason);
+  return mergeSongSearchResults(neteaseSongs, qqSongs, kugouSongs, 18, q);
 }
 function renderSongSearchResults(songs) {
   playlist = songs || [];
@@ -18056,6 +18093,7 @@ function bindVolumeControls() {
 function queueItemKey(song) {
   if (!song) return '';
   if (song.provider === 'qq' || song.source === 'qq' || song.type === 'qq') return 'qq:' + (song.mid || song.songmid || song.id || (song.name + '|' + song.artist));
+  if (song.provider === 'kugou' || song.source === 'kugou' || song.type === 'kugou') return 'kugou:' + (song.hash || song.albumAudioId || song.album_audio_id || song.id || (song.name + '|' + song.artist));
   if (song.type === 'podcast' && song.programId) return 'podcast:' + song.programId;
   if (song.localKey) return 'local:' + song.localKey;
   if (song.id != null && song.id !== '') return 'song:' + song.id;
@@ -18144,10 +18182,16 @@ function playSearchResult(i) {
 var firstPlayDone = false;
 
 function playbackProviderLabel(song) {
-  return songProviderKey(song) === 'qq' ? 'QQ 音乐' : '网易云';
+  var provider = songProviderKey(song);
+  if (provider === 'qq') return 'QQ 音乐';
+  if (provider === 'kugou') return '酷狗概念版';
+  return '网易云';
 }
 function playbackLoginProvider(song) {
-  return songProviderKey(song) === 'qq' ? 'qq' : 'netease';
+  var provider = songProviderKey(song);
+  if (provider === 'qq') return 'qq';
+  if (provider === 'kugou') return 'kugou';
+  return 'netease';
 }
 function playbackRestrictionMessage(song, data) {
   data = data || {};
@@ -18240,7 +18284,9 @@ function isSameTitleArtist(source, candidate) {
   return a.some(function(name){ return b.indexOf(name) >= 0; });
 }
 function alternatePlaybackProvider(song) {
-  return songProviderKey(song) === 'qq' ? 'netease' : 'qq';
+  var provider = songProviderKey(song);
+  if (provider === 'qq' || provider === 'kugou') return 'netease';
+  return 'qq';
 }
 async function searchAlternatePlatformSong(song) {
   var target = alternatePlaybackProvider(song);
@@ -18473,15 +18519,16 @@ async function playQueueAt(idx, opts) {
   try {
     markPlayPhase('source-url');
     var isQQPlayback = songProviderKey(song) === 'qq';
+    var isKugouPlayback = songProviderKey(song) === 'kugou';
     var requestedQuality = normalizePlaybackQuality(opts.qualityOverride || playbackQuality);
-    if (!isQQPlayback && requestedQuality === 'jymaster' && !hasProviderSvip('netease', loginStatus)) requestedQuality = 'hires';
+    if (!isQQPlayback && !isKugouPlayback && requestedQuality === 'jymaster' && !hasProviderSvip('netease', loginStatus)) requestedQuality = 'hires';
     if (isQQPlayback && qqPlaybackQualityCeiling && (requestedQuality === 'jymaster' || requestedQuality === 'hires' || requestedQuality === 'lossless')) {
       requestedQuality = qqPlaybackQualityCeiling;
     }
     var qualityParam = '&quality=' + encodeURIComponent(requestedQuality);
     var data = isQQPlayback
       ? await apiJson('/api/qq/song/url?mid=' + encodeURIComponent(song.mid || song.songmid || song.id || '') + '&mediaMid=' + encodeURIComponent(song.mediaMid || song.media_mid || '') + qualityParam)
-      : await apiJson('/api/song/url?id=' + song.id + qualityParam);
+      : (isKugouPlayback ? await apiJson(kugouSongUrlApiPath(song, qualityParam)) : await apiJson('/api/song/url?id=' + song.id + qualityParam));
     if (token !== trackSwitchToken) return;
     if (!data.url) {
       if (isQQPlayback && await retryQQPlaybackWithCompatibleQuality(song, idx, token, opts, data, requestedQuality)) return;
@@ -18490,7 +18537,7 @@ async function playQueueAt(idx, opts) {
       return;
     }
     var resolvedQualityText = playbackResolvedQualityText(data);
-    if (!isQQPlayback && playbackQualityWasDowngraded(requestedQuality, data.level)) {
+    if (!isQQPlayback && !isKugouPlayback && playbackQualityWasDowngraded(requestedQuality, data.level)) {
       showSourceFallbackNotice('网易云音质自动降级', '请求 ' + playbackQualityLabel(requestedQuality) + '，实际播放 ' + resolvedQualityText + '。');
     } else if (opts.qualitySwitch) {
       showSourceFallbackNotice('音质已切换', '实际播放: ' + resolvedQualityText + '。');
@@ -18505,7 +18552,7 @@ async function playQueueAt(idx, opts) {
       var trialLoginBtn = document.getElementById('trial-login-btn');
       if (trialLoginBtn) {
         trialLoginBtn.style.display = data.loggedIn ? 'none' : '';
-        trialLoginBtn.onclick = function(){ openProviderLogin('netease'); };
+        trialLoginBtn.onclick = function(){ openProviderLogin(playbackLoginProvider(song)); };
       }
       document.getElementById('trial-banner').classList.add('show');
     }
