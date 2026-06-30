@@ -2911,6 +2911,74 @@ async function handleKugouSongLikeCheck(ids) {
   return { provider: 'kugou', platform: 'lite', loggedIn: true, liked, likedPlaylistId: likedPlaylist.id };
 }
 
+async function handleKugouPlaylistCreate(params) {
+  params = params || {};
+  const info = getKugouLoginInfo();
+  if (!info.loggedIn || !info.userId || !info.tokenReady) {
+    return { provider: 'kugou', platform: 'lite', loggedIn: false, success: false, error: 'LOGIN_REQUIRED' };
+  }
+  const name = cleanKugouText(params.name || '');
+  if (!name) {
+    return { provider: 'kugou', platform: 'lite', loggedIn: true, success: false, error: 'Missing KuGou playlist name' };
+  }
+  const cookieObj = kugouCookieObject();
+  const userid = kugouCookieUserId(cookieObj) || info.userId;
+  const token = kugouCookieToken(cookieObj);
+  if (!userid || !token) {
+    return { provider: 'kugou', platform: 'lite', loggedIn: false, success: false, error: 'LOGIN_REQUIRED' };
+  }
+  const clienttime = Math.floor(Date.now() / 1000);
+  const body = await kugouApiRequest('/cloudlist.service/v5/add_list', {
+    last_time: clienttime,
+    last_area: 'gztx',
+    userid,
+    token,
+  }, {
+    method: 'POST',
+    data: {
+      userid,
+      token,
+      total_ver: 0,
+      name,
+      type: 0,
+      source: Number(params.source === undefined ? 1 : params.source) || 1,
+      is_pri: Number(params.is_pri || params.privacy || 0) ? 1 : 0,
+      list_create_userid: params.list_create_userid || '',
+      list_create_listid: params.list_create_listid || '',
+      list_create_gid: params.list_create_gid || '',
+      from_shupinmv: 0,
+    },
+    headers: { 'x-router': 'cloudlist.service.kugou.com' },
+  });
+  const data = body && (body.data || body.body || body);
+  const rawPlaylist = data && (data.info || data.playlist || data.list || data);
+  const playlist = mapKugouPlaylist(rawPlaylist);
+  const id = cleanKugouText(firstKugouValue(
+    playlist && playlist.id,
+    data && data.listid,
+    data && data.list_create_listid,
+    data && data.id,
+    body && body.listid,
+    body && body.id,
+    ''
+  ));
+  if (id && playlist && !playlist.id) playlist.id = id;
+  const code = kugouPlaylistAddCode(body);
+  const message = kugouPlaylistAddMessage(body);
+  const success = !!(id || kugouPlaylistAddSucceeded(body));
+  return {
+    provider: 'kugou',
+    platform: 'lite',
+    loggedIn: true,
+    success,
+    code,
+    message,
+    playlist,
+    error: success ? undefined : (message || 'KUGOU_PLAYLIST_CREATE_FAILED'),
+    body,
+  };
+}
+
 async function handleKugouPlaylistAddSong(params) {
   params = params || {};
   const info = getKugouLoginInfo();
@@ -4959,6 +5027,23 @@ const server = http.createServer(async (req, res) => {
       sendJSON(res, data, status);
     } catch (err) {
       console.error('[KugouPlaylistAddSong]', err);
+      sendJSON(res, { provider: 'kugou', platform: 'lite', success: false, error: err.message }, 500);
+    }
+    return;
+  }
+
+  if (pn === '/api/kugou/playlist/create') {
+    try {
+      const body = req.method === 'POST' ? await readRequestBody(req) : {};
+      const data = await handleKugouPlaylistCreate({
+        name: body.name || url.searchParams.get('name') || '',
+        privacy: body.privacy || body.is_private || url.searchParams.get('privacy') || url.searchParams.get('is_private') || '',
+        is_pri: body.is_pri || url.searchParams.get('is_pri') || '',
+      });
+      const status = data.success ? 200 : (data.error === 'LOGIN_REQUIRED' ? 401 : (/Missing/i.test(String(data.error || '')) ? 400 : 409));
+      sendJSON(res, data, status);
+    } catch (err) {
+      console.error('[KugouPlaylistCreate]', err);
       sendJSON(res, { provider: 'kugou', platform: 'lite', success: false, error: err.message }, 500);
     }
     return;

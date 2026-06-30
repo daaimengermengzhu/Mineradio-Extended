@@ -17035,6 +17035,7 @@ function syncLikeStatusForSongs(songs) {
     if (token < likeStatusToken - 3) return;
     safeRenderQueuePanel('like-status-sync', { scrollCurrent: miniQueueOpen });
     if ($results && $results.classList.contains('show')) refreshSearchResultActionStates();
+    if (playlistPanelDetailState && playlistPanelDetailState.tracks && playlistPanelDetailState.tracks.length) renderPlaylistPanelDetailState();
     updateLikeButtons();
   }).catch(function(err){ console.warn('like check failed:', err); });
 }
@@ -17170,7 +17171,7 @@ function renderCollectModal() {
   var song = collectTargetSong || {};
   var provider = normalizePlaylistProvider(collectTargetProvider || songProviderKey(song));
   var createRow = document.querySelector('.collect-create');
-  if (createRow) createRow.style.display = provider === 'netease' ? '' : 'none';
+  if (createRow) createRow.style.display = provider === 'netease' || provider === 'kugou' ? '' : 'none';
   var cover = songCoverSrc(song, 80);
   current.innerHTML = (cover ? '<img src="' + cover + '" alt="">' : '<div class="cover-placeholder"></div>') +
     '<div style="min-width:0"><div class="collect-title">' + escHtml(song.name || '当前歌曲') + '</div><div class="collect-sub">' + escHtml(song.artist || '') + '</div></div>';
@@ -17204,23 +17205,35 @@ function setCollectBusyPid(pid, busy) {
   });
 }
 async function createPlaylistFromCollect() {
-  if (collectTargetProvider !== 'netease') {
-    showToast('酷狗概念版新建歌单待接口接入');
+  var provider = normalizePlaylistProvider(collectTargetProvider || songProviderKey(collectTargetSong));
+  if (collectTargetProvider === 'kugou' || provider === 'kugou') {
+    if (!hasPlatformLogin('kugou')) {
+      showToast('登录酷狗概念版后可新建歌单');
+      openProviderLogin('kugou');
+      return;
+    }
+  } else if (provider === 'netease') {
+    if (!ensureLoggedInForAction()) return;
+  } else {
+    showToast('QQ 音乐新建歌单待接口接入');
     return;
   }
-  if (!ensureLoggedInForAction()) return;
   var input = document.getElementById('collect-new-name');
   var name = input ? input.value.trim() : '';
   if (!name) { showToast('先输入歌单名称'); return; }
   try {
-    var r = await apiJson('/api/playlist/create?name=' + encodeURIComponent(name));
+    var r = await apiJson(provider === 'kugou' ? '/api/kugou/playlist/create' : '/api/playlist/create?name=' + encodeURIComponent(name), provider === 'kugou' ? {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: name })
+    } : undefined);
     if (r && r.error) throw new Error(r.error);
     if (input) input.value = '';
     showToast('歌单已创建');
     await refreshUserPlaylists(true);
     renderCollectModal();
     var created = r && r.playlist;
-    var pid = created && created.id;
+    var pid = created && (created.id || created.listid);
     if (pid && collectTargetSong) addCollectTargetToPlaylist(pid);
   } catch (err) {
     showToast('创建歌单失败');
@@ -19743,7 +19756,9 @@ async function openPlaylistPanelDetail(provider, pid, title) {
     if (playlistPanelDetailState.token !== token) return;
     playlistPanelDetailState.loading = false;
     playlistPanelDetailState.tracks = (r && r.tracks || []).map(cloneSong);
+    if (provider === 'kugou' && isLikedPlaylistContext(pid, title, r && r.playlist)) markSongsLiked(playlistPanelDetailState.tracks, true);
     playlistPanelDetailState.renderLimit = Math.min(playlistPanelDetailState.tracks.length, PLAYLIST_DETAIL_INITIAL_RENDER);
+    syncLikeStatusForSongs(playlistPanelDetailState.tracks);
     renderPlaylistPanelDetailState();
   } catch (e) {
     console.warn('[PlaylistPanelDetail]', pid, e);
@@ -19768,6 +19783,7 @@ function playPlaylistPanelDetailTrack(index) {
   if (!tracks[index]) return;
   playQueue = tracks.map(cloneSong);
   currentIdx = index;
+  syncLikeStatusForSongs(playQueue);
   safeRenderQueuePanel('playlist-panel-detail');
   safeSwitchPlaylistTab('queue', 'playlist-panel-detail');
   safeShelfRebuild('playlist-panel-detail', true);
@@ -20053,7 +20069,8 @@ async function loadPlaylistIntoQueueById(id, autoplay, title) {
     if (!r.tracks || !r.tracks.length) { showToast('歌单为空'); return; }
     playQueue = r.tracks.map(cloneSong);
     if (!qqPlaylistId && !kugouPlaylistId && isLikedPlaylistContext(id, title, r.playlist)) markSongsLiked(playQueue, true);
-    if (!qqPlaylistId && !kugouPlaylistId) syncLikeStatusForSongs(playQueue);
+    if (kugouPlaylistId && isLikedPlaylistContext(kugouPlaylistId, title, r.playlist)) markSongsLiked(playQueue, true);
+    if (!qqPlaylistId) syncLikeStatusForSongs(playQueue);
     currentIdx = 0;
     safeRenderQueuePanel('playlist-load');
     safeSwitchPlaylistTab('queue', 'playlist-load');
