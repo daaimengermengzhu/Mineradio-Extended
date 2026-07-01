@@ -2545,7 +2545,7 @@ async function handleKugouPlaylistTracks(id, limit) {
   if (!userid || !token) {
     return { loggedIn: false, provider: 'kugou', platform: 'lite', tracks: [] };
   }
-  const requestedLimit = Math.max(30, Math.min(600, parseInt(limit || '200', 10) || 200));
+  const requestedLimit = Math.max(30, Math.min(600, parseInt(limit || '500', 10) || 500));
   const pageSize = Math.min(200, requestedLimit);
   let body = null;
   let rawTracks = [];
@@ -2815,6 +2815,77 @@ async function handleKugouLyric(params) {
     candidates: candidates.length,
     error: lyricText ? undefined : (lastError && lastError.message),
   };
+}
+
+function normalizeKugouCommentTime(value) {
+  const raw = firstKugouValue(value, 0);
+  const numeric = Number(raw);
+  if (isFinite(numeric) && numeric > 0) return numeric < 10000000000 ? numeric * 1000 : numeric;
+  const parsed = Date.parse(String(raw || '').replace(/-/g, '/'));
+  return isFinite(parsed) ? parsed : 0;
+}
+
+function mapKugouComment(raw) {
+  raw = raw || {};
+  const user = raw.user || raw.user_info || raw.author || {};
+  const like = raw.like || raw.like_info || {};
+  const id = cleanKugouText(firstKugouValue(raw.comment_id, raw.commentId, raw.tid, raw.id));
+  const content = cleanKugouText(firstKugouValue(raw.content, raw.comment, raw.text, raw.msg));
+  return {
+    id,
+    content,
+    likedCount: Number(firstKugouValue(like.count, raw.like_count, raw.likeCount, raw.like_num, raw.count, 0)) || 0,
+    time: normalizeKugouCommentTime(firstKugouValue(raw.addtime, raw.add_time, raw.time, raw.ctime)),
+    user: {
+      id: cleanKugouText(firstKugouValue(raw.userid, raw.user_id, user.userid, user.user_id, user.id)),
+      nickname: cleanKugouText(firstKugouValue(raw.user_name, raw.nickname, user.name, user.nickname, '酷狗用户')),
+      avatar: normalizeKugouImage(firstKugouValue(raw.user_pic, raw.user_img, raw.avatar, user.avatar, user.pic), 64),
+    },
+  };
+}
+
+function kugouCommentArray(value) {
+  if (Array.isArray(value)) return value;
+  if (value && typeof value === 'object' && Array.isArray(value.list)) return value.list;
+  return [];
+}
+
+async function handleKugouSongComments(mixsongid, limit, offset) {
+  const songId = String(mixsongid || '').replace(/\D/g, '');
+  if (!songId) return { provider: 'kugou', platform: 'lite', error: 'Missing KuGou mixsongid', comments: [] };
+  const pageSize = Math.max(6, Math.min(50, Number(limit) || 20));
+  const page = Math.max(1, Math.floor((Number(offset) || 0) / pageSize) + 1);
+  const body = await kugouApiRequest('/mcomment/v1/cmtlist', {
+    mixsongid: songId,
+    need_show_image: 1,
+    p: page,
+    pagesize: pageSize,
+    show_classify: 0,
+    show_hotword_list: 0,
+    extdata: '0',
+    code: 'fc4be23b4e972707f36b8a828a93ba8a',
+  }, {
+    method: 'POST',
+  });
+  const data = body && (body.data || body.body || body) || {};
+  const hotList = kugouCommentArray(data.weight_list)
+    .concat(kugouCommentArray(data.hot_list))
+    .concat(kugouCommentArray(data.star_cmts))
+    .concat(kugouCommentArray(data.star_comment));
+  const normalList = kugouCommentArray(data.list)
+    .concat(kugouCommentArray(data.comments))
+    .concat(kugouCommentArray(data.info));
+  const raw = offset === 0 && hotList.length ? hotList.concat(normalList) : normalList;
+  const seen = new Set();
+  const comments = raw.map(mapKugouComment).filter(c => {
+    if (!c.content) return false;
+    const key = String(c.id || c.content).trim();
+    if (key && seen.has(key)) return false;
+    if (key) seen.add(key);
+    return true;
+  });
+  const total = Number(firstKugouValue(data.count, data.total, body && body.count, body && body.total, comments.length)) || comments.length;
+  return { provider: 'kugou', platform: 'lite', id: songId, total, comments, hot: !!(offset === 0 && hotList.length) };
 }
 
 function kugouPlaylistAddMessage(body) {
@@ -4982,7 +5053,7 @@ const server = http.createServer(async (req, res) => {
   if (pn === '/api/kugou/playlist/tracks') {
     try {
       const id = url.searchParams.get('id') || url.searchParams.get('listid') || '';
-      const limit = Math.max(30, Math.min(500, parseInt(url.searchParams.get('limit') || '200', 10) || 200));
+      const limit = Math.max(30, Math.min(500, parseInt(url.searchParams.get('limit') || '500', 10) || 500));
       const data = await handleKugouPlaylistTracks(id, limit);
       sendJSON(res, data);
     } catch (err) {
@@ -5006,6 +5077,20 @@ const server = http.createServer(async (req, res) => {
     } catch (err) {
       console.error('[KugouLyric]', err);
       sendJSON(res, { provider: 'kugou', platform: 'lite', lyric: '', yrc: '', error: err.message }, 500);
+    }
+    return;
+  }
+
+  if (pn === '/api/kugou/song/comments') {
+    try {
+      const mixsongid = url.searchParams.get('mixsongid') || url.searchParams.get('albumAudioId') || url.searchParams.get('album_audio_id') || url.searchParams.get('id') || '';
+      const limit = Math.max(6, Math.min(50, parseInt(url.searchParams.get('limit') || '20', 10) || 20));
+      const offset = Math.max(0, parseInt(url.searchParams.get('offset') || '0', 10) || 0);
+      const data = await handleKugouSongComments(mixsongid, limit, offset);
+      sendJSON(res, data, data.error ? 400 : 200);
+    } catch (err) {
+      console.error('[KugouSongComments]', err);
+      sendJSON(res, { provider: 'kugou', platform: 'lite', error: err.message, comments: [] }, 500);
     }
     return;
   }
