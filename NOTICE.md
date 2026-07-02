@@ -2,6 +2,16 @@
 
 Mineradio 使用了以下第三方项目或服务。各项目版权归其原作者所有。
 
+## Fork Notice
+
+Mineradio 扩展版是基于 `XxHuberrr/Mineradio` 的非官方二创 Fork。
+
+原版 Mineradio 的作者、项目来源、界面视觉设计、名称与相关原创表达必须保留署名。本仓库新增的扩展能力、文档和后续二创改动由本仓库维护者继续记录和维护。
+
+本仓库不是 Mineradio 官方版本，也不代表原作者发布。请优先参考原项目了解官方版本：
+
+https://github.com/XxHuberrr/Mineradio
+
 ## Third-party Libraries
 
 - Electron

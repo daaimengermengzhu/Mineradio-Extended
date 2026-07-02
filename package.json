@@ -6,6 +6,10 @@
   "author": "Mineradio",
   "main": "desktop/main.js",
   "private": true,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/daaimengermengzhu/Mineradio-Extended.git"
+  },
   "scripts": {
     "start": "electron .",
     "build:win": "electron-builder --win nsis",
@@ -64,16 +68,16 @@
     "publish": [
       {
         "provider": "github",
-        "owner": "XxHuberrr",
-        "repo": "Mineradio"
+        "owner": "daaimengermengzhu",
+        "repo": "Mineradio-Extended"
       }
     ]
   },
   "mineradio": {
     "update": {
       "provider": "github",
-      "owner": "XxHuberrr",
-      "repo": "Mineradio",
+      "owner": "daaimengermengzhu",
+      "repo": "Mineradio-Extended",
       "preview": true,
       "preferMirrors": true,
       "mirrors": [
