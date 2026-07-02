@@ -2,15 +2,19 @@
 
 ## 目标
 
-把当前 `Mineradio-kugou` 从“临时酷狗概念版预览仓库”整理成一个稳定的非官方二创仓库。
+新建一个独立 GitHub 仓库，专门承载长期二创、扩展和改编版本。
 
 第一阶段仓库名使用 `Mineradio-Extended`，中文名使用 `Mineradio 扩展版`。这个阶段的重点是建立稳定仓库入口和下载入口，让用户不用每次都找新的发布链接。
 
-第一阶段是仓库身份和分发方式整理，不是新增音源开发阶段。
+现有 `Mineradio-kugou` 继续作为给原作者提交 PR 的 fork 仓库，不承担长期二创主仓库职责。
+
+第一阶段是独立二创仓库的身份和分发方式整理，不是新增音源开发阶段。
 
 ## 定位
 
-`Mineradio-Extended` 是基于 `XxHuberrr/Mineradio` 的非官方 fork。
+`Mineradio-Extended` 是基于 `XxHuberrr/Mineradio` 的非官方改编仓库。
+
+这里的“独立仓库”表示它不作为 GitHub UI 里的 fork 仓库继续服务 PR，而是作为用户公开访问的二创主仓库。它仍然必须保留原项目来源、原作者署名、GPL-3.0 授权和修改说明。
 
 README 和 Release 说明必须明确写清楚：
 
@@ -52,7 +56,13 @@ README 和 Release 说明必须明确写清楚：
 
 ## 仓库和下载策略
 
-将 fork 仓库从 `Mineradio-kugou` 改名为 `Mineradio-Extended`。
+新建独立仓库 `daaimengermengzhu/Mineradio-Extended`。
+
+保留现有仓库 `daaimengermengzhu/Mineradio-kugou`：
+
+- 继续作为 `XxHuberrr/Mineradio` 的 PR 来源仓库。
+- 保留 PR #204 的提交历史和上游同步关系。
+- 不再作为对外宣传的二创主入口。
 
 推荐以后公开发给用户的入口：
 
@@ -63,11 +73,13 @@ README 和 Release 说明必须明确写清楚：
 
 README 要告诉普通用户只下载安装包，不要下载 `Source code`、`.blockmap` 或 `latest.yml`。
 
-上游 PR 继续保留：
+上游 PR 继续保留并与二创仓库解耦：
 
 - 上游 PR：`https://github.com/XxHuberrr/Mineradio/pull/204`
 
 二创仓库负责给急用用户提供可安装版本；PR 继续作为向原作者回馈代码的正式通道。
+
+实现时可以从当前已验证代码创建独立仓库，但对外说明不能抹掉原项目来源。用户看到的是一个长期二创主仓库，而不是临时 PR fork。
 
 ## 文档改动范围
 
@@ -76,7 +88,7 @@ README 要告诉普通用户只下载安装包，不要下载 `Source code`、`.
 - `README.md`
 - 必要时更新 `NOTICE.md`
 - 当前预览 Release 的说明
-- GitHub 仓库名和仓库简介
+- 新 GitHub 仓库简介和 About 信息
 
 README 顶部应包含：
 
@@ -97,13 +109,17 @@ README 顶部应包含：
 - 现有酷狗验证脚本
 - `npm run build:win`
 - 确认生成的安装包来自当前源码
-- 确认 Release 页面使用新仓库名和固定 latest 下载入口
+- 确认新仓库 Release 页面使用固定 latest 下载入口
 
 ## 风险
 
-仓库改名后，旧的 `Mineradio-kugou` 链接通常会被 GitHub 自动跳转，但以后公开传播时要统一使用 `Mineradio-Extended`，减少用户混乱。
+新建独立仓库会产生两个公开仓库：`Mineradio-kugou` 和 `Mineradio-Extended`。需要在 README 和 Release 里解释清楚二者区别，避免用户把 PR fork 当成长期二创主仓库。
+
+`Mineradio-kugou` 继续服务上游 PR；`Mineradio-Extended` 承载你的长期二创资产和发布入口。
 
 原项目 README 已说明 Mineradio 名称、MR Logo、界面视觉设计与原创视觉表达归原作者所有。二创版必须保留清晰署名，不能表现成官方版。
+
+因为原项目采用 GPL-3.0，二创版对外分发时也必须继续开源并保留 GPL-3.0。你的新增代码、文档、配置和二创功能可以作为你的贡献资产记录在仓库中，但不能把基于原 GPL 项目的整体分发改成闭源或私有授权。
 
 普通酷狗、汽水音乐等新音源可能涉及接口稳定性、账号权限、版权和平台服务条款风险。后续接入前需要单独调研和设计。
 
