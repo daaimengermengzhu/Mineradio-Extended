@@ -36,6 +36,7 @@ Implemented in `public/index.html`:
 - QR login uses ordinary KuGou Music app parameters (`appid = 1005`, `clientver = 20489`).
 - Playback uses ordinary KuGou Music signing salts and `/v5/url`.
 - Search currently uses the stable public KuGou catalog request path, then maps returned songs to `provider: 'kugouMusic'`. Login, playlists, playlist tracks, playback, lyrics, and comments still use the ordinary KuGou Music session where applicable.
+- Some playlist tracks returned by ordinary KuGou Music can be readable but not playable through the ordinary `/v5/url` session. When ordinary KuGou Music returns no URL, playback falls back to KuGou Concept for the same song and returns `fallbackProvider: 'kugou'` so the UI can still play without pretending the ordinary session supplied the URL.
 - Write actions are intentionally deferred for this first phase. Heart sync, collect-to-playlist, and playlist creation for ordinary KuGou Music should not be wired until the read/play path is verified with real account login.
 - This integration must not bypass VIP, paid music, copyright, region, or platform restrictions.
 

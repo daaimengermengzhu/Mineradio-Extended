@@ -2571,6 +2571,22 @@ async function handleKugouSongUrl(params, session) {
       console.warn('[KugouSongUrl]', q.level, 'failed:', err.message);
     }
   }
+  if (session.provider === 'kugouMusic' && !params.skipConceptFallback) {
+    const fallback = await handleKugouSongUrl({
+      ...params,
+      skipConceptFallback: true,
+    }, KUGOU_CONCEPT_SESSION);
+    if (fallback && fallback.playable && fallback.url) {
+      return {
+        ...fallback,
+        provider: session.provider,
+        fallbackProvider: KUGOU_CONCEPT_SESSION.provider,
+        fallbackPlatform: KUGOU_CONCEPT_SESSION.platform,
+        playbackProvider: KUGOU_CONCEPT_SESSION.provider,
+        loggedIn: loginInfo.loggedIn,
+      };
+    }
+  }
   const restriction = classifyKugouPlaybackRestriction(lastBody, loginInfo, lastError, session);
   return {
     provider: session.provider,
