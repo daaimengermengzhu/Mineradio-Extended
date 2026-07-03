@@ -19,6 +19,7 @@ win-unpacked/
 .cookie
 .qq-cookie
 .kugou-cookie
+.kugou-music-cookie
 updates/
 backups/
 *.log

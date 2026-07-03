@@ -176,6 +176,13 @@
 
 ## Memory Entries
 
+### 2026-07-03 - 普通酷狗音乐第一阶段接入边界
+
+- 用户认可/要求保留：普通酷狗音乐先一步步接入，不照搬其它项目代码，只参考可验证接口事实；第一阶段优先完成登录入口、搜索、播放、歌单读取、歌词和评论读取。
+- 涉及文件：`server.js`、`public/index.html`、`scripts/verify-kugou-music-basic.js`、`docs/KUGOU_MUSIC_INTERFACE_NOTES.md`。
+- 关键参数/实现：普通酷狗音乐独立使用 `provider: 'kugouMusic'`、本地私有状态 `.kugou-music-cookie`、接口前缀 `/api/kugou-music/*`；普通酷狗音乐与酷狗概念版分开保存登录态和前端入口。
+- 禁止回退或改坏的点：不要把普通酷狗音乐混进酷狗概念版 `provider: 'kugou'`；不要提交 `.kugou-music-cookie`；不要在第一阶段贸然接入会修改真实账号数据的红心、收藏和创建歌单写入操作。
+
 ### 2026-06-25 - 安装器路径与卸载防误删 P0 规则
 
 - 用户认可/要求保留：安装器默认优先 `D:\Mineradio`，D 不存在再 E/F/.../Z；只有电脑确实没有任何 D-Z 盘时，才放行 `C:\Mineradio`。用户手动选 C 盘时也必须按这个规则拦截。

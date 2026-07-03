@@ -11,9 +11,10 @@ const requiredMarkers = [
   'var kugouLoginStatus',
   "provider === 'kugou'",
   '/api/kugou/login/status',
-  '/api/kugou/login/qr/key',
-  '/api/kugou/login/qr/create',
-  '/api/kugou/login/qr/check',
+  "var kgApiBase = qrProvider === 'kugouMusic' ? '/api/kugou-music' : '/api/kugou'",
+  "/login/qr/key",
+  "/login/qr/create",
+  "/login/qr/check",
   '/api/kugou/logout',
 ];
 

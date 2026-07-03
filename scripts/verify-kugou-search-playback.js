@@ -19,7 +19,7 @@ const requirements = [
   ['UI calls KuGou song URL route', uiSource, '/api/kugou/song/url?hash='],
   ['UI has KuGou source tag style', uiSource, '.tag-source.kugou'],
   ['UI has KuGou search hover style', uiSource, '.search-result.kugou-source:hover'],
-  ['UI has KuGou playback branch', uiSource, "var isKugouPlayback = songProviderKey(song) === 'kugou'"],
+  ['UI has KuGou playback branch', uiSource, "playbackProvider === 'kugou' || playbackProvider === 'kugouMusic'"],
 ];
 
 const missing = requirements
