@@ -65,14 +65,15 @@ The QR check route saves `userid` and `token` into the local KuGou cookie file a
 - KuGou login requests need signed params, including `dfid`, `mid`, `uuid`, `clientver`, and `clienttime`.
 - KuGou Android API requests use the lite signature salt `LnT6xpN3khm36zse0QzvmgTZ3waWdRSA`.
 - KuGou song URL requests also need a `key` generated from `hash`, lite sign-key salt, `appid`, `mid`, and `userid`.
-- Song URL responses must display the resolved quality from the returned bitrate, not only the requested quality. For example, if a `jymaster` request returns FLAC bitrate, the UI should show FLAC instead of pretending it is Hi-Res.
+- KuGou Concept quality UI should use the app-facing four-level naming: `Hi-Res音质` (`quality=high`), `无损音质` (`quality=flac`), `高品音质` (`quality=320`), and `标准音质` (`quality=128`). The old generic `jymaster` preference is folded into `hires` for KuGou providers so the menu does not show a duplicate highest tier.
+- Song URL responses must display the resolved quality from the returned bitrate, not only the requested quality. For example, if a highest-tier request returns FLAC bitrate, the UI should show `无损音质` instead of pretending it is `Hi-Res音质`.
 - KuGou platform play counts use `listenservice.kugou.com/v2/get_list`, `list_type = 1` for cumulative account listening rank, and the response item field `listen_count`.
 - `/api/kugou/listen-counts?type=1` also supplements those rank counts with paged recent play-history records from `gateway.kugou.com/playhistory/v1/get_songs`; that endpoint uses the `bp` cursor and item field `pc`.
 - The play-history endpoint improves coverage but is still bounded by what KuGou returns for the current account. Playlist songs outside both sources should display `暂无` instead of a fake count.
 - The listening rank endpoint itself returns the top 120 songs, not a complete account-wide per-song database.
 - The listening rank request needs the RSA-encrypted `p` payload built from `{ clienttime, token }`; this project implements it with Node's built-in `crypto` and does not add `node-forge`.
 - KuGou `cloudlist.service` write routes such as `add_list` and `add_song` should follow EchoMusic/KuGouMusicApi and avoid forcing an extra `x-router` header.
-- Platform audio effects such as KuGou sound effects, Viper, equalizer, or Dolby-style effects are not implemented yet. Current `effect` code in the UI is visual/animation behavior, not provider audio effects.
+- Platform audio effects such as KuGou sound effects, Viper, equalizer, or Dolby-style effects are not implemented yet. Current `effect` code in the UI is visual/animation behavior, not provider audio effects. 2026-07-04 check: public KuGou Viper pages describe an SDK/cooperation route, and MakcRe/KuGouMusicApi exposes Viper quality candidates such as `viper_atmos`, `viper_tape`, and `viper_clear`, plus an effect-playlist API; this does not yet verify a usable official preset API for app effects such as `3D丽音`, `超重低音`, `HiFi现场`, or `纯净人声`. Do not present local WebAudio presets as official KuGou effects.
 - The local cookie can contain display-only non-ASCII fields such as nickname. Outbound KuGou API `Cookie` headers must only include safe ASCII auth/device fields.
 - `.kugou-cookie` is local private state and must stay ignored by Git.
 - This integration must not bypass VIP, paid music, copyright, region, or platform restrictions.

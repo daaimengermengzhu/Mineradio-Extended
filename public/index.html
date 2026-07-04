@@ -2782,6 +2782,7 @@ var kugouLoginWasLoggedIn = false;
 var kugouMusicLoginWasLoggedIn = false;
 var loginProvider = 'netease';
 var activeAccountProvider = 'netease';
+var currentPlaybackProvider = '';
 var dualAccountMode = false;
 var qqCookieBusy = false;
 var neteaseWebLoginBusy = false;
@@ -10435,6 +10436,7 @@ async function fetchBeatPrefetchAudioUrl(song) {
   var isQQ = provider === 'qq';
   var isKugou = provider === 'kugou' || provider === 'kugouMusic';
   var requestedQuality = normalizePlaybackQuality(playbackQuality);
+  requestedQuality = providerPlaybackQualityValue(provider, requestedQuality);
   if (!isQQ && !isKugou && requestedQuality === 'jymaster' && !hasProviderSvip('netease', loginStatus)) requestedQuality = 'hires';
   if (isQQ && qqPlaybackQualityCeiling && (requestedQuality === 'jymaster' || requestedQuality === 'hires' || requestedQuality === 'lossless')) requestedQuality = qqPlaybackQualityCeiling;
   var qualityParam = '&quality=' + encodeURIComponent(requestedQuality);
@@ -15256,16 +15258,28 @@ function playbackQualityShortLabel(value) {
   if (value === 'standard') return 'STD';
   return '臻音';
 }
+function isKugouQualityProvider(provider) {
+  return provider === 'kugou' || provider === 'kugouMusic';
+}
+function providerPlaybackQualityValue(provider, value) {
+  value = normalizePlaybackQuality(value);
+  if (isKugouQualityProvider(provider) && value === 'jymaster') return 'hires';
+  return value;
+}
+function providerAvailablePlaybackQualities(provider) {
+  return isKugouQualityProvider(provider)
+    ? ['hires', 'lossless', 'exhigh', 'standard']
+    : ['jymaster', 'hires', 'lossless', 'exhigh', 'standard'];
+}
 function providerQualityOptionMeta(provider, value) {
   provider = provider || 'netease';
   value = normalizePlaybackQuality(value);
-  var kugouLike = provider === 'kugou' || provider === 'kugouMusic';
+  var kugouLike = isKugouQualityProvider(provider);
   if (kugouLike) {
-    if (value === 'jymaster') return { label: 'Hi-Res', short: 'Hi-Res', sub: 'VIP / 最高规格' };
-    if (value === 'hires') return { label: 'Hi-Res', short: 'Hi-Res', sub: '高解析优先' };
-    if (value === 'lossless') return { label: 'FLAC', short: 'FLAC', sub: '无损优先' };
-    if (value === 'exhigh') return { label: '320k', short: '320k', sub: '高品' };
-    if (value === 'standard') return { label: '128k', short: '128k', sub: '标准' };
+    if (value === 'jymaster' || value === 'hires') return { label: 'Hi-Res音质', short: 'Hi-Res', sub: '超越CD品质，重塑发烧经典' };
+    if (value === 'lossless') return { label: '无损音质', short: '无损', sub: '高保真无损品质' };
+    if (value === 'exhigh') return { label: '高品音质', short: '高品', sub: '高频细节还原清晰' };
+    if (value === 'standard') return { label: '标准音质', short: '标准', sub: '快捷清晰的音质' };
   }
   if (provider === 'qq') {
     if (value === 'jymaster') return { label: '臻品母带', short: '母带', sub: 'VIP / 最高规格' };
@@ -15312,6 +15326,7 @@ function playbackResolvedQualityText(data, provider) {
 }
 function qualityProviderForCurrentTrack() {
   var song = typeof currentCoverSong === 'function' ? currentCoverSong() : null;
+  if (currentPlaybackProvider === 'netease' || currentPlaybackProvider === 'qq' || currentPlaybackProvider === 'kugou' || currentPlaybackProvider === 'kugouMusic') return currentPlaybackProvider;
   var provider = songProviderKey(song);
   if (provider === 'local' || provider === 'podcast') return '';
   if (provider === 'qishui') return alternatePlaybackProvider(song);
@@ -15355,15 +15370,25 @@ function updatePlaybackQualityUi() {
   var label = document.getElementById('quality-btn-label');
   var btn = document.getElementById('quality-btn');
   var qualityProvider = qualityProviderForCurrentTrack();
-  var gate = providerQualityLock(qualityProvider, playbackQuality);
-  var displayQuality = playbackQuality === 'jymaster' && gate.locked ? 'hires' : playbackQuality;
+  var effectiveQuality = providerPlaybackQualityValue(qualityProvider, playbackQuality);
+  var gate = providerQualityLock(qualityProvider, effectiveQuality);
+  var displayQuality = effectiveQuality === 'jymaster' && gate.locked ? 'hires' : effectiveQuality;
   var displayMeta = providerQualityOptionMeta(qualityProvider, displayQuality);
+  var availableQualities = providerAvailablePlaybackQualities(qualityProvider);
   if (label) label.textContent = displayMeta.short;
-  if (btn) btn.title = playbackQuality === 'jymaster' && gate.locked
-    ? '音质: ' + displayMeta.label + ' · ' + providerQualityOptionMeta(qualityProvider, playbackQuality).label + '需' + gate.requirement
+  if (btn) btn.title = effectiveQuality === 'jymaster' && gate.locked
+    ? '音质: ' + displayMeta.label + ' · ' + providerQualityOptionMeta(qualityProvider, effectiveQuality).label + '需' + gate.requirement
     : '音质: ' + displayMeta.label + ' · ' + playbackProviderLabel({ provider: qualityProvider || 'netease' });
   document.querySelectorAll('.quality-option').forEach(function(option){
     var q = normalizePlaybackQuality(option.dataset.quality);
+    var available = availableQualities.indexOf(q) >= 0;
+    option.hidden = !available;
+    option.style.display = available ? '' : 'none';
+    if (!available) {
+      option.disabled = true;
+      option.classList.remove('active', 'locked');
+      return;
+    }
     var optionMeta = providerQualityOptionMeta(qualityProvider, q);
     var optionGate = providerQualityLock(qualityProvider, q);
     var locked = option.dataset.svip === '1' && optionGate.locked;
@@ -15379,8 +15404,8 @@ function updatePlaybackQualityUi() {
   });
 }
 function setPlaybackQuality(value) {
-  var next = normalizePlaybackQuality(value);
   var qualityProvider = qualityProviderForCurrentTrack();
+  var next = providerPlaybackQualityValue(qualityProvider, value);
   var gate = providerQualityLock(qualityProvider, next);
   if (gate.locked) {
     var optionMeta = providerQualityOptionMeta(qualityProvider, next);
@@ -15405,7 +15430,8 @@ function canReloadCurrentTrackForQuality() {
 }
 function applyPlaybackQualityToCurrentTrack(nextQuality) {
   var qualityProvider = qualityProviderForCurrentTrack();
-  var label = playbackQualityLabelForProvider(qualityProvider, nextQuality || playbackQuality);
+  var effectiveQuality = providerPlaybackQualityValue(qualityProvider, nextQuality || playbackQuality);
+  var label = playbackQualityLabelForProvider(qualityProvider, effectiveQuality);
   if (!canReloadCurrentTrackForQuality()) {
     showToast('音质偏好: ' + label + ' · 下次播放生效');
     return;
@@ -15413,7 +15439,7 @@ function applyPlaybackQualityToCurrentTrack(nextQuality) {
   var resumeAt = audio && isFinite(audio.currentTime) ? audio.currentTime : 0;
   showToast('正在切换音质: ' + label);
   Promise.resolve(playQueueAt(currentIdx, {
-    qualityOverride: nextQuality || playbackQuality,
+    qualityOverride: effectiveQuality,
     qualitySwitch: true,
     resumeAt: resumeAt,
     preserveHomeState: true,
@@ -19249,6 +19275,7 @@ async function playQueueAt(idx, opts) {
   if (!opts.preserveHomeState) homeSuppressed = false;
   currentIdx = idx;
   trackSwitchToken++;
+  currentPlaybackProvider = '';
   markPlayPhase('cancel-previous-track');
   cancelBeatAnalysisTimer();
   cancelBeatPrefetchTimer();
@@ -19317,6 +19344,7 @@ async function playQueueAt(idx, opts) {
     var isKugouPlayback = playbackProvider === 'kugou' || playbackProvider === 'kugouMusic';
     var isQishuiPlayback = playbackProvider === 'qishui';
     var requestedQuality = normalizePlaybackQuality(opts.qualityOverride || playbackQuality);
+    requestedQuality = providerPlaybackQualityValue(playbackProvider, requestedQuality);
     if (!isQQPlayback && !isKugouPlayback && !isQishuiPlayback && requestedQuality === 'jymaster' && !hasProviderSvip('netease', loginStatus)) requestedQuality = 'hires';
     if (isQQPlayback && qqPlaybackQualityCeiling && (requestedQuality === 'jymaster' || requestedQuality === 'hires' || requestedQuality === 'lossless')) {
       requestedQuality = qqPlaybackQualityCeiling;
@@ -19332,7 +19360,10 @@ async function playQueueAt(idx, opts) {
       handlePlaybackUnavailable(song, data);
       return;
     }
-    var resolvedQualityText = playbackResolvedQualityText(data, data.playbackProvider || data.fallbackProvider || playbackProvider);
+    var resolvedPlaybackProvider = data.playbackProvider || data.fallbackProvider || data.provider || playbackProvider;
+    currentPlaybackProvider = normalizeAccountProvider(resolvedPlaybackProvider);
+    safePlaybackStep('quality-ui-resolved', updatePlaybackQualityUi);
+    var resolvedQualityText = playbackResolvedQualityText(data, currentPlaybackProvider);
     if (!isQQPlayback && !isKugouPlayback && !isQishuiPlayback && playbackQualityWasDowngraded(requestedQuality, data.level)) {
       showSourceFallbackNotice('网易云音质自动降级', '请求 ' + playbackQualityLabelForProvider('netease', requestedQuality) + '，实际播放 ' + resolvedQualityText + '。');
     } else if (opts.qualitySwitch) {

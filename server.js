@@ -1708,11 +1708,10 @@ const QQ_QUALITY_CANDIDATE_TEMPLATES = [
   { prefix: 'C400', ext: '.m4a', level: 'aac', label: 'AAC/M4A' },
 ];
 const KUGOU_QUALITY_CANDIDATES = [
-  { level: 'jymaster', quality: 'high', label: 'Hi-Res' },
-  { level: 'hires', quality: 'high', label: 'Hi-Res' },
-  { level: 'lossless', quality: 'flac', label: 'FLAC' },
-  { level: 'exhigh', quality: '320', label: '320k' },
-  { level: 'standard', quality: '128', label: '128k' },
+  { level: 'hires', quality: 'high', label: 'Hi-Res音质' },
+  { level: 'lossless', quality: 'flac', label: '无损音质' },
+  { level: 'exhigh', quality: '320', label: '高品音质' },
+  { level: 'standard', quality: '128', label: '标准音质' },
 ];
 function normalizeQualityPreference(value) {
   const raw = String(value || '').toLowerCase().trim();
@@ -3540,15 +3539,15 @@ function kugouResolvedQualityFromResponse(candidate, data, br) {
     ''
   )).toLowerCase();
   if (br > 0) {
-    if (br <= 192000) return { level: 'standard', quality: '128k', br };
-    if (br < 700000) return { level: 'exhigh', quality: '320k', br };
+    if (br <= 192000) return { level: 'standard', quality: '标准音质', br };
+    if (br < 700000) return { level: 'exhigh', quality: '高品音质', br };
   }
-  if (/128|standard/.test(rawQuality)) return { level: 'standard', quality: '128k', br: br || 128000 };
-  if (/320|exhigh|hq/.test(rawQuality)) return { level: 'exhigh', quality: '320k', br: br || 320000 };
-  if (/flac|lossless|sq|ape/.test(rawQuality)) return { level: 'lossless', quality: 'FLAC', br: br || 999000 };
+  if (/128|standard/.test(rawQuality)) return { level: 'standard', quality: '标准音质', br: br || 128000 };
+  if (/320|exhigh|hq/.test(rawQuality)) return { level: 'exhigh', quality: '高品音质', br: br || 320000 };
+  if (/flac|lossless|sq|ape/.test(rawQuality)) return { level: 'lossless', quality: '无损音质', br: br || 999000 };
   return {
     level: candidate.level || 'hires',
-    quality: candidate.label || 'Hi-Res',
+    quality: candidate.label || 'Hi-Res音质',
     br,
   };
 }
