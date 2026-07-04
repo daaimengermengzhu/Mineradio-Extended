@@ -21524,8 +21524,8 @@ function shapePrimitiveDef(type) {
 }
 function shapePrimitiveSpawnPosition(index) {
   index = Math.max(0, Math.floor(Number(index) || 0));
-  if (index === 0) return { x: -0.16, y: -0.04 };
-  if (index === 1) return { x: 0.18, y: 0.07 };
+  if (index === 0) return { x: 0, y: 0 };
+  if (index === 1) return { x: 0.24, y: 0.08 };
   var angle = index * 2.399963229728653;
   var radius = Math.min(0.62, 0.18 + index * 0.055);
   return {
@@ -21576,7 +21576,6 @@ function normalizeShapeRecipeName(name) {
 function normalizeShapeRecipe(raw) {
   raw = raw && typeof raw === 'object' ? raw : {};
   var primitives = Array.isArray(raw.primitives) ? raw.primitives.slice(0, SHAPE_PRIMITIVE_LIMIT) : [];
-  if (!primitives.length) primitives = [{ type: 'ring' }, { type: 'spiral' }];
   primitives = primitives.map(normalizeShapePrimitive);
   var total = primitives.reduce(function(sum, p){ return sum + p.count; }, 0);
   if (total > SHAPE_TOTAL_PARTICLE_LIMIT) {
@@ -21603,11 +21602,8 @@ function normalizeShapeRecipe(raw) {
 }
 function defaultShapeRecipe() {
   return normalizeShapeRecipe({
-    name: '我的星环',
-    primitives: [
-      { type: 'ring', count: 240, size: 1.00, depth: 0.16, rotation: 0.24, audioFollow: 0.42 },
-      { type: 'spiral', count: 420, size: 1.08, depth: 0.48, rotation: 0.34, audioFollow: 0.58 }
-    ]
+    name: '我的形态',
+    primitives: []
   });
 }
 function cloneShapeRecipe(recipe) {
@@ -22395,7 +22391,7 @@ function renderShapePrimitiveButtons() {
 function renderShapeStructureButtons() {
   return Object.keys(shapeStructureTemplates).map(function(key){
     var item = shapeStructureTemplates[key];
-    return '<button type="button" onclick="shapeWorkshopApplyStructure(\'' + key + '\')" title="' + escHtml(item.desc) + '">' + escHtml(item.name.replace('结构', '')) + '</button>';
+    return '<button type="button" onclick="shapeWorkshopApplyStructure(\'' + key + '\')" title="加入' + escHtml(item.desc) + '">' + escHtml(item.name.replace('结构', '')) + '</button>';
   }).join('');
 }
 function renderShapeLayerList(recipe) {
@@ -22462,12 +22458,12 @@ function renderShapeWorkshop() {
       '<input class="shape-workshop-name" maxlength="28" value="' + escHtml(recipe.name) + '" oninput="shapeWorkshopUpdateName(this.value)" aria-label="形态名称">' +
       '<div class="shape-workshop-preview">' + shapePreviewHtml(recipe) + '</div>' +
       '<div class="shape-workshop-section"><div class="shape-workshop-section-title">基础例子库</div><div class="shape-chip-grid">' + renderShapePrimitiveButtons() + '</div></div>' +
-      '<div class="shape-workshop-section"><div class="shape-workshop-section-title">基础结构</div><div class="shape-chip-grid">' + renderShapeStructureButtons() + '</div></div>' +
+      '<div class="shape-workshop-section"><div class="shape-workshop-section-title">基础结构包</div><div class="shape-chip-grid">' + renderShapeStructureButtons() + '</div></div>' +
       '<div class="shape-workshop-section"><div class="shape-workshop-section-title">当前形态层级</div><div class="shape-layer-list">' + renderShapeLayerList(recipe) + '</div></div>' +
       '<div class="shape-workshop-section"><div class="shape-workshop-section-title">所选例子参数</div>' + renderShapeParamPanel(selected) + '</div>' +
       '<div class="shape-workshop-actions">' +
         '<button type="button" onclick="saveCurrentShapePreset()">保存为我的形态</button>' +
-        '<button type="button" onclick="resetShapeWorkshopRecipe()">重置形态</button>' +
+        '<button type="button" onclick="resetShapeWorkshopRecipe()">清空画布</button>' +
       '</div>' +
       '<div class="shape-workshop-section"><div class="shape-workshop-section-title">我的形态</div>' + renderShapeSavedPresets() + '</div>' +
     '</div>';
@@ -22505,13 +22501,26 @@ function shapeWorkshopAddPrimitive(type) {
 function shapeWorkshopApplyStructure(key) {
   var tpl = shapeStructureTemplates[key];
   if (!tpl) return;
-  shapeWorkshopState.recipe = normalizeShapeRecipe({
-    name: tpl.name,
-    primitives: tpl.primitives.map(function(p){ return createShapePrimitive(p.type, p); })
+  var recipe = shapeWorkshopState.recipe = normalizeShapeRecipe(shapeWorkshopState.recipe);
+  var available = SHAPE_PRIMITIVE_LIMIT - recipe.primitives.length;
+  if (available <= 0) {
+    showToast('基础例子最多 ' + SHAPE_PRIMITIVE_LIMIT + ' 层');
+    return;
+  }
+  var groupCenter = recipe.primitives.length ? shapePrimitiveSpawnPosition(recipe.primitives.length) : { x: 0, y: 0 };
+  var added = tpl.primitives.slice(0, available).map(function(p, index){
+    return createShapePrimitive(p.type, Object.assign({}, p, {
+      index: recipe.primitives.length + index,
+      x: clampRange(groupCenter.x + (Number(p.x) || 0), -0.95, 0.95),
+      y: clampRange(groupCenter.y + (Number(p.y) || 0), -0.95, 0.95)
+    }));
   });
-  shapeWorkshopState.selectedId = shapeWorkshopState.recipe.primitives[0] ? shapeWorkshopState.recipe.primitives[0].id : '';
+  recipe.primitives = recipe.primitives.concat(added);
+  if (recipe.name === '我的形态' && recipe.primitives.length === added.length) recipe.name = tpl.name;
+  shapeWorkshopState.recipe = normalizeShapeRecipe(recipe);
+  shapeWorkshopState.selectedId = added.length ? added[0].id : '';
   renderShapeWorkshop();
-  showToast('已载入 ' + tpl.name);
+  showToast(added.length < tpl.primitives.length ? '已加入部分' + tpl.name + '，层数已达上限' : '已加入 ' + tpl.name);
 }
 function shapeWorkshopSelectPrimitive(id) {
   shapeWorkshopState.selectedId = id;
@@ -22529,10 +22538,6 @@ function shapeWorkshopUpdatePrimitive(id, key, value) {
 }
 function shapeWorkshopRemovePrimitive(id) {
   var recipe = shapeWorkshopState.recipe = normalizeShapeRecipe(shapeWorkshopState.recipe);
-  if (recipe.primitives.length <= 1) {
-    showToast('至少保留一个基础例子');
-    return;
-  }
   recipe.primitives = recipe.primitives.filter(function(p){ return p.id !== id; });
   shapeWorkshopState.selectedId = recipe.primitives[0] ? recipe.primitives[0].id : '';
   renderShapeWorkshop();
@@ -22556,9 +22561,9 @@ function shapeWorkshopDuplicatePrimitive(id) {
 }
 function resetShapeWorkshopRecipe() {
   shapeWorkshopState.recipe = defaultShapeRecipe();
-  shapeWorkshopState.selectedId = shapeWorkshopState.recipe.primitives[0] ? shapeWorkshopState.recipe.primitives[0].id : '';
+  shapeWorkshopState.selectedId = '';
   renderShapeWorkshop();
-  showToast('形态工坊已重置');
+  showToast('形态工坊已清空');
 }
 function saveCurrentShapePreset() {
   var recipe = normalizeShapeRecipe(shapeWorkshopState.recipe);
