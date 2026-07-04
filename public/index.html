@@ -21668,6 +21668,107 @@ function saveUserShapePresets() {
     showToast('形态保存失败，本地存储空间可能不足');
   }
 }
+function shapePresetExportPayload(slot) {
+  var recipe = normalizeShapeRecipe(slot && slot.recipe);
+  return {
+    type: USER_SHAPE_PRESET_EXPORT_TYPE,
+    schema: USER_SHAPE_PRESET_SCHEMA,
+    exportedAt: Date.now(),
+    name: normalizeShapeRecipeName(slot && slot.name || recipe.name),
+    savedAt: Number(slot && slot.savedAt) || Date.now(),
+    recipe: recipe
+  };
+}
+function safeShapePresetFileName(name) {
+  return String(name || 'Mineradio 形态预设').replace(/[\\/:*?"<>|]+/g, '-').slice(0, 48) + '.mineradio-shape.json';
+}
+function exportUserShapePreset(index) {
+  index = Math.floor(Number(index) || 0);
+  var slot = userShapePresets[index];
+  if (!slot || !slot.recipe || !slot.recipe.primitives || !slot.recipe.primitives.length) {
+    showToast('空白形态不能导出');
+    return;
+  }
+  var payload = shapePresetExportPayload(slot);
+  var text = JSON.stringify(payload, null, 2);
+  var api = getDesktopWindowApi && getDesktopWindowApi();
+  if (api && typeof api.exportJsonFile === 'function') {
+    api.exportJsonFile({ defaultName: safeShapePresetFileName(slot.name), text: text }).then(function(res){
+      if (res && res.ok) showToast('形态预设已导出');
+      else if (!res || !res.canceled) showToast('形态预设导出失败');
+    }).catch(function(){ showToast('形态预设导出失败'); });
+    return;
+  }
+  var blob = new Blob([text], { type: 'application/json;charset=utf-8' });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = safeShapePresetFileName(slot.name);
+  a.click();
+  setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
+}
+function normalizeImportedShapePresetPayload(payload, fileName) {
+  if (!payload || typeof payload !== 'object') return null;
+  var rawRecipe = payload.recipe || payload.shapeRecipe || payload;
+  var recipe = normalizeShapeRecipe(rawRecipe);
+  if (!recipe.primitives.length) return null;
+  var baseName = String(fileName || '').split(/[\\/]/).pop().replace(/\.mineradio-shape\.json$/i, '').replace(/\.json$/i, '');
+  var name = normalizeShapeRecipeName(payload.name || (rawRecipe && rawRecipe.name) || baseName || recipe.name);
+  recipe.name = name;
+  return {
+    name: name,
+    savedAt: Number(payload.savedAt) || Date.now(),
+    recipe: recipe
+  };
+}
+function importUserShapePresetText(text, fileName) {
+  var payload = null;
+  try { payload = JSON.parse(String(text || '')); } catch (e) {}
+  var slot = normalizeImportedShapePresetPayload(payload, fileName);
+  if (!slot) {
+    showToast('导入失败，文件不是有效的形态预设');
+    return false;
+  }
+  userShapePresets.push(slot);
+  shapeWorkshopState.open = true;
+  shapeWorkshopState.recipe = cloneShapeRecipe(slot.recipe);
+  shapeWorkshopState.selectedId = shapeWorkshopState.recipe.primitives[0] ? shapeWorkshopState.recipe.primitives[0].id : '';
+  shapeWorkshopState.editingIndex = userShapePresets.length - 1;
+  shapeWorkshopState.deleteConfirmIndex = -1;
+  saveUserShapePresets();
+  enterShapeWorkshopRenderMode();
+  renderShapeWorkshop();
+  showToast('已导入形态: ' + slot.name);
+  return true;
+}
+function importUserShapePresetFromDialog() {
+  var api = getDesktopWindowApi && getDesktopWindowApi();
+  if (api && typeof api.importJsonFile === 'function') {
+    api.importJsonFile().then(function(res){
+      if (res && res.ok) importUserShapePresetText(res.text, res.filePath || '形态预设.json');
+      else if (!res || !res.canceled) showToast('导入失败');
+    }).catch(function(){ showToast('导入失败'); });
+    return;
+  }
+  var input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.mineradio-shape.json,.json,application/json';
+  input.onchange = function(){
+    var file = input.files && input.files[0];
+    if (file) readUserShapePresetImportFile(file);
+  };
+  input.click();
+}
+function readUserShapePresetImportFile(file) {
+  if (!file || !/\.json$/i.test(file.name || '')) {
+    showToast('请导入 JSON 形态预设');
+    return;
+  }
+  var reader = new FileReader();
+  reader.onload = function(e){ importUserShapePresetText(e.target && e.target.result, file.name); };
+  reader.onerror = function(){ showToast('导入失败'); };
+  reader.readAsText(file, 'utf-8');
+}
 var userShapePresets = readUserShapePresets();
 var shapeWorkshopState = {
   open: false,
@@ -22803,7 +22904,8 @@ function renderShapeParamPanel(primitive) {
 }
 function renderShapeSavedPresets() {
   if (!userShapePresets.length) {
-    return '<div class="shape-layer-meta">还没有保存的形态。保存后会出现在这里。</div>';
+    return '<div class="shape-layer-meta">还没有保存的形态。保存后会出现在这里，也可以导入别人分享的形态预设。</div>' +
+      '<div class="shape-saved-actions"><button type="button" onclick="importUserShapePresetFromDialog()">导入形态</button></div>';
   }
   return '<div class="shape-saved-grid">' + userShapePresets.map(function(slot, index){
     var deleting = shapeWorkshopState.deleteConfirmIndex === index;
@@ -22814,6 +22916,7 @@ function renderShapeSavedPresets() {
         '<button type="button" onclick="loadUserShapePreset(' + index + ')">编辑</button>' +
         '<button type="button" onclick="applyUserShapePreset(' + index + ')">应用</button>' +
         '<button type="button" onclick="duplicateUserShapePreset(' + index + ')">复制</button>' +
+        '<button type="button" onclick="exportUserShapePreset(' + index + ')">导出</button>' +
         '<button type="button" onclick="deleteUserShapePreset(' + index + ')">' + (deleting ? '确认删除' : '删除') + '</button>' +
       '</div>' +
     '</div>';
@@ -22851,6 +22954,7 @@ function renderShapeWorkshop() {
         '<button type="button" onclick="saveCurrentShapePreset(false,false)">' + saveText + '</button>' +
         '<button type="button" onclick="saveCurrentShapePreset(true,false)">' + saveApplyText + '</button>' +
         '<button type="button" onclick="saveCurrentShapePreset(false,true)">另存为新形态</button>' +
+        '<button type="button" onclick="importUserShapePresetFromDialog()">导入形态</button>' +
         '<button type="button" onclick="resetShapeWorkshopRecipe()">清空画布</button>' +
       '</div>' +
       '<div class="shape-workshop-section"><div class="shape-workshop-section-title">我的形态</div>' + renderShapeSavedPresets() + '</div>' +
