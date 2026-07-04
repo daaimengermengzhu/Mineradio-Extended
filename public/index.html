@@ -1178,6 +1178,32 @@ body.desktop-shell.diy-mode #bottom-bar.stage-mode{left:50%;width:min(1080px,cal
 .shape-workshop-preview::before{content:'';position:absolute;inset:10px;border-radius:12px;background:linear-gradient(90deg,rgba(255,255,255,.045) 1px,transparent 1px),linear-gradient(0deg,rgba(255,255,255,.035) 1px,transparent 1px);background-size:22px 22px;opacity:.32;pointer-events:none}
 .shape-preview-scene{position:absolute;inset:0;display:block}
 .shape-preview-primitive{position:absolute;left:50%;top:50%;width:70px;height:70px;transform:translate(-50%,-50%) rotate(calc(var(--i,0) * 23deg)) scale(var(--scale,1));opacity:.72;mix-blend-mode:screen}
+.shape-workshop-stage{position:fixed;z-index:12;left:24px;right:min(492px,34vw);top:92px;bottom:92px;border-radius:28px;border:1px solid rgba(244,210,138,.16);background:radial-gradient(circle at 50% 48%,rgba(var(--fc-accent-rgb),.11),transparent 38%),linear-gradient(135deg,rgba(9,10,14,.88),rgba(2,3,5,.70));box-shadow:0 28px 110px rgba(0,0,0,.46),inset 0 1px 0 rgba(255,255,255,.07);opacity:0;visibility:hidden;pointer-events:none;overflow:hidden;transform:translateY(12px) scale(.992);transition:opacity .26s ease,visibility .26s,transform .32s cubic-bezier(.16,1,.3,1)}
+.shape-workshop-stage::before{content:'';position:absolute;inset:0;background:linear-gradient(90deg,rgba(255,255,255,.045) 1px,transparent 1px),linear-gradient(0deg,rgba(255,255,255,.035) 1px,transparent 1px);background-size:34px 34px;opacity:.38;pointer-events:none}
+.shape-workshop-stage::after{content:'';position:absolute;left:50%;top:50%;width:1px;height:1px;border-radius:50%;box-shadow:0 0 0 1px rgba(244,210,138,.34),0 0 0 120px rgba(244,210,138,.015),0 0 0 240px rgba(var(--fc-accent-rgb),.012);opacity:.62;pointer-events:none}
+body.shape-workshop-mode #shape-workshop-stage{opacity:1;visibility:visible;pointer-events:auto;transform:translateY(0) scale(1)}
+body.shape-workshop-mode #fx-panel{right:24px;opacity:1;pointer-events:auto;transform:translateY(0) scale(1)}
+body.shape-workshop-mode #empty-home,body.shape-workshop-mode #playlist-panel,body.shape-workshop-mode #bottom-bar,body.shape-workshop-mode #bottom-handle,body.shape-workshop-mode #thumb-wrap{opacity:0!important;pointer-events:none!important}
+body.shape-workshop-mode #search-area{opacity:0!important;pointer-events:none!important}
+body.shape-workshop-mode #canvas-container{opacity:.12;filter:brightness(.55) saturate(.8)}
+.shape-stage-head{position:absolute;z-index:2;left:18px;top:16px;display:flex;align-items:flex-start;justify-content:space-between;gap:14px;right:18px;pointer-events:none}
+.shape-stage-title{font-size:13px;font-weight:820;color:rgba(255,255,255,.88);letter-spacing:.08em;text-transform:uppercase}
+.shape-stage-sub{margin-top:4px;font-size:11px;line-height:1.45;color:rgba(255,255,255,.46);max-width:430px}
+.shape-stage-count{flex:0 0 auto;border-radius:999px;border:1px solid rgba(244,210,138,.22);background:rgba(244,210,138,.075);padding:6px 10px;font-size:10.5px;color:rgba(255,255,255,.62);font-weight:720}
+.shape-stage-empty{position:absolute;z-index:1;left:50%;top:52%;width:min(390px,calc(100% - 48px));transform:translate(-50%,-50%);text-align:center;color:rgba(255,255,255,.46);font-size:12px;line-height:1.55;pointer-events:none}
+.shape-stage-item{position:absolute;z-index:3;left:50%;top:50%;width:86px;height:86px;border:0;background:transparent;padding:0;color:inherit;cursor:grab;transform:translate(-50%,-50%) rotate(calc(var(--i,0) * 18deg)) scale(var(--scale,1));touch-action:none}
+.shape-stage-item:active,.shape-stage-item.dragging{cursor:grabbing}
+.shape-stage-item.active{filter:drop-shadow(0 0 20px rgba(244,210,138,.35))}
+.shape-stage-item.active::after{content:'';position:absolute;inset:-10px;border-radius:18px;border:1px solid rgba(244,210,138,.48);box-shadow:0 0 26px rgba(244,210,138,.12);pointer-events:none}
+.shape-stage-item.ring{border:3px solid rgba(244,210,138,.90);border-radius:50%;box-shadow:0 0 42px rgba(244,210,138,.22),inset 0 0 28px rgba(244,210,138,.06)}
+.shape-stage-item.spiral{border-radius:50%;border:3px dashed rgba(var(--fc-accent-rgb),.88);width:118px;height:118px;box-shadow:inset 0 0 44px rgba(var(--fc-accent-rgb),.13),0 0 30px rgba(var(--fc-accent-rgb),.11)}
+.shape-stage-item.point{width:18px;height:18px;border-radius:50%;background:rgba(255,255,255,.96);box-shadow:-52px -20px 0 rgba(var(--fc-accent-rgb),.58),46px 26px 0 rgba(244,210,138,.68),0 0 30px rgba(255,255,255,.42)}
+.shape-stage-item.line{height:4px;width:168px;background:linear-gradient(90deg,transparent,rgba(var(--fc-accent-rgb),.92),rgba(244,210,138,.72),transparent);border-radius:999px}
+.shape-stage-item.plane{width:148px;height:92px;border:1px solid rgba(255,255,255,.22);background:linear-gradient(135deg,rgba(var(--fc-accent-rgb),.15),rgba(255,255,255,.035));transform:translate(-50%,-50%) rotateX(58deg) rotateZ(calc(var(--i,0) * 14deg)) scale(var(--scale,1))}
+.shape-stage-item.wave{width:172px;height:48px;border-radius:50%;border-top:3px solid rgba(var(--fc-accent-rgb),.86);border-bottom:3px solid rgba(244,210,138,.32)}
+.shape-stage-item.tunnel{width:116px;height:116px;border-radius:50%;border:1px solid rgba(255,255,255,.22);box-shadow:0 0 0 18px rgba(var(--fc-accent-rgb),.060),0 0 0 36px rgba(244,210,138,.050),0 0 42px rgba(var(--fc-accent-rgb),.14)}
+.shape-stage-item.card{width:112px;height:74px;border-radius:13px;border:1px solid rgba(255,255,255,.22);background:linear-gradient(135deg,rgba(255,255,255,.18),rgba(var(--fc-accent-rgb),.09));box-shadow:0 22px 48px rgba(0,0,0,.30)}
+@media (max-width:960px){.shape-workshop-stage{left:16px;right:16px;top:86px;bottom:210px;border-radius:22px}.shape-stage-head{left:14px;right:14px}.shape-stage-title{font-size:12px}.shape-stage-sub{font-size:10.5px}.shape-stage-count{display:none}}
 .shape-preview-primitive.ring{border:2px solid rgba(244,210,138,.82);border-radius:50%;box-shadow:0 0 28px rgba(244,210,138,.18)}
 .shape-preview-primitive.spiral{border-radius:50%;border:2px dashed rgba(var(--fc-accent-rgb),.78);width:94px;height:94px;box-shadow:inset 0 0 32px rgba(var(--fc-accent-rgb),.10)}
 .shape-preview-primitive.point{width:12px;height:12px;border-radius:50%;background:rgba(255,255,255,.9);box-shadow:-42px -16px 0 rgba(var(--fc-accent-rgb),.55),36px 20px 0 rgba(244,210,138,.62),0 0 24px rgba(255,255,255,.3)}
@@ -2130,6 +2156,7 @@ html.control-glass-svg-ok #visual-guide-btn:hover{
   <svg width="21" height="21" fill="none" stroke="currentColor" stroke-width="1.9" viewBox="0 0 24 24"><path d="M4 7h8"/><path d="M16 7h4"/><circle cx="14" cy="7" r="2"/><path d="M4 17h4"/><path d="M12 17h8"/><circle cx="10" cy="17" r="2"/></svg>
 </button>
 <button id="fx-fab-hide-btn" type="button" onclick="toggleFxFabAutoHide(event)" title="自动隐藏视觉控制台">‹</button>
+<div id="shape-workshop-stage" class="shape-workshop-stage" aria-hidden="true"></div>
 
 <!-- 控制台 (右侧贴边自动显示, 无关闭按钮) -->
 <div id="fx-panel">
@@ -5674,7 +5701,7 @@ var particlePointerLocalHit = new THREE.Vector3();
 var particlePointerQuat = new THREE.Quaternion();
 var particlePointerFrame = { dirty:false, ndcX:0, ndcY:0 };
 var CLICK_THRESHOLD = 6;  // 像素, 拖动 > 6px 视为 drag
-var UI_HIT_SELECTOR = '#search-area,#top-right,#fullscreen-diy-zone,#fx-panel,#fx-fab,#fx-fab-hide-btn,#playlist-panel,#bottom-bar,#thumb-wrap,#empty-home,#visual-guide,#trial-banner,#source-fallback-notice,.modal-mask,#toast,#ai-depth-chip,#beat-chip,#drop-overlay';
+var UI_HIT_SELECTOR = '#search-area,#top-right,#fullscreen-diy-zone,#fx-panel,#fx-fab,#fx-fab-hide-btn,#shape-workshop-stage,#playlist-panel,#bottom-bar,#thumb-wrap,#empty-home,#visual-guide,#trial-banner,#source-fallback-notice,.modal-mask,#toast,#ai-depth-chip,#beat-chip,#drop-overlay';
 
 function isPointerOverUi(e) {
   if (!e) return false;
@@ -21495,13 +21522,30 @@ var shapeStructureTemplates = {
 function shapePrimitiveDef(type) {
   return shapePrimitiveDefs[type] || shapePrimitiveDefs.point;
 }
+function shapePrimitiveSpawnPosition(index) {
+  index = Math.max(0, Math.floor(Number(index) || 0));
+  if (index === 0) return { x: -0.16, y: -0.04 };
+  if (index === 1) return { x: 0.18, y: 0.07 };
+  var angle = index * 2.399963229728653;
+  var radius = Math.min(0.62, 0.18 + index * 0.055);
+  return {
+    x: clampRange(Math.cos(angle) * radius, -0.76, 0.76),
+    y: clampRange(Math.sin(angle) * radius, -0.62, 0.62)
+  };
+}
 function createShapePrimitive(type, raw) {
   var def = shapePrimitiveDef(type);
   raw = raw && typeof raw === 'object' ? raw : {};
+  var currentCount = shapeWorkshopState && shapeWorkshopState.recipe && Array.isArray(shapeWorkshopState.recipe.primitives)
+    ? shapeWorkshopState.recipe.primitives.length
+    : 0;
+  var spawn = shapePrimitiveSpawnPosition(raw.index != null ? raw.index : currentCount);
+  if (raw.x == null) raw.x = spawn.x;
+  if (raw.y == null) raw.y = spawn.y;
   return normalizeShapePrimitive(Object.assign({}, def, raw, {
     id: raw.id || (type + '-' + Date.now().toString(36) + '-' + Math.floor(Math.random() * 999).toString(36)),
     type: type
-  }), 0);
+  }), currentCount);
 }
 function shapeRecipeNumber(raw, key, fallback, min, max) {
   var value = raw && raw[key] != null ? Number(raw[key]) : fallback;
@@ -21512,9 +21556,12 @@ function normalizeShapePrimitive(raw, index) {
   raw = raw && typeof raw === 'object' ? raw : {};
   var type = shapePrimitiveDefs[raw.type] ? raw.type : 'point';
   var def = shapePrimitiveDef(type);
+  var spawn = shapePrimitiveSpawnPosition(index);
   return {
     id: String(raw.id || (type + '-' + index)).replace(/[^a-z0-9_-]/gi, '').slice(0, 36) || (type + '-' + index),
     type: type,
+    x: shapeRecipeNumber(raw, 'x', spawn.x, -0.95, 0.95),
+    y: shapeRecipeNumber(raw, 'y', spawn.y, -0.95, 0.95),
     count: Math.round(shapeRecipeNumber(raw, 'count', def.count, 8, 1200)),
     size: shapeRecipeNumber(raw, 'size', def.size, 0.2, 1.8),
     depth: shapeRecipeNumber(raw, 'depth', def.depth, 0, 1.2),
@@ -22231,11 +22278,104 @@ function shapeWorkshopSelectedPrimitive() {
   }
   return selected || null;
 }
+var shapeStageDrag = null;
+function shapePositionStyle(primitive, index, scale, xFactor, yFactor) {
+  var x = clampRange(Number(primitive && primitive.x) || 0, -0.95, 0.95);
+  var y = clampRange(Number(primitive && primitive.y) || 0, -0.95, 0.95);
+  return 'left:' + (50 + x * xFactor).toFixed(2) + '%;top:' + (50 + y * yFactor).toFixed(2) + '%;--i:' + index + ';--scale:' + scale.toFixed(2);
+}
+function shapeStageItemHtml(primitive, index) {
+  var scale = clampRange(0.78 + primitive.size * 0.22 + primitive.depth * 0.14, 0.62, 1.48);
+  var active = primitive.id === shapeWorkshopState.selectedId;
+  var dragging = shapeStageDrag && shapeStageDrag.id === primitive.id;
+  return '<button class="shape-stage-item ' + escHtml(primitive.type) + (active ? ' active' : '') + (dragging ? ' dragging' : '') + '" type="button" ' +
+    'data-shape-stage-id="' + escHtml(primitive.id) + '" style="' + shapePositionStyle(primitive, index, scale, 42, 38) + '" ' +
+    'onpointerdown="beginShapeStageDrag(event,\'' + escHtml(primitive.id) + '\')" onclick="shapeWorkshopSelectPrimitive(\'' + escHtml(primitive.id) + '\')" ' +
+    'title="' + escHtml(shapePrimitiveLabel(primitive)) + '"></button>';
+}
+function renderShapeWorkshopStage() {
+  var stage = document.getElementById('shape-workshop-stage');
+  if (!stage) return;
+  if (!shapeWorkshopState || !shapeWorkshopState.open) {
+    stage.innerHTML = '';
+    stage.setAttribute('aria-hidden', 'true');
+    if (document.body) document.body.classList.remove('shape-workshop-mode');
+    return;
+  }
+  var recipe = shapeWorkshopState.recipe = normalizeShapeRecipe(shapeWorkshopState.recipe);
+  if (document.body) document.body.classList.add('shape-workshop-mode');
+  stage.setAttribute('aria-hidden', 'false');
+  var items = recipe.primitives.map(shapeStageItemHtml).join('');
+  var empty = items ? '' : '<div class="shape-stage-empty">从右侧基础例子库点击一个例子，它会出现在这里；拖动它就能改变形态结构。</div>';
+  stage.innerHTML =
+    '<div class="shape-stage-head">' +
+      '<div><div class="shape-stage-title">Shape Workshop</div><div class="shape-stage-sub">这是空白创作画布。点击右侧基础例子生成图层，直接拖动图层调整形态位置。</div></div>' +
+      '<div class="shape-stage-count">' + escHtml(shapeRecipeSummary(recipe)) + '</div>' +
+    '</div>' +
+    empty +
+    items;
+}
+function shapeStagePointFromEvent(event) {
+  var stage = document.getElementById('shape-workshop-stage');
+  if (!stage || !event) return null;
+  var rect = stage.getBoundingClientRect();
+  if (!rect.width || !rect.height) return null;
+  var left = clampRange((event.clientX - rect.left) / rect.width, 0.04, 0.96);
+  var top = clampRange((event.clientY - rect.top) / rect.height, 0.06, 0.94);
+  return {
+    x: clampRange((left - 0.5) / 0.42, -0.95, 0.95),
+    y: clampRange((top - 0.5) / 0.38, -0.95, 0.95)
+  };
+}
+function shapeWorkshopSetPrimitivePosition(id, x, y, renderPanel) {
+  var recipe = shapeWorkshopState.recipe = normalizeShapeRecipe(shapeWorkshopState.recipe);
+  recipe.primitives = recipe.primitives.map(function(p, index){
+    if (p.id !== id) return p;
+    p.x = clampRange(Number(x) || 0, -0.95, 0.95);
+    p.y = clampRange(Number(y) || 0, -0.95, 0.95);
+    return normalizeShapePrimitive(p, index);
+  });
+  shapeWorkshopState.recipe = normalizeShapeRecipe(recipe);
+  if (renderPanel) renderShapeWorkshop();
+  else renderShapeWorkshopStage();
+}
+function beginShapeStageDrag(event, id) {
+  if (!event || !shapeWorkshopState.open) return;
+  event.preventDefault();
+  event.stopPropagation();
+  shapeWorkshopState.selectedId = id;
+  shapeStageDrag = { id: id };
+  document.removeEventListener('pointermove', moveShapeStageDrag);
+  document.removeEventListener('pointerup', endShapeStageDrag);
+  document.removeEventListener('pointercancel', endShapeStageDrag);
+  document.addEventListener('pointermove', moveShapeStageDrag);
+  document.addEventListener('pointerup', endShapeStageDrag);
+  document.addEventListener('pointercancel', endShapeStageDrag);
+  renderShapeWorkshopStage();
+}
+function moveShapeStageDrag(event) {
+  if (!shapeStageDrag) return;
+  var point = shapeStagePointFromEvent(event);
+  if (!point) return;
+  shapeWorkshopSetPrimitivePosition(shapeStageDrag.id, point.x, point.y, false);
+}
+function endShapeStageDrag(event) {
+  if (shapeStageDrag && event) {
+    var point = shapeStagePointFromEvent(event);
+    if (point) shapeWorkshopSetPrimitivePosition(shapeStageDrag.id, point.x, point.y, false);
+  }
+  var shouldRender = !!shapeStageDrag;
+  shapeStageDrag = null;
+  document.removeEventListener('pointermove', moveShapeStageDrag);
+  document.removeEventListener('pointerup', endShapeStageDrag);
+  document.removeEventListener('pointercancel', endShapeStageDrag);
+  if (shouldRender) renderShapeWorkshop();
+}
 function shapePreviewHtml(recipe) {
   recipe = normalizeShapeRecipe(recipe);
   var items = recipe.primitives.map(function(p, index){
     var scale = clampRange(0.72 + p.size * 0.28 + p.depth * 0.18, 0.65, 1.45);
-    return '<i class="shape-preview-primitive ' + escHtml(p.type) + '" style="--i:' + index + ';--scale:' + scale.toFixed(2) + '"></i>';
+    return '<i class="shape-preview-primitive ' + escHtml(p.type) + '" style="' + shapePositionStyle(p, index, scale, 34, 28) + '"></i>';
   }).join('');
   return '<div class="shape-preview-scene">' + items + '</div>' +
     '<div class="shape-workshop-summary"><span>' + escHtml(recipe.name) + '</span><span>' + escHtml(shapeRecipeSummary(recipe)) + '</span></div>';
@@ -22275,6 +22415,8 @@ function renderShapeLayerList(recipe) {
 function renderShapeParamPanel(primitive) {
   if (!primitive) return '<div class="shape-layer-meta">先选择一个基础例子。</div>';
   var params = [
+    ['x', '左右', -0.95, 0.95, 0.01, primitive.x],
+    ['y', '上下', -0.95, 0.95, 0.01, primitive.y],
     ['count', '数量', 8, 1200, 1, primitive.count],
     ['size', '大小', 0.2, 1.8, 0.01, primitive.size],
     ['depth', '深度', 0, 1.2, 0.01, primitive.depth],
@@ -22305,6 +22447,7 @@ function renderShapeWorkshop() {
   if (!root) return;
   if (!shapeWorkshopState.open) {
     root.innerHTML = renderShapeWorkshopClosed();
+    renderShapeWorkshopStage();
     refreshPresetGrid();
     return;
   }
@@ -22328,6 +22471,7 @@ function renderShapeWorkshop() {
       '</div>' +
       '<div class="shape-workshop-section"><div class="shape-workshop-section-title">我的形态</div>' + renderShapeSavedPresets() + '</div>' +
     '</div>';
+  renderShapeWorkshopStage();
   refreshPresetGrid();
 }
 function openShapeWorkshop() {
@@ -22345,6 +22489,7 @@ function closeShapeWorkshop() {
 }
 function shapeWorkshopUpdateName(value) {
   shapeWorkshopState.recipe.name = normalizeShapeRecipeName(value);
+  renderShapeWorkshopStage();
 }
 function shapeWorkshopAddPrimitive(type) {
   var recipe = shapeWorkshopState.recipe = normalizeShapeRecipe(shapeWorkshopState.recipe);
@@ -22400,7 +22545,11 @@ function shapeWorkshopDuplicatePrimitive(id) {
   }
   var item = recipe.primitives.filter(function(p){ return p.id === id; })[0];
   if (!item) return;
-  var copy = createShapePrimitive(item.type, Object.assign({}, item, { id: '' }));
+  var copy = createShapePrimitive(item.type, Object.assign({}, item, {
+    id: '',
+    x: clampRange((Number(item.x) || 0) + 0.08, -0.95, 0.95),
+    y: clampRange((Number(item.y) || 0) + 0.08, -0.95, 0.95)
+  }));
   recipe.primitives.push(copy);
   shapeWorkshopState.selectedId = copy.id;
   renderShapeWorkshop();
