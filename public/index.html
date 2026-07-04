@@ -1238,7 +1238,7 @@ body.shape-workshop-mode #canvas-container{opacity:1;filter:brightness(.92) satu
 .shape-saved-card{min-height:74px;border-radius:10px;border:1px solid rgba(255,255,255,.075);background:rgba(255,255,255,.026);padding:8px;text-align:left;color:inherit;font-family:inherit}
 .shape-saved-card strong{display:block;font-size:11px;color:rgba(255,255,255,.84);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .shape-saved-card span{display:block;margin-top:4px;font-size:9.5px;line-height:1.35;color:rgba(255,255,255,.42)}
-.shape-saved-actions{display:flex;gap:5px;margin-top:7px}
+.shape-saved-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px;margin-top:7px}
 .shape-saved-actions button{height:24px;flex:1;border-radius:8px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.04);color:rgba(255,255,255,.68);font-family:inherit;font-size:9.5px;font-weight:730;cursor:pointer}
 .shape-saved-actions button:hover{background:rgba(244,210,138,.10);border-color:rgba(244,210,138,.28);color:#fff}
 
@@ -21673,7 +21673,9 @@ var shapeWorkshopState = {
   open: false,
   recipe: defaultShapeRecipe(),
   selectedId: '',
-  previewPrevPreset: null
+  previewPrevPreset: null,
+  editingIndex: -1,
+  deleteConfirmIndex: -1
 };
 shapeWorkshopState.selectedId = shapeWorkshopState.recipe.primitives[0] ? shapeWorkshopState.recipe.primitives[0].id : '';
 var activeUserShapeRecipe = readActiveUserShapeRecipe();
@@ -22804,12 +22806,15 @@ function renderShapeSavedPresets() {
     return '<div class="shape-layer-meta">还没有保存的形态。保存后会出现在这里。</div>';
   }
   return '<div class="shape-saved-grid">' + userShapePresets.map(function(slot, index){
+    var deleting = shapeWorkshopState.deleteConfirmIndex === index;
     return '<div class="shape-saved-card">' +
       '<strong>' + escHtml(slot.name) + '</strong>' +
       '<span>' + escHtml(shapeRecipeSummary(slot.recipe)) + '</span>' +
       '<div class="shape-saved-actions">' +
         '<button type="button" onclick="loadUserShapePreset(' + index + ')">编辑</button>' +
         '<button type="button" onclick="applyUserShapePreset(' + index + ')">应用</button>' +
+        '<button type="button" onclick="duplicateUserShapePreset(' + index + ')">复制</button>' +
+        '<button type="button" onclick="deleteUserShapePreset(' + index + ')">' + (deleting ? '确认删除' : '删除') + '</button>' +
       '</div>' +
     '</div>';
   }).join('') + '</div>';
@@ -22826,6 +22831,9 @@ function renderShapeWorkshop() {
   var recipe = shapeWorkshopState.recipe = normalizeShapeRecipe(shapeWorkshopState.recipe);
   var selected = shapeWorkshopSelectedPrimitive();
   syncCustomShapeLayer(false);
+  var editingSlot = shapeWorkshopState.editingIndex >= 0 && userShapePresets[shapeWorkshopState.editingIndex] ? userShapePresets[shapeWorkshopState.editingIndex] : null;
+  var saveText = editingSlot ? '保存更新' : '保存为我的形态';
+  var saveApplyText = editingSlot ? '保存更新并应用' : '保存并应用';
   root.innerHTML =
     '<div class="shape-workshop-panel">' +
       '<div class="shape-workshop-head">' +
@@ -22840,8 +22848,9 @@ function renderShapeWorkshop() {
       '<div class="shape-workshop-section"><div class="shape-workshop-section-title">所选例子参数</div>' + renderShapeParamPanel(selected) + '</div>' +
       '<div class="shape-workshop-actions">' +
         '<button type="button" onclick="applyCurrentShapePreset()">应用到播放器</button>' +
-        '<button type="button" onclick="saveCurrentShapePreset()">保存为我的形态</button>' +
-        '<button type="button" onclick="saveCurrentShapePreset(true)">保存并应用</button>' +
+        '<button type="button" onclick="saveCurrentShapePreset(false,false)">' + saveText + '</button>' +
+        '<button type="button" onclick="saveCurrentShapePreset(true,false)">' + saveApplyText + '</button>' +
+        '<button type="button" onclick="saveCurrentShapePreset(false,true)">另存为新形态</button>' +
         '<button type="button" onclick="resetShapeWorkshopRecipe()">清空画布</button>' +
       '</div>' +
       '<div class="shape-workshop-section"><div class="shape-workshop-section-title">我的形态</div>' + renderShapeSavedPresets() + '</div>' +
@@ -22853,6 +22862,7 @@ function openShapeWorkshop() {
   shapeWorkshopState.open = true;
   shapeWorkshopState.recipe = normalizeShapeRecipe(shapeWorkshopState.recipe);
   shapeWorkshopState.selectedId = shapeWorkshopState.selectedId || (shapeWorkshopState.recipe.primitives[0] && shapeWorkshopState.recipe.primitives[0].id) || '';
+  shapeWorkshopState.deleteConfirmIndex = -1;
   enterShapeWorkshopRenderMode();
   setFxPanelTab('presets');
   renderShapeWorkshop();
@@ -22866,6 +22876,7 @@ function closeShapeWorkshop() {
 }
 function shapeWorkshopUpdateName(value) {
   shapeWorkshopState.recipe.name = normalizeShapeRecipeName(value);
+  shapeWorkshopState.deleteConfirmIndex = -1;
   syncCustomShapeLayer(false);
   renderShapeWorkshopStage();
 }
@@ -22879,6 +22890,7 @@ function shapeWorkshopAddPrimitive(type) {
   recipe.primitives.push(primitive);
   shapeWorkshopState.selectedId = primitive.id;
   shapeWorkshopState.recipe = normalizeShapeRecipe(recipe);
+  shapeWorkshopState.deleteConfirmIndex = -1;
   syncCustomShapeLayer(false);
   renderShapeWorkshop();
 }
@@ -22903,12 +22915,14 @@ function shapeWorkshopApplyStructure(key) {
   if (recipe.name === '我的形态' && recipe.primitives.length === added.length) recipe.name = tpl.name;
   shapeWorkshopState.recipe = normalizeShapeRecipe(recipe);
   shapeWorkshopState.selectedId = added.length ? added[0].id : '';
+  shapeWorkshopState.deleteConfirmIndex = -1;
   syncCustomShapeLayer(false);
   renderShapeWorkshop();
   showToast(added.length < tpl.primitives.length ? '已加入部分' + tpl.name + '，层数已达上限' : '已加入 ' + tpl.name);
 }
 function shapeWorkshopSelectPrimitive(id) {
   shapeWorkshopState.selectedId = id;
+  shapeWorkshopState.deleteConfirmIndex = -1;
   renderShapeWorkshop();
 }
 function shapeWorkshopUpdatePrimitive(id, key, value) {
@@ -22919,6 +22933,7 @@ function shapeWorkshopUpdatePrimitive(id, key, value) {
     return normalizeShapePrimitive(p, index);
   });
   shapeWorkshopState.recipe = normalizeShapeRecipe(recipe);
+  shapeWorkshopState.deleteConfirmIndex = -1;
   syncCustomShapeLayer(false);
   renderShapeWorkshop();
 }
@@ -22927,6 +22942,7 @@ function shapeWorkshopRemovePrimitive(id) {
   recipe.primitives = recipe.primitives.filter(function(p){ return p.id !== id; });
   shapeWorkshopState.selectedId = recipe.primitives[0] ? recipe.primitives[0].id : '';
   shapeWorkshopState.recipe = normalizeShapeRecipe(recipe);
+  shapeWorkshopState.deleteConfirmIndex = -1;
   syncCustomShapeLayer(false);
   renderShapeWorkshop();
 }
@@ -22946,17 +22962,20 @@ function shapeWorkshopDuplicatePrimitive(id) {
   recipe.primitives.push(copy);
   shapeWorkshopState.selectedId = copy.id;
   shapeWorkshopState.recipe = normalizeShapeRecipe(recipe);
+  shapeWorkshopState.deleteConfirmIndex = -1;
   syncCustomShapeLayer(false);
   renderShapeWorkshop();
 }
 function resetShapeWorkshopRecipe() {
   shapeWorkshopState.recipe = defaultShapeRecipe();
   shapeWorkshopState.selectedId = '';
+  shapeWorkshopState.editingIndex = -1;
+  shapeWorkshopState.deleteConfirmIndex = -1;
   syncCustomShapeLayer(true);
   renderShapeWorkshop();
   showToast('形态工坊已清空');
 }
-function saveCurrentShapePreset(applyAfterSave) {
+function saveCurrentShapePreset(applyAfterSave, forceNew) {
   var recipe = normalizeShapeRecipe(shapeWorkshopState.recipe);
   if (!recipe.primitives.length) {
     showToast('先添加基础粒子，再保存形态');
@@ -22967,11 +22986,19 @@ function saveCurrentShapePreset(applyAfterSave) {
     savedAt: Date.now(),
     recipe: cloneShapeRecipe(recipe)
   };
-  userShapePresets.push(slot);
+  var editing = !forceNew && shapeWorkshopState.editingIndex >= 0 && userShapePresets[shapeWorkshopState.editingIndex];
+  if (editing) {
+    userShapePresets[shapeWorkshopState.editingIndex] = slot;
+  } else {
+    userShapePresets.push(slot);
+    shapeWorkshopState.editingIndex = userShapePresets.length - 1;
+  }
+  shapeWorkshopState.deleteConfirmIndex = -1;
   saveUserShapePresets();
   if (applyAfterSave) applyShapeRecipeToPlayer(slot.recipe, true);
   renderShapeWorkshop();
-  showToast((applyAfterSave ? '已保存并应用: ' : '已保存为我的形态: ') + slot.name);
+  var toastPrefix = editing ? (applyAfterSave ? '已更新并应用: ' : '已更新形态: ') : (applyAfterSave ? '已保存并应用: ' : '已保存为我的形态: ');
+  showToast(toastPrefix + slot.name);
 }
 function applyCurrentShapePreset() {
   applyShapeRecipeToPlayer(shapeWorkshopState.recipe);
@@ -22984,6 +23011,8 @@ function loadUserShapePreset(index) {
   shapeWorkshopState.recipe = cloneShapeRecipe(slot.recipe);
   shapeWorkshopState.recipe.name = normalizeShapeRecipeName(slot.name || shapeWorkshopState.recipe.name);
   shapeWorkshopState.selectedId = shapeWorkshopState.recipe.primitives[0] ? shapeWorkshopState.recipe.primitives[0].id : '';
+  shapeWorkshopState.editingIndex = index;
+  shapeWorkshopState.deleteConfirmIndex = -1;
   enterShapeWorkshopRenderMode();
   renderShapeWorkshop();
   showToast('已载入形态: ' + shapeWorkshopState.recipe.name);
@@ -22992,7 +23021,46 @@ function applyUserShapePreset(index) {
   index = Math.floor(Number(index) || 0);
   var slot = userShapePresets[index];
   if (!slot || !slot.recipe) return;
+  shapeWorkshopState.deleteConfirmIndex = -1;
   applyShapeRecipeToPlayer(slot.recipe);
+  renderShapeWorkshop();
+}
+function duplicateUserShapePreset(index) {
+  index = Math.floor(Number(index) || 0);
+  var slot = userShapePresets[index];
+  if (!slot || !slot.recipe) return;
+  var copy = {
+    name: normalizeShapeRecipeName((slot.name || '我的形态') + ' 副本'),
+    savedAt: Date.now(),
+    recipe: cloneShapeRecipe(slot.recipe)
+  };
+  copy.recipe.name = copy.name;
+  userShapePresets.push(copy);
+  shapeWorkshopState.editingIndex = userShapePresets.length - 1;
+  shapeWorkshopState.deleteConfirmIndex = -1;
+  saveUserShapePresets();
+  renderShapeWorkshop();
+  showToast('已复制形态: ' + copy.name);
+}
+function deleteUserShapePreset(index) {
+  index = Math.floor(Number(index) || 0);
+  var slot = userShapePresets[index];
+  if (!slot) return;
+  if (shapeWorkshopState.deleteConfirmIndex !== index) {
+    shapeWorkshopState.deleteConfirmIndex = index;
+    renderShapeWorkshop();
+    showToast('再点一次确认删除: ' + slot.name);
+    return;
+  }
+  var deletingActive = activeUserShapeRecipe && shapeRecipeRenderKey(activeUserShapeRecipe) === shapeRecipeRenderKey(slot.recipe);
+  userShapePresets.splice(index, 1);
+  if (shapeWorkshopState.editingIndex === index) shapeWorkshopState.editingIndex = -1;
+  else if (shapeWorkshopState.editingIndex > index) shapeWorkshopState.editingIndex -= 1;
+  shapeWorkshopState.deleteConfirmIndex = -1;
+  if (deletingActive) clearActiveUserShapePreset();
+  saveUserShapePresets();
+  renderShapeWorkshop();
+  showToast('已删除形态: ' + slot.name);
 }
 
 function creativeSandboxPresetName() {
