@@ -1178,14 +1178,14 @@ body.desktop-shell.diy-mode #bottom-bar.stage-mode{left:50%;width:min(1080px,cal
 .shape-workshop-preview::before{content:'';position:absolute;inset:10px;border-radius:12px;background:linear-gradient(90deg,rgba(255,255,255,.045) 1px,transparent 1px),linear-gradient(0deg,rgba(255,255,255,.035) 1px,transparent 1px);background-size:22px 22px;opacity:.32;pointer-events:none}
 .shape-preview-scene{position:absolute;inset:0;display:block}
 .shape-preview-primitive{position:absolute;left:50%;top:50%;width:70px;height:70px;transform:translate(-50%,-50%) rotate(calc(var(--i,0) * 23deg)) scale(var(--scale,1));opacity:.72;mix-blend-mode:screen}
-.shape-workshop-stage{position:fixed;z-index:12;left:24px;right:min(492px,34vw);top:92px;bottom:92px;border-radius:28px;border:1px solid rgba(244,210,138,.16);background:radial-gradient(circle at 50% 48%,rgba(var(--fc-accent-rgb),.11),transparent 38%),linear-gradient(135deg,rgba(9,10,14,.88),rgba(2,3,5,.70));box-shadow:0 28px 110px rgba(0,0,0,.46),inset 0 1px 0 rgba(255,255,255,.07);opacity:0;visibility:hidden;pointer-events:none;overflow:hidden;transform:translateY(12px) scale(.992);transition:opacity .26s ease,visibility .26s,transform .32s cubic-bezier(.16,1,.3,1)}
+.shape-workshop-stage{position:fixed;z-index:12;left:24px;right:min(492px,34vw);top:92px;bottom:92px;border-radius:28px;border:1px solid rgba(244,210,138,.16);background:radial-gradient(circle at 50% 48%,rgba(var(--fc-accent-rgb),.09),transparent 38%),linear-gradient(135deg,rgba(9,10,14,.38),rgba(2,3,5,.20));box-shadow:0 28px 110px rgba(0,0,0,.46),inset 0 1px 0 rgba(255,255,255,.07);opacity:0;visibility:hidden;pointer-events:none;overflow:hidden;transform:translateY(12px) scale(.992);transition:opacity .26s ease,visibility .26s,transform .32s cubic-bezier(.16,1,.3,1);backdrop-filter:blur(3px)}
 .shape-workshop-stage::before{content:'';position:absolute;inset:0;background:linear-gradient(90deg,rgba(255,255,255,.045) 1px,transparent 1px),linear-gradient(0deg,rgba(255,255,255,.035) 1px,transparent 1px);background-size:34px 34px;opacity:.38;pointer-events:none}
 .shape-workshop-stage::after{content:'';position:absolute;left:50%;top:50%;width:1px;height:1px;border-radius:50%;box-shadow:0 0 0 1px rgba(244,210,138,.34),0 0 0 120px rgba(244,210,138,.015),0 0 0 240px rgba(var(--fc-accent-rgb),.012);opacity:.62;pointer-events:none}
 body.shape-workshop-mode #shape-workshop-stage{opacity:1;visibility:visible;pointer-events:auto;transform:translateY(0) scale(1)}
 body.shape-workshop-mode #fx-panel{right:24px;opacity:1;pointer-events:auto;transform:translateY(0) scale(1)}
 body.shape-workshop-mode #empty-home,body.shape-workshop-mode #playlist-panel,body.shape-workshop-mode #bottom-bar,body.shape-workshop-mode #bottom-handle,body.shape-workshop-mode #thumb-wrap{opacity:0!important;pointer-events:none!important}
 body.shape-workshop-mode #search-area{opacity:0!important;pointer-events:none!important}
-body.shape-workshop-mode #canvas-container{opacity:.12;filter:brightness(.55) saturate(.8)}
+body.shape-workshop-mode #canvas-container{opacity:1;filter:brightness(.92) saturate(1.05)}
 .shape-stage-head{position:absolute;z-index:2;left:18px;top:16px;display:flex;align-items:flex-start;justify-content:space-between;gap:14px;right:18px;pointer-events:none}
 .shape-stage-title{font-size:13px;font-weight:820;color:rgba(255,255,255,.88);letter-spacing:.08em;text-transform:uppercase}
 .shape-stage-sub{margin-top:4px;font-size:11px;line-height:1.45;color:rgba(255,255,255,.46);max-width:430px}
@@ -1202,6 +1202,8 @@ body.shape-workshop-mode #canvas-container{opacity:.12;filter:brightness(.55) sa
 .shape-stage-item.plane{width:148px;height:92px;border:1px solid rgba(255,255,255,.22);background:linear-gradient(135deg,rgba(var(--fc-accent-rgb),.15),rgba(255,255,255,.035));transform:translate(-50%,-50%) rotateX(58deg) rotateZ(calc(var(--i,0) * 14deg)) scale(var(--scale,1))}
 .shape-stage-item.wave{width:172px;height:48px;border-radius:50%;border-top:3px solid rgba(var(--fc-accent-rgb),.86);border-bottom:3px solid rgba(244,210,138,.32)}
 .shape-stage-item.tunnel{width:116px;height:116px;border-radius:50%;border:1px solid rgba(255,255,255,.22);box-shadow:0 0 0 18px rgba(var(--fc-accent-rgb),.060),0 0 0 36px rgba(244,210,138,.050),0 0 42px rgba(var(--fc-accent-rgb),.14)}
+.shape-stage-item.sphere{width:112px;height:112px;border-radius:50%;background:radial-gradient(circle at 35% 30%,rgba(255,255,255,.34),rgba(var(--fc-accent-rgb),.11) 42%,rgba(244,210,138,.035) 70%,transparent 72%);border:1px solid rgba(255,255,255,.20);box-shadow:inset -16px -18px 42px rgba(0,0,0,.32),0 0 34px rgba(var(--fc-accent-rgb),.16)}
+.shape-stage-item.dust{width:16px;height:16px;border-radius:50%;background:rgba(255,255,255,.85);box-shadow:-86px -42px 0 rgba(255,255,255,.32),74px -18px 0 rgba(var(--fc-accent-rgb),.46),42px 56px 0 rgba(244,210,138,.38),-38px 64px 0 rgba(255,255,255,.24),0 0 34px rgba(var(--fc-accent-rgb),.32)}
 .shape-stage-item.card{width:112px;height:74px;border-radius:13px;border:1px solid rgba(255,255,255,.22);background:linear-gradient(135deg,rgba(255,255,255,.18),rgba(var(--fc-accent-rgb),.09));box-shadow:0 22px 48px rgba(0,0,0,.30)}
 @media (max-width:960px){.shape-workshop-stage{left:16px;right:16px;top:86px;bottom:210px;border-radius:22px}.shape-stage-head{left:14px;right:14px}.shape-stage-title{font-size:12px}.shape-stage-sub{font-size:10.5px}.shape-stage-count{display:none}}
 .shape-preview-primitive.ring{border:2px solid rgba(244,210,138,.82);border-radius:50%;box-shadow:0 0 28px rgba(244,210,138,.18)}
@@ -1211,6 +1213,8 @@ body.shape-workshop-mode #canvas-container{opacity:.12;filter:brightness(.55) sa
 .shape-preview-primitive.plane{width:118px;height:72px;border:1px solid rgba(255,255,255,.18);background:linear-gradient(135deg,rgba(var(--fc-accent-rgb),.13),rgba(255,255,255,.025));transform:translate(-50%,-50%) rotateX(58deg) rotateZ(calc(var(--i,0) * 16deg))}
 .shape-preview-primitive.wave{width:136px;height:38px;border-radius:50%;border-top:2px solid rgba(var(--fc-accent-rgb),.78);border-bottom:2px solid rgba(244,210,138,.28)}
 .shape-preview-primitive.tunnel{width:92px;height:92px;border-radius:50%;border:1px solid rgba(255,255,255,.18);box-shadow:0 0 0 14px rgba(var(--fc-accent-rgb),.055),0 0 0 28px rgba(244,210,138,.045),0 0 34px rgba(var(--fc-accent-rgb),.12)}
+.shape-preview-primitive.sphere{width:88px;height:88px;border-radius:50%;background:radial-gradient(circle at 35% 30%,rgba(255,255,255,.30),rgba(var(--fc-accent-rgb),.10) 42%,rgba(244,210,138,.030) 70%,transparent 72%);border:1px solid rgba(255,255,255,.18);box-shadow:inset -12px -14px 32px rgba(0,0,0,.28),0 0 28px rgba(var(--fc-accent-rgb),.13)}
+.shape-preview-primitive.dust{width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,.82);box-shadow:-62px -28px 0 rgba(255,255,255,.28),54px -12px 0 rgba(var(--fc-accent-rgb),.42),34px 42px 0 rgba(244,210,138,.34),-30px 48px 0 rgba(255,255,255,.22),0 0 26px rgba(var(--fc-accent-rgb),.26)}
 .shape-preview-primitive.card{width:86px;height:58px;border-radius:10px;border:1px solid rgba(255,255,255,.18);background:linear-gradient(135deg,rgba(255,255,255,.16),rgba(var(--fc-accent-rgb),.08));box-shadow:0 18px 38px rgba(0,0,0,.24)}
 .shape-workshop-summary{position:absolute;left:12px;right:12px;bottom:10px;display:flex;justify-content:space-between;gap:8px;font-size:10px;color:rgba(255,255,255,.48)}
 .shape-workshop-section{margin-top:10px}
@@ -1231,9 +1235,12 @@ body.shape-workshop-mode #canvas-container{opacity:.12;filter:brightness(.55) sa
 .shape-param-row output{font-size:10px;color:rgba(255,255,255,.42);text-align:right}
 .shape-workshop-actions{display:flex;flex-wrap:wrap;gap:6px;margin-top:11px}
 .shape-saved-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
-.shape-saved-card{min-height:66px;border-radius:10px;border:1px solid rgba(255,255,255,.075);background:rgba(255,255,255,.026);padding:8px;text-align:left;color:inherit;font-family:inherit;cursor:pointer}
+.shape-saved-card{min-height:74px;border-radius:10px;border:1px solid rgba(255,255,255,.075);background:rgba(255,255,255,.026);padding:8px;text-align:left;color:inherit;font-family:inherit}
 .shape-saved-card strong{display:block;font-size:11px;color:rgba(255,255,255,.84);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .shape-saved-card span{display:block;margin-top:4px;font-size:9.5px;line-height:1.35;color:rgba(255,255,255,.42)}
+.shape-saved-actions{display:flex;gap:5px;margin-top:7px}
+.shape-saved-actions button{height:24px;flex:1;border-radius:8px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.04);color:rgba(255,255,255,.68);font-family:inherit;font-size:9.5px;font-weight:730;cursor:pointer}
+.shape-saved-actions button:hover{background:rgba(244,210,138,.10);border-color:rgba(244,210,138,.28);color:#fff}
 
 /* --- 主滑块 --- */
 .fx-slider{display:grid;grid-template-columns:minmax(78px,92px) minmax(0,1fr) 44px 28px;align-items:center;gap:10px;min-height:44px;margin:8px 0;padding:9px 10px;border-radius:12px;border:1px solid rgba(255,255,255,.06);background:rgba(255,255,255,.030)}
@@ -10109,6 +10116,7 @@ function applyCoverCanvas(cv, thumbSrc, opts) {
     if (floatGroup) refreshFloatColorsFromCover(cv);
     if (backCoverGroup) refreshBackCoverColorsFromCanvas(cv);
     updateLyricPaletteFromCover(cv);
+    refreshCustomShapeColorsFromCover();
   }
 
   function runHeavyCoverWork() {
@@ -21462,21 +21470,24 @@ var lyricColorPresets = [
   { name:'墨黑', color:'#111318' },
 ];
 var USER_SHAPE_PRESET_STORE_KEY = 'mineradio-shape-presets-v1';
+var ACTIVE_SHAPE_PRESET_STORE_KEY = 'mineradio-active-shape-preset-v1';
 var USER_SHAPE_PRESET_EXPORT_TYPE = 'mineradio-shape-preset';
 var USER_SHAPE_PRESET_SCHEMA = 1;
 var SHAPE_PRIMITIVE_LIMIT = 12;
 var SHAPE_TOTAL_PARTICLE_LIMIT = 6000;
 var shapePrimitiveDefs = {
-  point: { name: '点', desc: '粒子簇', count: 120, size: 0.62, depth: 0.12, rotation: 0.08, audioFollow: 0.32 },
-  line: { name: '线', desc: '直线排布', count: 180, size: 0.72, depth: 0.08, rotation: 0.18, audioFollow: 0.26 },
-  ring: { name: '环', desc: '圆形轨道', count: 240, size: 1.00, depth: 0.15, rotation: 0.24, audioFollow: 0.40 },
-  plane: { name: '面', desc: '平面网格', count: 360, size: 1.00, depth: 0.18, rotation: 0.10, audioFollow: 0.28 },
-  spiral: { name: '螺旋', desc: '旋转排布', count: 420, size: 1.08, depth: 0.42, rotation: 0.34, audioFollow: 0.56 },
-  wave: { name: '波', desc: '曲面起伏', count: 360, size: 1.00, depth: 0.30, rotation: 0.16, audioFollow: 0.62 },
-  tunnel: { name: '隧道', desc: '深度环阵', count: 480, size: 1.12, depth: 0.62, rotation: 0.30, audioFollow: 0.46 },
-  card: { name: '卡片', desc: '底片平面', count: 64, size: 0.90, depth: 0.24, rotation: 0.12, audioFollow: 0.20 }
+  point: { name: '点', desc: '粒子簇', count: 120, size: 0.62, depth: 0.12, rotation: 0.08, audioFollow: 0.32, opacity: 0.88, material: 'cover' },
+  line: { name: '线', desc: '直线排布', count: 180, size: 0.72, depth: 0.08, rotation: 0.18, audioFollow: 0.26, opacity: 0.84, material: 'cover' },
+  ring: { name: '环', desc: '圆形轨道', count: 240, size: 1.00, depth: 0.15, rotation: 0.24, audioFollow: 0.40, opacity: 0.92, material: 'cover' },
+  plane: { name: '面', desc: '平面网格', count: 360, size: 1.00, depth: 0.18, rotation: 0.10, audioFollow: 0.28, opacity: 0.86, material: 'cover' },
+  spiral: { name: '螺旋', desc: '旋转排布', count: 420, size: 1.08, depth: 0.42, rotation: 0.34, audioFollow: 0.56, opacity: 0.88, material: 'cover' },
+  wave: { name: '波', desc: '曲面起伏', count: 360, size: 1.00, depth: 0.30, rotation: 0.16, audioFollow: 0.62, opacity: 0.82, material: 'cover' },
+  tunnel: { name: '隧道', desc: '深度环阵', count: 480, size: 1.12, depth: 0.62, rotation: 0.30, audioFollow: 0.46, opacity: 0.78, material: 'cover' },
+  sphere: { name: '球面', desc: '球形粒子', count: 420, size: 1.04, depth: 0.42, rotation: 0.24, audioFollow: 0.38, opacity: 0.86, material: 'cover' },
+  dust: { name: '星尘', desc: '深度星点', count: 520, size: 1.18, depth: 0.74, rotation: 0.18, audioFollow: 0.44, opacity: 0.72, material: 'cover' },
+  card: { name: '卡片', desc: '底片平面', count: 96, size: 0.90, depth: 0.24, rotation: 0.12, audioFollow: 0.20, opacity: 0.86, material: 'cover' }
 };
-var shapePrimitiveOrder = ['point','line','ring','plane','spiral','wave','tunnel','card'];
+var shapePrimitiveOrder = ['point','line','ring','plane','spiral','wave','tunnel','sphere','dust','card'];
 var shapeStructureTemplates = {
   disc: {
     name: '唱片结构',
@@ -21500,6 +21511,14 @@ var shapeStructureTemplates = {
     primitives: [
       { type: 'tunnel', count: 520, size: 1.08, depth: 0.72, rotation: 0.38, audioFollow: 0.48 },
       { type: 'ring', count: 180, size: 0.82, depth: 0.32, rotation: 0.20, audioFollow: 0.30 }
+    ]
+  },
+  sphere: {
+    name: '球面结构',
+    desc: '球面 + 星尘',
+    primitives: [
+      { type: 'sphere', count: 520, size: 1.08, depth: 0.46, rotation: 0.26, audioFollow: 0.40 },
+      { type: 'dust', count: 220, size: 0.88, depth: 0.62, rotation: 0.16, audioFollow: 0.34 }
     ]
   },
   wall: {
@@ -21562,11 +21581,14 @@ function normalizeShapePrimitive(raw, index) {
     type: type,
     x: shapeRecipeNumber(raw, 'x', spawn.x, -0.95, 0.95),
     y: shapeRecipeNumber(raw, 'y', spawn.y, -0.95, 0.95),
+    z: shapeRecipeNumber(raw, 'z', def.z || 0, -0.95, 0.95),
     count: Math.round(shapeRecipeNumber(raw, 'count', def.count, 8, 1200)),
     size: shapeRecipeNumber(raw, 'size', def.size, 0.2, 1.8),
     depth: shapeRecipeNumber(raw, 'depth', def.depth, 0, 1.2),
     rotation: shapeRecipeNumber(raw, 'rotation', def.rotation, 0, 1.2),
-    audioFollow: shapeRecipeNumber(raw, 'audioFollow', def.audioFollow, 0, 1)
+    audioFollow: shapeRecipeNumber(raw, 'audioFollow', def.audioFollow, 0, 1),
+    opacity: shapeRecipeNumber(raw, 'opacity', def.opacity == null ? 0.86 : def.opacity, 0.08, 1),
+    material: /^(cover|accent|mono)$/.test(String(raw.material || def.material || 'cover')) ? String(raw.material || def.material || 'cover') : 'cover'
   };
 }
 function normalizeShapeRecipeName(name) {
@@ -21650,9 +21672,356 @@ var userShapePresets = readUserShapePresets();
 var shapeWorkshopState = {
   open: false,
   recipe: defaultShapeRecipe(),
-  selectedId: ''
+  selectedId: '',
+  previewPrevPreset: null
 };
 shapeWorkshopState.selectedId = shapeWorkshopState.recipe.primitives[0] ? shapeWorkshopState.recipe.primitives[0].id : '';
+var activeUserShapeRecipe = readActiveUserShapeRecipe();
+var customShapeGroup = null;
+var customShapeRecipeKey = '';
+var customShapeRenderRecipe = null;
+
+function readActiveUserShapeRecipe() {
+  var raw = null;
+  try {
+    raw = JSON.parse(localStorage.getItem(ACTIVE_SHAPE_PRESET_STORE_KEY) || 'null');
+  } catch (e) {
+    raw = null;
+  }
+  var recipe = raw && raw.recipe ? raw.recipe : raw;
+  recipe = recipe ? normalizeShapeRecipe(recipe) : null;
+  return recipe && recipe.primitives && recipe.primitives.length ? recipe : null;
+}
+function saveActiveUserShapeRecipe(recipe) {
+  try {
+    if (!recipe || !recipe.primitives || !recipe.primitives.length) {
+      localStorage.removeItem(ACTIVE_SHAPE_PRESET_STORE_KEY);
+      return;
+    }
+    localStorage.setItem(ACTIVE_SHAPE_PRESET_STORE_KEY, JSON.stringify({
+      appliedAt: Date.now(),
+      recipe: cloneShapeRecipe(recipe)
+    }));
+  } catch (e) {
+    showToast('当前形态应用状态保存失败，本地存储空间可能不足');
+  }
+}
+function shapeRecipeRenderKey(recipe) {
+  recipe = normalizeShapeRecipe(recipe);
+  return JSON.stringify({
+    version: recipe.version,
+    name: recipe.name,
+    primitives: recipe.primitives,
+    materialBinding: recipe.materialBinding,
+    camera: recipe.camera
+  });
+}
+function customShapeRecipeForRender() {
+  if (shapeWorkshopState && shapeWorkshopState.open) return normalizeShapeRecipe(shapeWorkshopState.recipe);
+  if (activeUserShapeRecipe && fx && Number(fx.preset) === 3) return normalizeShapeRecipe(activeUserShapeRecipe);
+  return null;
+}
+function ensureCustomShapeGroup() {
+  if (customShapeGroup) return customShapeGroup;
+  customShapeGroup = new THREE.Group();
+  customShapeGroup.name = 'MineradioCustomShapePreset';
+  customShapeGroup.visible = false;
+  customShapeGroup.renderOrder = 24;
+  scene.add(customShapeGroup);
+  return customShapeGroup;
+}
+function disposeCustomShapeObject(obj) {
+  if (!obj) return;
+  if (obj.geometry && obj.geometry.dispose) obj.geometry.dispose();
+  if (obj.material && obj.material.dispose) obj.material.dispose();
+}
+function clearCustomShapeLayer() {
+  if (!customShapeGroup) return;
+  while (customShapeGroup.children.length) {
+    var child = customShapeGroup.children[0];
+    customShapeGroup.remove(child);
+    disposeCustomShapeObject(child);
+  }
+  customShapeRecipeKey = '';
+  customShapeRenderRecipe = null;
+  customShapeGroup.visible = false;
+}
+function customShapeSeedFromId(id, index) {
+  var text = String(id || 'shape') + ':' + index;
+  var seed = 0;
+  for (var i = 0; i < text.length; i++) seed = (seed * 31 + text.charCodeAt(i)) % 100000;
+  return seed + 17;
+}
+function customShapeRand(seed) {
+  var v = Math.sin(seed * 12.9898) * 43758.5453;
+  return v - Math.floor(v);
+}
+function customShapeCoverSampler() {
+  var cv = coverPickerCanvas || (coverTex && coverTex.image && coverTex.image.getContext ? coverTex.image : null);
+  if (!cv || !cv.getContext) return null;
+  try {
+    var ctx = cv.getContext('2d');
+    var img = ctx.getImageData(0, 0, cv.width, cv.height).data;
+    return function(u, v) {
+      var x = clampRange(Math.floor(clampRange(u, 0, 0.999) * cv.width), 0, cv.width - 1);
+      var y = clampRange(Math.floor(clampRange(v, 0, 0.999) * cv.height), 0, cv.height - 1);
+      var k = (y * cv.width + x) * 4;
+      return [img[k] / 255, img[k + 1] / 255, img[k + 2] / 255];
+    };
+  } catch (e) {
+    return null;
+  }
+}
+function customShapePalette() {
+  var pal = stageLyrics && (stageLyrics.coverPalette || stageLyrics.palette) || {};
+  var a = normalizeHexColor(pal.primary || fx.visualTintColor || fxDefaults.visualTintColor || '#9db8cf', '#9db8cf');
+  var b = normalizeHexColor(pal.secondary || fx.uiAccentColor || fxDefaults.uiAccentColor || '#f4d28a', '#f4d28a');
+  return {
+    a: new THREE.Color(a),
+    b: new THREE.Color(b),
+    mono: new THREE.Color('#eaf2f5')
+  };
+}
+function customShapeColorForPoint(primitive, sample, u, v, seed, palette) {
+  if (primitive.material === 'mono') return [palette.mono.r, palette.mono.g, palette.mono.b];
+  if (primitive.material === 'cover' && sample) {
+    var c = sample(u, v);
+    var lift = 0.16 + customShapeRand(seed + 21) * 0.16;
+    return [
+      clampRange(c[0] + lift, 0, 1),
+      clampRange(c[1] + lift, 0, 1),
+      clampRange(c[2] + lift, 0, 1)
+    ];
+  }
+  var mix = clampRange(0.25 + customShapeRand(seed + 9) * 0.65, 0, 1);
+  var col = palette.a.clone().lerp(palette.b, primitive.material === 'accent' ? 0.70 : mix);
+  return [col.r, col.g, col.b];
+}
+function customShapeLocalPoint(primitive, i, count, seedBase) {
+  var n = count > 1 ? i / (count - 1) : 0;
+  var r1 = customShapeRand(seedBase + i * 3 + 1);
+  var r2 = customShapeRand(seedBase + i * 3 + 2);
+  var r3 = customShapeRand(seedBase + i * 3 + 3);
+  var size = primitive.size;
+  var depth = primitive.depth;
+  var angle = n * Math.PI * 2;
+  var x = 0, y = 0, z = 0, u = n, v = r2;
+  if (primitive.type === 'line') {
+    x = (n - 0.5) * 3.2 * size;
+    y = (r1 - 0.5) * 0.08 * size;
+    z = (r2 - 0.5) * depth * 1.2;
+    v = 0.5 + y;
+  } else if (primitive.type === 'ring') {
+    var rr = (0.82 + (r1 - 0.5) * 0.08) * size;
+    x = Math.cos(angle) * rr;
+    y = Math.sin(angle) * rr;
+    z = Math.sin(angle * 2 + r2 * 2.0) * depth * 0.30;
+    u = 0.5 + Math.cos(angle) * 0.48;
+    v = 0.5 + Math.sin(angle) * 0.48;
+  } else if (primitive.type === 'plane' || primitive.type === 'card') {
+    var cols = Math.max(2, Math.round(Math.sqrt(count * (primitive.type === 'card' ? 1.55 : 1))));
+    var gx = i % cols;
+    var gy = Math.floor(i / cols);
+    var rows = Math.max(2, Math.ceil(count / cols));
+    u = cols > 1 ? gx / (cols - 1) : 0.5;
+    v = rows > 1 ? gy / (rows - 1) : 0.5;
+    var aspect = primitive.type === 'card' ? 1.42 : 1;
+    x = (u - 0.5) * 2.1 * size * aspect;
+    y = (v - 0.5) * 2.1 * size;
+    z = (r3 - 0.5) * depth * 0.18;
+  } else if (primitive.type === 'spiral') {
+    var turns = 2.2 + depth * 1.6;
+    angle = n * Math.PI * 2 * turns;
+    var sr = Math.pow(n, 0.72) * 1.35 * size + (r1 - 0.5) * 0.10;
+    x = Math.cos(angle) * sr;
+    y = Math.sin(angle) * sr;
+    z = (n - 0.5) * depth * 2.4 + Math.sin(angle * 0.5) * depth * 0.24;
+    u = 0.5 + Math.cos(angle) * Math.min(0.48, sr * 0.24);
+    v = 0.5 + Math.sin(angle) * Math.min(0.48, sr * 0.24);
+  } else if (primitive.type === 'wave') {
+    var wcols = Math.max(2, Math.round(Math.sqrt(count)));
+    var wx = i % wcols;
+    var wy = Math.floor(i / wcols);
+    var wrows = Math.max(2, Math.ceil(count / wcols));
+    u = wcols > 1 ? wx / (wcols - 1) : 0.5;
+    v = wrows > 1 ? wy / (wrows - 1) : 0.5;
+    x = (u - 0.5) * 2.5 * size;
+    y = (v - 0.5) * 1.7 * size;
+    z = Math.sin(u * Math.PI * 3.0 + v * Math.PI * 1.6) * depth * 0.62;
+  } else if (primitive.type === 'tunnel') {
+    var layers = Math.max(4, Math.round(Math.sqrt(count) * 0.55));
+    var layer = i % layers;
+    var lane = Math.floor(i / layers);
+    var laneN = lane / Math.max(1, Math.ceil(count / layers) - 1);
+    angle = layer / layers * Math.PI * 2 + r1 * 0.18;
+    var tr = (0.78 + r2 * 0.18) * size;
+    x = Math.cos(angle) * tr;
+    y = Math.sin(angle) * tr;
+    z = (laneN - 0.5) * (2.2 + depth * 3.2);
+    u = layer / layers;
+    v = laneN;
+  } else if (primitive.type === 'sphere') {
+    var theta = Math.acos(1 - 2 * n);
+    var phi = Math.PI * (3 - Math.sqrt(5)) * i;
+    var pr = (0.92 + (r1 - 0.5) * 0.08 + depth * 0.08) * size;
+    x = Math.sin(theta) * Math.cos(phi) * pr;
+    y = Math.cos(theta) * pr;
+    z = Math.sin(theta) * Math.sin(phi) * pr;
+    u = 0.5 + Math.atan2(z, x) / (Math.PI * 2);
+    v = 0.5 - Math.asin(y / Math.max(0.001, pr)) / Math.PI;
+  } else if (primitive.type === 'dust') {
+    var da = r1 * Math.PI * 2;
+    var dr = Math.pow(r2, 0.42) * (1.25 + depth * 1.5) * size;
+    x = Math.cos(da) * dr;
+    y = (r3 - 0.5) * (1.8 + depth) * size;
+    z = Math.sin(da) * dr + (customShapeRand(seedBase + i * 5 + 4) - 0.5) * depth * 2.4;
+    u = r1;
+    v = r2;
+  } else {
+    var pa = r1 * Math.PI * 2;
+    var pd = Math.pow(r2, 0.55) * 0.58 * size;
+    x = Math.cos(pa) * pd;
+    y = Math.sin(pa) * pd;
+    z = (r3 - 0.5) * depth * 1.4;
+    u = r1;
+    v = r2;
+  }
+  return { x: x, y: y, z: z, u: clampRange(u, 0, 1), v: clampRange(v, 0, 1) };
+}
+function buildCustomShapePrimitiveObject(primitive, index) {
+  primitive = normalizeShapePrimitive(primitive, index);
+  var count = Math.max(8, Math.min(1200, primitive.count));
+  var seedBase = customShapeSeedFromId(primitive.id, index);
+  var positions = new Float32Array(count * 3);
+  var base = new Float32Array(count * 3);
+  var rand = new Float32Array(count);
+  var colors = new Float32Array(count * 3);
+  var sample = customShapeCoverSampler();
+  var palette = customShapePalette();
+  for (var i = 0; i < count; i++) {
+    var p = customShapeLocalPoint(primitive, i, count, seedBase);
+    base[i * 3] = p.x;
+    base[i * 3 + 1] = p.y;
+    base[i * 3 + 2] = p.z;
+    positions[i * 3] = p.x;
+    positions[i * 3 + 1] = p.y;
+    positions[i * 3 + 2] = p.z;
+    rand[i] = customShapeRand(seedBase + i * 7 + 5);
+    var c = customShapeColorForPoint(primitive, sample, p.u, p.v, seedBase + i, palette);
+    colors[i * 3] = c[0];
+    colors[i * 3 + 1] = c[1];
+    colors[i * 3 + 2] = c[2];
+  }
+  var geometry = new THREE.BufferGeometry();
+  geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+  geometry.userData.basePositions = base;
+  geometry.userData.rand = rand;
+  var material = new THREE.PointsMaterial({
+    size: clampRange(0.022 + primitive.size * 0.018 + primitive.depth * 0.010, 0.018, 0.070),
+    map: dotTexture,
+    vertexColors: true,
+    transparent: true,
+    opacity: primitive.opacity,
+    depthWrite: false,
+    sizeAttenuation: true,
+    blending: primitive.type === 'dust' || primitive.type === 'spiral' ? THREE.AdditiveBlending : THREE.NormalBlending
+  });
+  var points = new THREE.Points(geometry, material);
+  points.frustumCulled = false;
+  points.renderOrder = 24 + index;
+  points.position.set(primitive.x * 2.55, -primitive.y * 2.05, primitive.z * 2.55);
+  points.rotation.set(primitive.depth * 0.34, primitive.rotation * Math.PI * 0.34, primitive.rotation * Math.PI * 2);
+  points.userData.primitive = primitive;
+  points.userData.layerIndex = index;
+  return points;
+}
+function syncCustomShapeLayer(force) {
+  var recipe = customShapeRecipeForRender();
+  var group = ensureCustomShapeGroup();
+  if (!recipe || !recipe.primitives || !recipe.primitives.length) {
+    clearCustomShapeLayer();
+    return;
+  }
+  var key = shapeRecipeRenderKey(recipe);
+  if (!force && key === customShapeRecipeKey) {
+    group.visible = true;
+    return;
+  }
+  clearCustomShapeLayer();
+  customShapeRenderRecipe = normalizeShapeRecipe(recipe);
+  customShapeRenderRecipe.primitives.forEach(function(primitive, index){
+    group.add(buildCustomShapePrimitiveObject(primitive, index));
+  });
+  customShapeRecipeKey = key;
+  group.visible = true;
+}
+function isCustomShapeRenderActive() {
+  return !!(customShapeGroup && customShapeGroup.visible && customShapeRenderRecipe && customShapeRenderRecipe.primitives && customShapeRenderRecipe.primitives.length);
+}
+function updateCustomShapeLayer(dt) {
+  if (!isCustomShapeRenderActive()) return;
+  var t = uniforms.uTime.value;
+  var audio = clampRange((bass * 0.58 + mid * 0.30 + treble * 0.22 + beatPulse * 0.55) * (fx.intensity || 1), 0, 1.4);
+  customShapeGroup.rotation.y += dt * (0.030 + audio * 0.018);
+  customShapeGroup.children.forEach(function(obj, layerIndex){
+    var primitive = obj.userData && obj.userData.primitive;
+    if (!primitive || !obj.geometry || !obj.geometry.attributes || !obj.geometry.attributes.position) return;
+    var attr = obj.geometry.attributes.position;
+    var arr = attr.array;
+    var base = obj.geometry.userData.basePositions;
+    var rand = obj.geometry.userData.rand;
+    var follow = primitive.audioFollow * audio;
+    for (var i = 0; i < rand.length; i++) {
+      var k = i * 3;
+      var wave = Math.sin(t * (0.70 + primitive.audioFollow * 1.25) + rand[i] * 6.2831 + base[k] * 1.3 + layerIndex);
+      arr[k] = base[k] + Math.cos(t * 0.22 + rand[i] * 5.1) * follow * 0.018;
+      arr[k + 1] = base[k + 1] + Math.sin(t * 0.20 + rand[i] * 4.7) * follow * 0.018;
+      arr[k + 2] = base[k + 2] + wave * follow * (0.08 + primitive.depth * 0.26);
+    }
+    attr.needsUpdate = true;
+    obj.rotation.z += dt * (primitive.rotation * 0.18 + follow * 0.030);
+    obj.rotation.y += dt * (primitive.rotation * 0.045 + follow * 0.018);
+    if (obj.material) obj.material.opacity = primitive.opacity * (0.86 + Math.min(0.20, follow * 0.16));
+  });
+}
+function refreshCustomShapeColorsFromCover() {
+  if (!isCustomShapeRenderActive()) return;
+  syncCustomShapeLayer(true);
+}
+function enterShapeWorkshopRenderMode() {
+  if (shapeWorkshopState.previewPrevPreset == null && fx) shapeWorkshopState.previewPrevPreset = Number(fx.preset) || 0;
+  if (typeof setPreset === 'function') setPreset(3, { silent: true, preserveCamera: false, skipTransition: true, noSave: true, keepCustomShape: true });
+  syncCustomShapeLayer(true);
+}
+function exitShapeWorkshopRenderMode() {
+  var previous = shapeWorkshopState.previewPrevPreset;
+  shapeWorkshopState.previewPrevPreset = null;
+  if (!activeUserShapeRecipe && previous != null && typeof setPreset === 'function' && fx && Number(fx.preset) === 3) {
+    setPreset(previous, { silent: true, preserveCamera: false, skipTransition: true, noSave: true, keepCustomShape: true });
+  }
+  syncCustomShapeLayer(true);
+}
+function applyShapeRecipeToPlayer(recipe, silent) {
+  recipe = normalizeShapeRecipe(recipe);
+  if (!recipe.primitives.length) {
+    showToast('先添加基础粒子，再应用到播放器');
+    return false;
+  }
+  activeUserShapeRecipe = cloneShapeRecipe(recipe);
+  saveActiveUserShapeRecipe(activeUserShapeRecipe);
+  if (typeof setPreset === 'function') setPreset(3, { silent: true, preserveCamera: false, skipTransition: true, keepCustomShape: true, commitPlaybackPreset: true });
+  syncCustomShapeLayer(true);
+  refreshPresetGrid();
+  if (!silent) showToast('已应用 3D 形态: ' + activeUserShapeRecipe.name);
+  return true;
+}
+function clearActiveUserShapePreset(opts) {
+  opts = opts || {};
+  activeUserShapeRecipe = null;
+  saveActiveUserShapeRecipe(null);
+  if (!opts.skipRender) syncCustomShapeLayer(true);
+}
 var USER_FX_ARCHIVE_STORE_KEY = 'mineradio-user-fx-archives-v1';
 var USER_FX_ARCHIVE_EXPORT_TYPE = 'mineradio-user-fx-archive';
 var USER_FX_WORK_EXPORT_TYPE = 'mineradio-visual-work';
@@ -22332,6 +22701,7 @@ function shapeWorkshopSetPrimitivePosition(id, x, y, renderPanel) {
     return normalizeShapePrimitive(p, index);
   });
   shapeWorkshopState.recipe = normalizeShapeRecipe(recipe);
+  syncCustomShapeLayer(false);
   if (renderPanel) renderShapeWorkshop();
   else renderShapeWorkshopStage();
 }
@@ -22413,11 +22783,13 @@ function renderShapeParamPanel(primitive) {
   var params = [
     ['x', '左右', -0.95, 0.95, 0.01, primitive.x],
     ['y', '上下', -0.95, 0.95, 0.01, primitive.y],
+    ['z', '前后', -0.95, 0.95, 0.01, primitive.z],
     ['count', '数量', 8, 1200, 1, primitive.count],
     ['size', '大小', 0.2, 1.8, 0.01, primitive.size],
     ['depth', '深度', 0, 1.2, 0.01, primitive.depth],
     ['rotation', '旋转', 0, 1.2, 0.01, primitive.rotation],
-    ['audioFollow', '律动', 0, 1, 0.01, primitive.audioFollow]
+    ['audioFollow', '律动', 0, 1, 0.01, primitive.audioFollow],
+    ['opacity', '透明', 0.08, 1, 0.01, primitive.opacity]
   ];
   return '<div class="shape-param-grid">' + params.map(function(p){
     var value = p[5];
@@ -22432,10 +22804,14 @@ function renderShapeSavedPresets() {
     return '<div class="shape-layer-meta">还没有保存的形态。保存后会出现在这里。</div>';
   }
   return '<div class="shape-saved-grid">' + userShapePresets.map(function(slot, index){
-    return '<button class="shape-saved-card" type="button" onclick="loadUserShapePreset(' + index + ')">' +
+    return '<div class="shape-saved-card">' +
       '<strong>' + escHtml(slot.name) + '</strong>' +
       '<span>' + escHtml(shapeRecipeSummary(slot.recipe)) + '</span>' +
-    '</button>';
+      '<div class="shape-saved-actions">' +
+        '<button type="button" onclick="loadUserShapePreset(' + index + ')">编辑</button>' +
+        '<button type="button" onclick="applyUserShapePreset(' + index + ')">应用</button>' +
+      '</div>' +
+    '</div>';
   }).join('') + '</div>';
 }
 function renderShapeWorkshop() {
@@ -22449,6 +22825,7 @@ function renderShapeWorkshop() {
   }
   var recipe = shapeWorkshopState.recipe = normalizeShapeRecipe(shapeWorkshopState.recipe);
   var selected = shapeWorkshopSelectedPrimitive();
+  syncCustomShapeLayer(false);
   root.innerHTML =
     '<div class="shape-workshop-panel">' +
       '<div class="shape-workshop-head">' +
@@ -22462,7 +22839,9 @@ function renderShapeWorkshop() {
       '<div class="shape-workshop-section"><div class="shape-workshop-section-title">当前形态层级</div><div class="shape-layer-list">' + renderShapeLayerList(recipe) + '</div></div>' +
       '<div class="shape-workshop-section"><div class="shape-workshop-section-title">所选例子参数</div>' + renderShapeParamPanel(selected) + '</div>' +
       '<div class="shape-workshop-actions">' +
+        '<button type="button" onclick="applyCurrentShapePreset()">应用到播放器</button>' +
         '<button type="button" onclick="saveCurrentShapePreset()">保存为我的形态</button>' +
+        '<button type="button" onclick="saveCurrentShapePreset(true)">保存并应用</button>' +
         '<button type="button" onclick="resetShapeWorkshopRecipe()">清空画布</button>' +
       '</div>' +
       '<div class="shape-workshop-section"><div class="shape-workshop-section-title">我的形态</div>' + renderShapeSavedPresets() + '</div>' +
@@ -22474,6 +22853,7 @@ function openShapeWorkshop() {
   shapeWorkshopState.open = true;
   shapeWorkshopState.recipe = normalizeShapeRecipe(shapeWorkshopState.recipe);
   shapeWorkshopState.selectedId = shapeWorkshopState.selectedId || (shapeWorkshopState.recipe.primitives[0] && shapeWorkshopState.recipe.primitives[0].id) || '';
+  enterShapeWorkshopRenderMode();
   setFxPanelTab('presets');
   renderShapeWorkshop();
   var root = document.getElementById('shape-workshop');
@@ -22481,10 +22861,12 @@ function openShapeWorkshop() {
 }
 function closeShapeWorkshop() {
   shapeWorkshopState.open = false;
+  exitShapeWorkshopRenderMode();
   renderShapeWorkshop();
 }
 function shapeWorkshopUpdateName(value) {
   shapeWorkshopState.recipe.name = normalizeShapeRecipeName(value);
+  syncCustomShapeLayer(false);
   renderShapeWorkshopStage();
 }
 function shapeWorkshopAddPrimitive(type) {
@@ -22496,6 +22878,8 @@ function shapeWorkshopAddPrimitive(type) {
   var primitive = createShapePrimitive(type);
   recipe.primitives.push(primitive);
   shapeWorkshopState.selectedId = primitive.id;
+  shapeWorkshopState.recipe = normalizeShapeRecipe(recipe);
+  syncCustomShapeLayer(false);
   renderShapeWorkshop();
 }
 function shapeWorkshopApplyStructure(key) {
@@ -22519,6 +22903,7 @@ function shapeWorkshopApplyStructure(key) {
   if (recipe.name === '我的形态' && recipe.primitives.length === added.length) recipe.name = tpl.name;
   shapeWorkshopState.recipe = normalizeShapeRecipe(recipe);
   shapeWorkshopState.selectedId = added.length ? added[0].id : '';
+  syncCustomShapeLayer(false);
   renderShapeWorkshop();
   showToast(added.length < tpl.primitives.length ? '已加入部分' + tpl.name + '，层数已达上限' : '已加入 ' + tpl.name);
 }
@@ -22528,18 +22913,21 @@ function shapeWorkshopSelectPrimitive(id) {
 }
 function shapeWorkshopUpdatePrimitive(id, key, value) {
   var recipe = shapeWorkshopState.recipe = normalizeShapeRecipe(shapeWorkshopState.recipe);
-  recipe.primitives = recipe.primitives.map(function(p){
+  recipe.primitives = recipe.primitives.map(function(p, index){
     if (p.id !== id) return p;
     p[key] = key === 'count' ? Math.round(Number(value) || p[key]) : Number(value);
-    return normalizeShapePrimitive(p, 0);
+    return normalizeShapePrimitive(p, index);
   });
   shapeWorkshopState.recipe = normalizeShapeRecipe(recipe);
+  syncCustomShapeLayer(false);
   renderShapeWorkshop();
 }
 function shapeWorkshopRemovePrimitive(id) {
   var recipe = shapeWorkshopState.recipe = normalizeShapeRecipe(shapeWorkshopState.recipe);
   recipe.primitives = recipe.primitives.filter(function(p){ return p.id !== id; });
   shapeWorkshopState.selectedId = recipe.primitives[0] ? recipe.primitives[0].id : '';
+  shapeWorkshopState.recipe = normalizeShapeRecipe(recipe);
+  syncCustomShapeLayer(false);
   renderShapeWorkshop();
 }
 function shapeWorkshopDuplicatePrimitive(id) {
@@ -22557,16 +22945,23 @@ function shapeWorkshopDuplicatePrimitive(id) {
   }));
   recipe.primitives.push(copy);
   shapeWorkshopState.selectedId = copy.id;
+  shapeWorkshopState.recipe = normalizeShapeRecipe(recipe);
+  syncCustomShapeLayer(false);
   renderShapeWorkshop();
 }
 function resetShapeWorkshopRecipe() {
   shapeWorkshopState.recipe = defaultShapeRecipe();
   shapeWorkshopState.selectedId = '';
+  syncCustomShapeLayer(true);
   renderShapeWorkshop();
   showToast('形态工坊已清空');
 }
-function saveCurrentShapePreset() {
+function saveCurrentShapePreset(applyAfterSave) {
   var recipe = normalizeShapeRecipe(shapeWorkshopState.recipe);
+  if (!recipe.primitives.length) {
+    showToast('先添加基础粒子，再保存形态');
+    return;
+  }
   var slot = {
     name: recipe.name,
     savedAt: Date.now(),
@@ -22574,8 +22969,12 @@ function saveCurrentShapePreset() {
   };
   userShapePresets.push(slot);
   saveUserShapePresets();
+  if (applyAfterSave) applyShapeRecipeToPlayer(slot.recipe, true);
   renderShapeWorkshop();
-  showToast('已保存为我的形态: ' + slot.name);
+  showToast((applyAfterSave ? '已保存并应用: ' : '已保存为我的形态: ') + slot.name);
+}
+function applyCurrentShapePreset() {
+  applyShapeRecipeToPlayer(shapeWorkshopState.recipe);
 }
 function loadUserShapePreset(index) {
   index = Math.floor(Number(index) || 0);
@@ -22585,8 +22984,15 @@ function loadUserShapePreset(index) {
   shapeWorkshopState.recipe = cloneShapeRecipe(slot.recipe);
   shapeWorkshopState.recipe.name = normalizeShapeRecipeName(slot.name || shapeWorkshopState.recipe.name);
   shapeWorkshopState.selectedId = shapeWorkshopState.recipe.primitives[0] ? shapeWorkshopState.recipe.primitives[0].id : '';
+  enterShapeWorkshopRenderMode();
   renderShapeWorkshop();
   showToast('已载入形态: ' + shapeWorkshopState.recipe.name);
+}
+function applyUserShapePreset(index) {
+  index = Math.floor(Number(index) || 0);
+  var slot = userShapePresets[index];
+  if (!slot || !slot.recipe) return;
+  applyShapeRecipeToPlayer(slot.recipe);
 }
 
 function creativeSandboxPresetName() {
@@ -23300,9 +23706,10 @@ function buildPresetGrid() {
   refreshPresetGrid();
 }
 function refreshPresetGrid() {
+  var customActive = !!(activeUserShapeRecipe && fx && Number(fx.preset) === 3);
   document.querySelectorAll('.preset-card').forEach(function(el){
     var isWorkshop = el.getAttribute('data-shape-workshop') === 'entry';
-    el.classList.toggle('active', isWorkshop ? !!(shapeWorkshopState && shapeWorkshopState.open) : Number(el.dataset.preset) === fx.preset);
+    el.classList.toggle('active', isWorkshop ? (!!(shapeWorkshopState && shapeWorkshopState.open) || customActive) : (!customActive && Number(el.dataset.preset) === fx.preset));
   });
 }
 function triggerPresetParticleTransition(fromPreset, toPreset) {
@@ -23347,6 +23754,7 @@ function setPreset(p, opts) {
   p = Math.max(0, Math.min(presetMeta.length - 1, Number(p) || 0));
   var prev = fx.preset;
   var changed = prev !== p;
+  if (!opts.keepCustomShape && !opts.silent && activeUserShapeRecipe) clearActiveUserShapePreset();
   fx.preset = p;
   if (changed && prev === SKULL_PRESET_INDEX && p !== SKULL_PRESET_INDEX) clearSkullPresetResidue();
   if (p === SKULL_PRESET_INDEX) loadSkullParticleAsset();
@@ -24230,6 +24638,7 @@ function bindFxPanel() {
   bindHotkeySettings();
   buildPresetGrid();
   renderShapeWorkshop();
+  syncCustomShapeLayer(false);
   renderCreativeSandboxBuilder();
   renderUserFxArchives();
   buildLyricColorControls();
@@ -29228,10 +29637,11 @@ function animate() {
   // v7.2 旋转 = 头部+眼球追踪 + 鼠标/手势拖动 + 惯性
   tickGestureRotation(dt);
   var skullPresetActive = fx && fx.preset === SKULL_PRESET_INDEX;
-  particles.visible = !skullPresetActive;
-  if (bloomParticles) bloomParticles.visible = !skullPresetActive && fx.bloom && fx.bloomStrength > 0.01;
-  if (floatGroup) floatGroup.visible = !skullPresetActive;
-  if (backCoverGroup) backCoverGroup.visible = !skullPresetActive;
+  var customShapeActive = isCustomShapeRenderActive();
+  particles.visible = !skullPresetActive && !customShapeActive;
+  if (bloomParticles) bloomParticles.visible = !skullPresetActive && !customShapeActive && fx.bloom && fx.bloomStrength > 0.01;
+  if (floatGroup) floatGroup.visible = !skullPresetActive && !customShapeActive;
+  if (backCoverGroup) backCoverGroup.visible = !skullPresetActive && !customShapeActive;
   var targetRotY = orbit.centerLocked ? 0 : (headParallax.active ? headParallax.x * 0.5 : 0) + gestureRotation.y;
   var targetRotX = orbit.centerLocked ? 0 : (headParallax.active ? -headParallax.y * 0.35 : 0) + gestureRotation.x;
   particles.rotation.y += (targetRotY - particles.rotation.y) * 0.055;
@@ -29246,6 +29656,7 @@ function animate() {
   if (backCoverGroup) {
     backCoverGroup.rotation.copy(particles.rotation);
   }
+  updateCustomShapeLayer(dt);
   updateSkullParticleLayer(dt);
   updateStageLyrics3D(dt);
   syncDesktopOverlayState();
