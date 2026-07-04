@@ -1127,6 +1127,11 @@ body.desktop-shell.diy-mode #bottom-bar.stage-mode{left:50%;width:min(1080px,cal
 .preset-card[data-preset="6"] .pc-icon{color:#3257f7}
 .preset-card[data-preset="6"].active .pc-icon{color:#3257f7!important;text-shadow:0 0 12px rgba(50,87,247,.44)}
 .preset-card .pc-bg{position:absolute;inset:0;opacity:.35;pointer-events:none}
+.preset-card.user-shape-preset{font-family:inherit;text-align:left;color:inherit;border-color:rgba(244,210,138,.12);background:linear-gradient(145deg,rgba(244,210,138,.045),rgba(255,255,255,.022))}
+.preset-card.user-shape-preset:hover{border-color:rgba(244,210,138,.24);background:linear-gradient(145deg,rgba(244,210,138,.075),rgba(255,255,255,.032))}
+.preset-card.user-shape-preset.active{border-color:rgba(244,210,138,.56);background:linear-gradient(145deg,rgba(244,210,138,.12),rgba(var(--fc-accent-rgb),.055));box-shadow:0 0 0 1px rgba(244,210,138,.20),0 16px 46px rgba(244,210,138,.060)}
+.preset-card.user-shape-preset .pc-icon{color:rgba(244,210,138,.78)}
+.preset-card.user-shape-preset.active .pc-icon{color:rgba(244,210,138,.95)}
 @keyframes preset-card-pulse{0%{opacity:0;transform:scale(.6) rotate(0deg)}35%{opacity:1}100%{opacity:0;transform:scale(1.25) rotate(12deg)}}
 .user-archive-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin:0 0 12px}
 .user-archive-toolbar{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:2px;padding:9px;border-radius:12px;border:1px dashed rgba(255,255,255,.10);background:rgba(255,255,255,.018)}
@@ -21737,6 +21742,7 @@ function importUserShapePresetText(text, fileName) {
   shapeWorkshopState.deleteConfirmIndex = -1;
   saveUserShapePresets();
   enterShapeWorkshopRenderMode();
+  buildPresetGrid();
   renderShapeWorkshop();
   showToast('已导入形态: ' + slot.name);
   return true;
@@ -23100,6 +23106,7 @@ function saveCurrentShapePreset(applyAfterSave, forceNew) {
   shapeWorkshopState.deleteConfirmIndex = -1;
   saveUserShapePresets();
   if (applyAfterSave) applyShapeRecipeToPlayer(slot.recipe, true);
+  buildPresetGrid();
   renderShapeWorkshop();
   var toastPrefix = editing ? (applyAfterSave ? '已更新并应用: ' : '已更新形态: ') : (applyAfterSave ? '已保存并应用: ' : '已保存为我的形态: ');
   showToast(toastPrefix + slot.name);
@@ -23143,6 +23150,7 @@ function duplicateUserShapePreset(index) {
   shapeWorkshopState.editingIndex = userShapePresets.length - 1;
   shapeWorkshopState.deleteConfirmIndex = -1;
   saveUserShapePresets();
+  buildPresetGrid();
   renderShapeWorkshop();
   showToast('已复制形态: ' + copy.name);
 }
@@ -23163,6 +23171,7 @@ function deleteUserShapePreset(index) {
   shapeWorkshopState.deleteConfirmIndex = -1;
   if (deletingActive) clearActiveUserShapePreset();
   saveUserShapePresets();
+  buildPresetGrid();
   renderShapeWorkshop();
   showToast('已删除形态: ' + slot.name);
 }
@@ -23861,7 +23870,7 @@ function buildPresetGrid() {
   presetMeta.forEach(function(_, id){
     if (!seen[id]) order.push(id);
   });
-  grid.innerHTML = order.map(function(i){
+  var builtinCards = order.map(function(i){
     var p = presetMeta[i];
     var desc = p.descHtml || p.desc;
     return '<div class="preset-card" data-preset="' + i + '" onclick="setPreset(' + i + ')">' +
@@ -23869,20 +23878,53 @@ function buildPresetGrid() {
       '<div class="pc-name">' + p.name + '</div>' +
       '<div class="pc-desc">' + desc + '</div>' +
     '</div>';
-  }).join('') +
+  }).join('');
+  grid.innerHTML =
     '<button class="preset-card shape-workshop-entry" type="button" data-shape-workshop="entry" onclick="openShapeWorkshop()">' +
       '<div class="pc-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 18c4-8 8-8 16 0"/><path d="M6 14c4-5 8-5 12 0"/><circle cx="7" cy="17" r="1.5" fill="currentColor"/><circle cx="12" cy="10" r="1.5" fill="currentColor"/><circle cx="17" cy="17" r="1.5" fill="currentColor"/></svg></div>' +
       '<div class="pc-name">创建形态</div>' +
       '<div class="pc-desc">基础例子 · 自定义预设</div>' +
-    '</button>';
+    '</button>' +
+    renderPresetGridUserShapeCards() +
+    builtinCards;
   refreshPresetGrid();
+}
+function renderPresetGridUserShapeCards() {
+  if (!userShapePresets || !userShapePresets.length) return '';
+  return userShapePresets.map(function(slot, index){
+    var recipe = normalizeShapeRecipe(slot.recipe);
+    return '<button class="preset-card user-shape-preset" type="button" data-user-shape-index="' + index + '" onclick="applyUserShapePresetFromGrid(' + index + ')" title="' + escHtml(slot.name) + '">' +
+      '<div class="pc-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 17c2.5-5 5-5 10 0s7.5 5 10 0"/><path d="M6 12c2.1-2.8 4.2-2.8 8.4 0s6.3 2.8 8.4 0"/><circle cx="7" cy="17" r="1.45" fill="currentColor"/><circle cx="14" cy="10" r="1.45" fill="currentColor"/><circle cx="21" cy="17" r="1.45" fill="currentColor"/></svg></div>' +
+      '<div class="pc-name">' + escHtml(slot.name) + '</div>' +
+      '<div class="pc-desc">我的形态 · ' + escHtml(shapeRecipeSummary(recipe)) + '</div>' +
+    '</button>';
+  }).join('');
 }
 function refreshPresetGrid() {
   var customActive = !!(activeUserShapeRecipe && fx && Number(fx.preset) === 3);
   document.querySelectorAll('.preset-card').forEach(function(el){
     var isWorkshop = el.getAttribute('data-shape-workshop') === 'entry';
-    el.classList.toggle('active', isWorkshop ? (!!(shapeWorkshopState && shapeWorkshopState.open) || customActive) : (!customActive && Number(el.dataset.preset) === fx.preset));
+    var userShapeIndex = el.getAttribute('data-user-shape-index');
+    var userShapeActive = false;
+    if (userShapeIndex != null) {
+      var slot = userShapePresets[Math.floor(Number(userShapeIndex) || 0)];
+      userShapeActive = !!(customActive && slot && slot.recipe && shapeRecipeRenderKey(activeUserShapeRecipe) === shapeRecipeRenderKey(slot.recipe));
+    }
+    el.classList.toggle('active', userShapeIndex != null ? userShapeActive : (isWorkshop ? (!!(shapeWorkshopState && shapeWorkshopState.open) && !customActive) : (!customActive && Number(el.dataset.preset) === fx.preset)));
   });
+}
+function applyUserShapePresetFromGrid(index) {
+  index = Math.floor(Number(index) || 0);
+  var slot = userShapePresets[index];
+  if (!slot || !slot.recipe) {
+    showToast('这个形态预设已不存在');
+    buildPresetGrid();
+    return;
+  }
+  shapeWorkshopState.open = false;
+  shapeWorkshopState.deleteConfirmIndex = -1;
+  applyShapeRecipeToPlayer(slot.recipe);
+  renderShapeWorkshop();
 }
 function triggerPresetParticleTransition(fromPreset, toPreset) {
   presetTransition.active = true;
