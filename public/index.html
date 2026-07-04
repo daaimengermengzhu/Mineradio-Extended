@@ -1144,10 +1144,24 @@ body.desktop-shell.diy-mode #bottom-bar.stage-mode{left:50%;width:min(1080px,cal
 .user-archive-input{width:100%;height:27px;border-radius:8px;border:1px solid rgba(var(--fc-accent-rgb),.28);background:rgba(0,0,0,.22);color:#fff;font-family:inherit;font-size:12px;font-weight:760;line-height:1;padding:0 8px;outline:none;box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 0 0 1px rgba(var(--fc-accent-rgb),.06)}
 .user-archive-input:focus{border-color:rgba(var(--fc-accent-rgb),.52);box-shadow:0 0 0 1px rgba(var(--fc-accent-rgb),.16),0 10px 24px rgba(0,0,0,.18)}
 .user-archive-meta{font-size:10px;color:rgba(255,255,255,.42);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.user-archive-description{font-size:10.5px;line-height:1.42;color:rgba(255,255,255,.50);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:29px}
+.user-archive-preview{height:4px;border-radius:999px;background:linear-gradient(90deg,rgba(var(--fc-accent-rgb),.78),rgba(244,210,138,.68),rgba(255,255,255,.24));box-shadow:0 0 16px rgba(var(--fc-accent-rgb),.12)}
 .user-archive-actions{display:grid;grid-template-columns:repeat(auto-fit,minmax(42px,1fr));gap:6px;margin-top:auto}
 .user-archive-actions button{height:25px;min-width:0;border-radius:8px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.045);color:rgba(255,255,255,.70);font-family:inherit;font-size:10px;font-weight:700;line-height:1;cursor:pointer;transition:background .18s,border-color .18s,color .18s}
 .user-archive-actions button:hover{background:rgba(var(--fc-accent-rgb),.10);border-color:rgba(var(--fc-accent-rgb),.24);color:#fff}
 .user-archive-actions button:disabled{opacity:.34;cursor:default;background:rgba(255,255,255,.025);border-color:rgba(255,255,255,.05);color:rgba(255,255,255,.42)}
+.sandbox-builder-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin:0 0 12px}
+.sandbox-block{min-height:112px;border:1px solid rgba(255,255,255,.075);border-radius:12px;background:rgba(255,255,255,.026);padding:11px;display:flex;flex-direction:column;gap:8px;overflow:hidden}
+.sandbox-block.primary{border-color:rgba(var(--fc-accent-rgb),.24);background:linear-gradient(135deg,rgba(var(--fc-accent-rgb),.07),rgba(255,255,255,.018))}
+.sandbox-block-head{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+.sandbox-block-title{font-size:12px;font-weight:780;color:rgba(255,255,255,.9);line-height:1.25}
+.sandbox-block-kicker{font-size:9px;color:rgba(var(--fc-accent-rgb),.68);letter-spacing:.9px;text-transform:uppercase;font-weight:800}
+.sandbox-block-desc{font-size:10px;line-height:1.45;color:rgba(255,255,255,.44);min-height:29px}
+.sandbox-actions{display:flex;flex-wrap:wrap;gap:6px;margin-top:auto}
+.sandbox-actions button{height:25px;min-width:0;border-radius:8px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.045);color:rgba(255,255,255,.74);font-family:inherit;font-size:10px;font-weight:720;line-height:1;padding:0 8px;cursor:pointer;transition:background .18s,border-color .18s,color .18s}
+.sandbox-actions button:hover{background:rgba(var(--fc-accent-rgb),.10);border-color:rgba(var(--fc-accent-rgb),.24);color:#fff}
+.sandbox-actions button.active{background:rgba(var(--fc-accent-rgb),.13);border-color:rgba(var(--fc-accent-rgb),.35);color:#fff}
+.sandbox-status{font-size:10px;color:rgba(255,255,255,.38);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
 /* --- 主滑块 --- */
 .fx-slider{display:grid;grid-template-columns:minmax(78px,92px) minmax(0,1fr) 44px 28px;align-items:center;gap:10px;min-height:44px;margin:8px 0;padding:9px 10px;border-radius:12px;border:1px solid rgba(255,255,255,.06);background:rgba(255,255,255,.030)}
@@ -1879,7 +1893,7 @@ html.control-glass-svg-ok #visual-guide-btn:hover{
   #top-right{right:12px}
 }
 @media (max-width:520px){
-  .preset-grid,.fx-toggle-grid{grid-template-columns:1fr}
+  .preset-grid,.sandbox-builder-grid,.fx-toggle-grid{grid-template-columns:1fr}
   .fx-slider{grid-template-columns:74px minmax(0,1fr) 40px 28px;gap:8px;padding:8px}
   .lyric-color-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
 }
@@ -2077,9 +2091,11 @@ html.control-glass-svg-ok #visual-guide-btn:hover{
     <div><div class="fx-title">视觉控制台</div><div class="fx-sub">MINERADIO VISUALS · 鼠标移开自动隐藏</div></div>
   </div>
 
-  <div class="fx-section-label">视觉预设</div>
+  <div class="fx-section-label">形态预设</div>
   <div class="preset-grid" id="preset-grid"></div>
-  <div class="fx-section-label">用户存档</div>
+  <div class="fx-section-label">基础积木</div>
+  <div class="sandbox-builder-grid" id="sandbox-builder-grid"></div>
+  <div class="fx-section-label">我的作品</div>
   <div class="user-archive-grid" id="user-archive-grid"></div>
   <div class="fx-section-label">自定义颜色</div>
   <div class="lyric-color-row">
@@ -21372,14 +21388,19 @@ var lyricColorPresets = [
 ];
 var USER_FX_ARCHIVE_STORE_KEY = 'mineradio-user-fx-archives-v1';
 var USER_FX_ARCHIVE_EXPORT_TYPE = 'mineradio-user-fx-archive';
+var USER_FX_WORK_EXPORT_TYPE = 'mineradio-visual-work';
 var USER_FX_ARCHIVE_SCHEMA = 1;
 function defaultUserFxArchiveName(index) {
-  return '存档 ' + (index + 1);
+  return '我的作品 ' + (index + 1);
 }
 function normalizeUserFxArchiveName(name, index) {
   name = String(name || '').replace(/\s+/g, ' ').trim();
   if (!name) name = defaultUserFxArchiveName(index);
-  return name.slice(0, 18);
+  return name.slice(0, 28);
+}
+function normalizeUserFxArchiveDescription(text) {
+  text = String(text || '').replace(/\s+/g, ' ').trim();
+  return text.slice(0, 80);
 }
 function archiveNumber(raw, key, fallback, min, max) {
   var value = raw && raw[key] != null ? Number(raw[key]) : fallback;
@@ -21488,6 +21509,7 @@ function readUserFxArchives() {
     var snapshot = normalizeFxArchiveSnapshot(slot.snapshot);
     return {
       name: normalizeUserFxArchiveName(slot.name, index),
+      description: normalizeUserFxArchiveDescription(slot.description || slot.desc || ''),
       createdAt: Number(slot.createdAt) || (snapshot ? (Number(slot.savedAt) || Date.now()) : 0),
       savedAt: snapshot ? (Number(slot.savedAt) || Date.now()) : 0,
       snapshot: snapshot
@@ -21500,7 +21522,7 @@ function saveUserFxArchives() {
   try {
     localStorage.setItem(USER_FX_ARCHIVE_STORE_KEY, JSON.stringify(userFxArchives));
   } catch (e) {
-    showToast('用户存档保存失败，本地存储空间可能不足');
+    showToast('作品保存失败，本地存储空间可能不足');
   }
 }
 function hasStoredUserFxArchives() {
@@ -21513,6 +21535,7 @@ function hasStoredUserFxArchives() {
 function createPackagedDefaultUserFxArchiveSlot() {
   return {
     name: normalizeUserFxArchiveName(PACKAGED_DEFAULT_USER_FX_ARCHIVE_NAME, 0),
+    description: normalizeUserFxArchiveDescription('内置示例作品，可作为 DIY 沙盒的起点。'),
     createdAt: PACKAGED_DEFAULT_USER_FX_ARCHIVE_EXPORTED_AT,
     savedAt: PACKAGED_DEFAULT_USER_FX_ARCHIVE_SAVED_AT,
     snapshot: normalizeFxArchiveSnapshot(clonePackagedDefaultFxSnapshot())
@@ -21625,7 +21648,7 @@ function applyUserFxArchive(index) {
   index = clampRange(Number(index) || 0, 0, Math.max(0, userFxArchives.length - 1));
   var slot = userFxArchives[index];
   if (!slot || !slot.snapshot) {
-    showToast('这个用户存档还是空的');
+    showToast('这个作品还是空的');
     return;
   }
   if (applyFxArchiveSnapshot(slot.snapshot)) {
@@ -21661,7 +21684,7 @@ function handleUserFxArchiveRenameKey(e, index) {
 }
 
 function defaultUserFxArchiveName(index) {
-  return '用户存档 ' + (Number(index) + 1);
+  return '我的作品 ' + (Number(index) + 1);
 }
 function normalizeUserFxArchiveName(name, index) {
   name = String(name || '').replace(/\s+/g, ' ').trim();
@@ -21674,12 +21697,56 @@ function userFxArchiveAt(index) {
   index = Math.floor(index);
   return index >= 0 && index < userFxArchives.length ? userFxArchives[index] : null;
 }
+function userFxArchivePresetName(snapshot) {
+  var preset = snapshot && presetMeta[Math.max(0, Math.min(presetMeta.length - 1, Number(snapshot.preset) || 0))];
+  return preset && preset.name ? preset.name : '当前形态';
+}
+function userFxArchiveMaterialLabel(snapshot) {
+  var media = snapshot && normalizeCustomBackgroundMedia(snapshot.backgroundMedia || snapshot.backgroundImage);
+  if (media) return media.type === 'video' ? '上传视频素材' : '上传图片素材';
+  return '当前歌曲封面';
+}
+function userFxArchiveAutoDescription(slot) {
+  var snapshot = slot && slot.snapshot;
+  if (!snapshot) return '空白作品，保存后会记录当前视觉积木。';
+  return userFxArchiveMaterialLabel(snapshot) + ' · ' + userFxArchivePresetName(snapshot) + ' · ' +
+    (snapshot.floatLayer ? '浮空粒子' : '基础粒子') + (snapshot.bloom ? ' · 光晕' : '');
+}
+function userFxArchiveDescription(slot) {
+  return normalizeUserFxArchiveDescription(slot && slot.description) || userFxArchiveAutoDescription(slot);
+}
+function fxArchiveCreativeRecipe(snapshot) {
+  snapshot = normalizeFxArchiveSnapshot(snapshot);
+  if (!snapshot) return null;
+  return {
+    type: 'mineradio-visual-recipe',
+    version: 1,
+    material: {
+      source: normalizeCustomBackgroundMedia(snapshot.backgroundMedia || snapshot.backgroundImage) ? 'uploaded-media' : 'current-cover'
+    },
+    shape: {
+      preset: snapshot.preset,
+      name: userFxArchivePresetName(snapshot)
+    },
+    layers: {
+      floatLayer: !!snapshot.floatLayer,
+      bloom: !!snapshot.bloom,
+      edge: !!snapshot.edge,
+      lyricGlowParticles: !!snapshot.lyricGlowParticles
+    },
+    motion: {
+      intensity: snapshot.intensity,
+      speed: snapshot.speed,
+      camera: snapshot.cinema ? 'cinema' : 'static'
+    }
+  };
+}
 function renderUserFxArchives() {
   var grid = document.getElementById('user-archive-grid');
   if (!grid) return;
   var toolbar =
     '<div class="user-archive-toolbar">' +
-      '<div class="user-archive-note">空白新建，保存当前视觉参数；支持拖拽 JSON 导入，也可以导出为文件备份。</div>' +
+      '<div class="user-archive-note">我的作品会保存当前素材、形态、粒子、歌词和镜头参数；支持拖拽 JSON 导入，也可以导出分享。</div>' +
       '<div class="user-archive-tools">' +
         '<button class="fx-mini-btn ghost" type="button" onclick="createUserFxArchive()">新建</button>' +
         '<button class="fx-mini-btn ghost" type="button" onclick="importUserFxArchiveFromDialog()">导入</button>' +
@@ -21697,15 +21764,18 @@ function renderUserFxArchives() {
       : '<button type="button" onclick="applyUserFxArchive(' + index + ')"' + (hasSave ? '' : ' disabled') + '>应用</button>' +
         '<button type="button" onclick="saveUserFxArchive(' + index + ')">保存</button>' +
         '<button type="button" onclick="renameUserFxArchive(' + index + ')">命名</button>' +
+        '<button type="button" onclick="duplicateUserFxArchive(' + index + ')"' + (hasSave ? '' : ' disabled') + '>复制</button>' +
         '<button type="button" onclick="exportUserFxArchive(' + index + ')"' + (hasSave ? '' : ' disabled') + '>导出</button>' +
         '<button type="button" onclick="removeUserFxArchive(' + index + ')">删除</button>';
     return '<div class="user-archive-slot' + (hasSave ? ' has-save' : '') + '" data-slot="' + index + '">' +
+      '<div class="user-archive-preview"></div>' +
       nameHtml +
-      '<div class="user-archive-meta">' + (hasSave ? formatUserArchiveTime(slot.savedAt) : '空白存档，点击保存写入当前视觉') + '</div>' +
+      '<div class="user-archive-description">' + escHtml(userFxArchiveDescription(slot)) + '</div>' +
+      '<div class="user-archive-meta">' + (hasSave ? formatUserArchiveTime(slot.savedAt) : '空白作品，点击保存写入当前视觉') + '</div>' +
       '<div class="user-archive-actions">' + actionsHtml + '</div>' +
     '</div>';
   }).join('');
-  var addCard = '<button class="user-archive-slot is-new" type="button" onclick="createUserFxArchive()"><strong>＋ 新建空白存档</strong><span class="user-archive-meta">可继续创建，不限制 4 个</span></button>';
+  var addCard = '<button class="user-archive-slot is-new" type="button" onclick="createUserFxArchive()"><strong>＋ 新建作品</strong><span class="user-archive-meta">先搭积木，再保存成作品</span></button>';
   grid.innerHTML = toolbar + cards + addCard;
   bindUserFxArchiveDrop();
   if (userFxArchiveEditing >= 0) {
@@ -21722,6 +21792,7 @@ function createUserFxArchive() {
   var index = userFxArchives.length;
   userFxArchives.push({
     name: normalizeUserFxArchiveName('', index),
+    description: '',
     createdAt: Date.now(),
     savedAt: 0,
     snapshot: null
@@ -21729,7 +21800,22 @@ function createUserFxArchive() {
   userFxArchiveEditing = index;
   saveUserFxArchives();
   renderUserFxArchives();
-  showToast('已新建空白用户存档');
+  showToast('已新建空白作品');
+}
+function saveCurrentAsUserFxArchive() {
+  var index = userFxArchives.length;
+  var now = Date.now();
+  var slot = {
+    name: normalizeUserFxArchiveName(creativeSandboxPresetName() + ' 作品', index),
+    description: '',
+    createdAt: now,
+    savedAt: now,
+    snapshot: captureFxArchiveSnapshot()
+  };
+  userFxArchives.push(slot);
+  saveUserFxArchives();
+  renderUserFxArchives();
+  showToast('已保存为 ' + slot.name);
 }
 function saveUserFxArchive(index) {
   var slot = userFxArchiveAt(index);
@@ -21738,6 +21824,7 @@ function saveUserFxArchive(index) {
   slot.savedAt = Date.now();
   slot.createdAt = slot.createdAt || slot.savedAt;
   slot.name = normalizeUserFxArchiveName(slot.name, index);
+  slot.description = normalizeUserFxArchiveDescription(slot.description);
   saveUserFxArchives();
   renderUserFxArchives();
   showToast('已保存到 ' + slot.name);
@@ -21745,7 +21832,7 @@ function saveUserFxArchive(index) {
 function applyUserFxArchive(index) {
   var slot = userFxArchiveAt(index);
   if (!slot || !slot.snapshot) {
-    showToast('这个用户存档还是空白');
+    showToast('这个作品还是空白');
     return;
   }
   if (applyFxArchiveSnapshot(slot.snapshot)) showToast('已应用 ' + slot.name);
@@ -21776,25 +21863,46 @@ function removeUserFxArchive(index) {
   userFxArchiveEditing = -1;
   saveUserFxArchives();
   renderUserFxArchives();
-  showToast('已删除用户存档');
+  showToast('已删除作品');
+}
+function duplicateUserFxArchive(index) {
+  var slot = userFxArchiveAt(index);
+  if (!slot || !slot.snapshot) {
+    showToast('空白作品不能复制');
+    return;
+  }
+  var nextIndex = userFxArchives.length;
+  userFxArchives.push({
+    name: normalizeUserFxArchiveName(slot.name + ' 副本', nextIndex),
+    description: normalizeUserFxArchiveDescription(slot.description),
+    createdAt: Date.now(),
+    savedAt: slot.savedAt || Date.now(),
+    snapshot: normalizeFxArchiveSnapshot(slot.snapshot)
+  });
+  saveUserFxArchives();
+  renderUserFxArchives();
+  showToast('已复制为新作品');
 }
 function userFxArchiveExportPayload(slot) {
   return {
-    type: USER_FX_ARCHIVE_EXPORT_TYPE,
+    type: USER_FX_WORK_EXPORT_TYPE,
+    legacyType: USER_FX_ARCHIVE_EXPORT_TYPE,
     schema: USER_FX_ARCHIVE_SCHEMA,
     exportedAt: Date.now(),
     name: slot.name,
+    description: normalizeUserFxArchiveDescription(slot.description),
     savedAt: slot.savedAt,
-    snapshot: slot.snapshot
+    snapshot: slot.snapshot,
+    creativeRecipe: fxArchiveCreativeRecipe(slot.snapshot)
   };
 }
 function safeArchiveFileName(name) {
-  return String(name || 'Mineradio 用户存档').replace(/[\\/:*?"<>|]+/g, '-').slice(0, 48) + '.json';
+  return String(name || 'Mineradio 视觉作品').replace(/[\\/:*?"<>|]+/g, '-').slice(0, 48) + '.mineradio-visual.json';
 }
 function exportUserFxArchive(index) {
   var slot = userFxArchiveAt(index);
   if (!slot || !slot.snapshot) {
-    showToast('空白存档不能导出');
+    showToast('空白作品不能导出');
     return;
   }
   var payload = userFxArchiveExportPayload(slot);
@@ -21802,9 +21910,9 @@ function exportUserFxArchive(index) {
   var api = getDesktopWindowApi && getDesktopWindowApi();
   if (api && typeof api.exportJsonFile === 'function') {
     api.exportJsonFile({ defaultName: safeArchiveFileName(slot.name), text: text }).then(function(res){
-      if (res && res.ok) showToast('用户存档已导出');
-      else if (!res || !res.canceled) showToast('用户存档导出失败');
-    }).catch(function(){ showToast('用户存档导出失败'); });
+      if (res && res.ok) showToast('视觉作品已导出');
+      else if (!res || !res.canceled) showToast('视觉作品导出失败');
+    }).catch(function(){ showToast('视觉作品导出失败'); });
     return;
   }
   var blob = new Blob([text], { type: 'application/json;charset=utf-8' });
@@ -21819,9 +21927,10 @@ function normalizeImportedFxArchivePayload(payload, fileName) {
   if (!payload || typeof payload !== 'object') return null;
   var snapshot = payload.snapshot ? normalizeFxArchiveSnapshot(payload.snapshot) : normalizeFxArchiveSnapshot(payload);
   if (!snapshot) return null;
-  var baseName = String(fileName || '').split(/[\\/]/).pop().replace(/\.json$/i, '');
+  var baseName = String(fileName || '').split(/[\\/]/).pop().replace(/\.mineradio-visual\.json$/i, '').replace(/\.json$/i, '');
   return {
     name: normalizeUserFxArchiveName(payload.name || baseName, userFxArchives.length),
+    description: normalizeUserFxArchiveDescription(payload.description || payload.desc || ''),
     createdAt: Date.now(),
     savedAt: Number(payload.savedAt) || Date.now(),
     snapshot: snapshot
@@ -21832,7 +21941,7 @@ function importUserFxArchiveText(text, fileName) {
   try { payload = JSON.parse(String(text || '')); } catch (e) {}
   var slot = normalizeImportedFxArchivePayload(payload, fileName);
   if (!slot) {
-    showToast('导入失败，文件不是有效的用户存档');
+    showToast('导入失败，文件不是有效的视觉作品');
     return false;
   }
   userFxArchives.push(slot);
@@ -21845,14 +21954,14 @@ function importUserFxArchiveFromDialog() {
   var api = getDesktopWindowApi && getDesktopWindowApi();
   if (api && typeof api.importJsonFile === 'function') {
     api.importJsonFile().then(function(res){
-      if (res && res.ok) importUserFxArchiveText(res.text, res.filePath || '用户存档.json');
+      if (res && res.ok) importUserFxArchiveText(res.text, res.filePath || '视觉作品.json');
       else if (!res || !res.canceled) showToast('导入失败');
     }).catch(function(){ showToast('导入失败'); });
     return;
   }
   var input = document.createElement('input');
   input.type = 'file';
-  input.accept = '.json,application/json';
+  input.accept = '.mineradio-visual.json,.json,application/json';
   input.onchange = function(){
     var file = input.files && input.files[0];
     if (file) readUserFxArchiveImportFile(file);
@@ -21861,7 +21970,7 @@ function importUserFxArchiveFromDialog() {
 }
 function readUserFxArchiveImportFile(file) {
   if (!file || !/\.json$/i.test(file.name || '')) {
-    showToast('请导入 JSON 用户存档');
+    showToast('请导入 JSON 视觉作品');
     return;
   }
   var reader = new FileReader();
@@ -21887,6 +21996,131 @@ function bindUserFxArchiveDrop() {
     grid.classList.remove('dragover');
     Array.prototype.forEach.call(e.dataTransfer.files, readUserFxArchiveImportFile);
   });
+}
+
+function creativeSandboxPresetName() {
+  var preset = presetMeta[Math.max(0, Math.min(presetMeta.length - 1, Number(fx.preset) || 0))];
+  return preset && preset.name ? preset.name : '当前形态';
+}
+function creativeSandboxMaterialLabel() {
+  return (fx.backgroundMedia || fx.backgroundImage) ? customBackgroundMediaLabel(fx.backgroundMedia || fx.backgroundImage) : '当前歌曲封面';
+}
+function renderCreativeSandboxBuilder() {
+  var grid = document.getElementById('sandbox-builder-grid');
+  if (!grid) return;
+  var material = creativeSandboxMaterialLabel();
+  var preset = creativeSandboxPresetName();
+  var layerText = [
+    fx.floatLayer ? '浮空' : '',
+    fx.bloom ? '光晕' : '',
+    fx.edge ? '轮廓' : ''
+  ].filter(Boolean).join(' / ') || '基础粒子';
+  var motionText = '律动 ' + Math.round(clampRange(Number(fx.intensity) || 0, 0.2, 1.6) / 1.6 * 100) + '%';
+  var cameraText = fx.cinema ? '电影镜头' : '静态镜头';
+  grid.innerHTML =
+    '<div class="sandbox-block primary">' +
+      '<div class="sandbox-block-head"><div><div class="sandbox-block-kicker">material</div><div class="sandbox-block-title">素材</div></div><div class="sandbox-status">' + escHtml(material) + '</div></div>' +
+      '<div class="sandbox-block-desc">默认使用当前歌曲封面；也可以上传本地图片或视频作为视觉素材。</div>' +
+      '<div class="sandbox-actions">' +
+        '<button type="button" onclick="creativeSandboxUseCover()" class="' + ((fx.backgroundMedia || fx.backgroundImage) ? '' : 'active') + '">当前封面</button>' +
+        '<button type="button" onclick="creativeSandboxUploadMaterial()">上传素材</button>' +
+      '</div>' +
+    '</div>' +
+    '<div class="sandbox-block">' +
+      '<div class="sandbox-block-head"><div><div class="sandbox-block-kicker">shape</div><div class="sandbox-block-title">形态</div></div><div class="sandbox-status">' + escHtml(preset) + '</div></div>' +
+      '<div class="sandbox-block-desc">先用现有稳定形态做积木，后续再接入可导入配方。</div>' +
+      '<div class="sandbox-actions">' +
+        '<button type="button" onclick="creativeSandboxSetPreset(0)" class="' + (fx.preset === 0 ? 'active' : '') + '">封面粒子</button>' +
+        '<button type="button" onclick="creativeSandboxSetPreset(4)" class="' + (fx.preset === 4 ? 'active' : '') + '">唱片</button>' +
+        '<button type="button" onclick="creativeSandboxSetPreset(5)" class="' + (fx.preset === 5 ? 'active' : '') + '">星河</button>' +
+      '</div>' +
+    '</div>' +
+    '<div class="sandbox-block">' +
+      '<div class="sandbox-block-head"><div><div class="sandbox-block-kicker">layers</div><div class="sandbox-block-title">粒子层</div></div><div class="sandbox-status">' + escHtml(layerText) + '</div></div>' +
+      '<div class="sandbox-block-desc">把粒子、光晕、轮廓拆成可组合层，而不是只能选固定预设。</div>' +
+      '<div class="sandbox-actions">' +
+        '<button type="button" onclick="creativeSandboxToggleFx(\'floatLayer\')" class="' + (fx.floatLayer ? 'active' : '') + '">浮空</button>' +
+        '<button type="button" onclick="creativeSandboxToggleFx(\'bloom\')" class="' + (fx.bloom ? 'active' : '') + '">光晕</button>' +
+        '<button type="button" onclick="creativeSandboxToggleFx(\'edge\')" class="' + (fx.edge ? 'active' : '') + '">轮廓</button>' +
+      '</div>' +
+    '</div>' +
+    '<div class="sandbox-block">' +
+      '<div class="sandbox-block-head"><div><div class="sandbox-block-kicker">audio</div><div class="sandbox-block-title">律动</div></div><div class="sandbox-status">' + escHtml(motionText) + '</div></div>' +
+      '<div class="sandbox-block-desc">先开放安全的律动强度和速度组合，保证不会拖垮性能。</div>' +
+      '<div class="sandbox-actions">' +
+        '<button type="button" onclick="creativeSandboxSetMotion(\'soft\')">柔和</button>' +
+        '<button type="button" onclick="creativeSandboxSetMotion(\'beat\')" class="' + (fx.intensity >= 1.05 ? 'active' : '') + '">节拍</button>' +
+        '<button type="button" onclick="creativeSandboxSetMotion(\'calm\')">静态</button>' +
+      '</div>' +
+    '</div>' +
+    '<div class="sandbox-block">' +
+      '<div class="sandbox-block-head"><div><div class="sandbox-block-kicker">camera</div><div class="sandbox-block-title">镜头</div></div><div class="sandbox-status">' + escHtml(cameraText) + '</div></div>' +
+      '<div class="sandbox-block-desc">镜头作为积木独立控制，后续可以做更多转场。</div>' +
+      '<div class="sandbox-actions">' +
+        '<button type="button" onclick="creativeSandboxSetCamera(\'static\')" class="' + (!fx.cinema ? 'active' : '') + '">静态</button>' +
+        '<button type="button" onclick="creativeSandboxSetCamera(\'cinema\')" class="' + (fx.cinema ? 'active' : '') + '">电影</button>' +
+        '<button type="button" onclick="creativeSandboxSetCamera(\'stage\')" class="' + (fx.shelf === 'stage' ? 'active' : '') + '">舞台</button>' +
+      '</div>' +
+    '</div>' +
+    '<div class="sandbox-block primary">' +
+      '<div class="sandbox-block-head"><div><div class="sandbox-block-kicker">work</div><div class="sandbox-block-title">作品</div></div><div class="sandbox-status">保存 / 复制 / 导出</div></div>' +
+      '<div class="sandbox-block-desc">搭好后保存到“我的作品”，可以复制出新版本继续二创。</div>' +
+      '<div class="sandbox-actions">' +
+        '<button type="button" onclick="createUserFxArchive()">新作品</button>' +
+        '<button type="button" onclick="saveCurrentAsUserFxArchive()">保存当前</button>' +
+      '</div>' +
+    '</div>';
+}
+function refreshCreativeSandboxBuilder() {
+  renderCreativeSandboxBuilder();
+}
+function creativeSandboxUseCover() {
+  clearCustomBackgroundImage();
+  refreshCreativeSandboxBuilder();
+}
+function creativeSandboxUploadMaterial() {
+  var input = document.getElementById('background-image-input');
+  if (input) input.click();
+}
+function creativeSandboxSetPreset(p) {
+  setPreset(p);
+  updateFxInputs();
+  refreshCreativeSandboxBuilder();
+}
+function creativeSandboxToggleFx(key) {
+  toggleFx(key);
+  refreshCreativeSandboxBuilder();
+}
+function creativeSandboxSetMotion(mode) {
+  if (mode === 'beat') {
+    fx.intensity = 1.22;
+    fx.speed = 1.18;
+    fx.cinemaShake = 0.72;
+  } else if (mode === 'calm') {
+    fx.intensity = 0.42;
+    fx.speed = 0.52;
+    fx.cinemaShake = 0.10;
+  } else {
+    fx.intensity = 0.78;
+    fx.speed = 0.86;
+    fx.cinemaShake = 0.36;
+  }
+  updateFxInputs();
+  saveLyricLayout();
+  showToast(mode === 'beat' ? '律动积木: 节拍' : (mode === 'calm' ? '律动积木: 静态' : '律动积木: 柔和'));
+}
+function creativeSandboxSetCamera(mode) {
+  if (mode === 'stage') {
+    setShelfMode('stage');
+  } else {
+    fx.cinema = mode === 'cinema';
+    if (mode === 'static') fx.cinemaShake = 0;
+    else if (fx.cinemaShake < 0.35) fx.cinemaShake = 0.5;
+    updateFxInputs();
+    saveLyricLayout();
+  }
+  refreshCreativeSandboxBuilder();
+  showToast(mode === 'stage' ? '镜头积木: 舞台' : (mode === 'cinema' ? '镜头积木: 电影' : '镜头积木: 静态'));
 }
 
 function buildLyricColorControls() {
@@ -22105,6 +22339,7 @@ function setCustomBackgroundImage(src, silent) {
   fx.backgroundImage = image;
   fx.backgroundMedia = image ? { type: 'image', src: image } : null;
   updateCustomBackgroundControls();
+  refreshCreativeSandboxBuilder();
   saveLyricLayout();
   if (!silent) showToast(fx.backgroundImage ? '背景图片已应用' : '背景图片已清除');
 }
@@ -22116,6 +22351,7 @@ function setCustomBackgroundMedia(media, silent) {
   fx.backgroundMedia = media;
   fx.backgroundImage = media && media.type === 'image' ? media.src : '';
   updateCustomBackgroundControls();
+  refreshCreativeSandboxBuilder();
   saveLyricLayout();
   if (!silent) showToast(media ? (media.type === 'video' ? '背景视频已应用' : '背景图片已应用') : '背景媒体已清除');
 }
@@ -22766,6 +23002,7 @@ function updateFxInputs() {
   updateShelfControlUi();
   document.querySelectorAll('#cam-seg button').forEach(function(b){ b.classList.toggle('active', b.dataset.cam === fx.cam); });
   refreshPresetGrid();
+  refreshCreativeSandboxBuilder();
   updateLyricColorControls();
   updateLyricHighlightControls();
   updateLyricGlowControls();
@@ -22838,7 +23075,7 @@ function fxPanelTargetForNode(node, current) {
   if (!node) return current || 'presets';
   var id = node.id || '';
   var inputId = fxPanelInputId(node);
-  if (id === 'preset-grid' || id === 'user-archive-grid') return 'presets';
+  if (id === 'preset-grid' || id === 'sandbox-builder-grid' || id === 'user-archive-grid') return 'presets';
   if (id === 'fx-lyric-fold') return 'lyrics';
   if (id === 'fx-overlay-fold' || id === 'fx-stage-fold') return 'motion';
   if (id === 'fx-advanced' || node.classList.contains('fx-actions')) return 'advanced';
@@ -22916,7 +23153,7 @@ function organizeFxPanel() {
 function fxControlBlock(id) {
   var el = document.getElementById(id);
   if (!el) return null;
-  return el.closest('.fx-slider,.lyric-color-row,.lyric-color-grid,.fx-seg,.preset-grid,.user-archive-grid,.fx-font-grid') || el;
+  return el.closest('.fx-slider,.lyric-color-row,.lyric-color-grid,.fx-seg,.preset-grid,.sandbox-builder-grid,.user-archive-grid,.fx-font-grid') || el;
 }
 function setFxSectionBefore(id, text) {
   var block = fxControlBlock(id);
@@ -22997,8 +23234,9 @@ function relabelFxPanelControls() {
   var overlayGrid = document.getElementById('t-cinema');
   overlayGrid = overlayGrid && overlayGrid.closest('.fx-toggle-grid');
   setFxSectionBeforeNode(overlayGrid, '镜头与叠加');
-  setFxSectionBefore('preset-grid', '预设与存档');
-  setFxSectionBefore('user-archive-grid', '用户存档');
+  setFxSectionBefore('preset-grid', '形态预设');
+  setFxSectionBefore('sandbox-builder-grid', '基础积木');
+  setFxSectionBefore('user-archive-grid', '我的作品');
   setFxSectionBefore('ui-accent-picker', '界面与背景');
   setFxSectionBefore('fx-intensity', '画面基础');
   setFxSectionBefore('fx-lyricglow', '歌词溢光强度');
@@ -23393,6 +23631,7 @@ function bindFxPanel() {
   relabelFxPanelControls();
   bindHotkeySettings();
   buildPresetGrid();
+  renderCreativeSandboxBuilder();
   renderUserFxArchives();
   buildLyricColorControls();
   var ids = [
@@ -23451,6 +23690,7 @@ function bindFxPanel() {
       if (/^(desktopLyricsSize|desktopLyricsOpacity|desktopLyricsY)$/.test(pair[1])) pushDesktopLyricsState(true);
       if (pair[1] === 'wallpaperOpacity') pushWallpaperState(true);
       saveLyricLayout();
+      if (/^(intensity|speed|cinemaShake|backgroundOpacity)$/.test(pair[1])) refreshCreativeSandboxBuilder();
     });
   });
   var lyricPicker = document.getElementById('lyric-color-picker');
