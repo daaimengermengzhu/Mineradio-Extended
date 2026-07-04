@@ -1723,6 +1723,15 @@ function normalizeQualityPreference(value) {
   if (['standard', 'normal', '128', '128k', 'std'].includes(raw)) return 'standard';
   return 'hires';
 }
+function qualityRankValue(value) {
+  value = normalizeQualityPreference(value);
+  if (value === 'jymaster') return 5;
+  if (value === 'hires') return 4;
+  if (value === 'lossless') return 3;
+  if (value === 'exhigh') return 2;
+  if (value === 'standard') return 1;
+  return 4;
+}
 function qualityCandidatesFrom(target, candidates) {
   target = normalizeQualityPreference(target);
   let start = candidates.findIndex(item => item.level === target);
@@ -1831,6 +1840,17 @@ function cleanKugouText(value) {
     .replace(/\s+/g, ' ')
     .trim();
 }
+function stripKugouAudioSuffix(value) {
+  return cleanKugouText(value).replace(/\.(mp3|flac|wav|m4a|aac|ogg)$/i, '').trim();
+}
+function splitKugouFileTitle(value) {
+  const text = stripKugouAudioSuffix(value);
+  const match = text.match(/^(.+?)\s+[-－—–]\s+(.+)$/);
+  if (!match) return null;
+  const artist = cleanKugouText(match[1]);
+  const title = cleanKugouText(match[2]);
+  return artist && title ? { artist, title } : null;
+}
 function normalizeKugouImage(url, size) {
   url = cleanKugouText(url);
   if (!url) return '';
@@ -1859,15 +1879,12 @@ function mapKugouSearchSong(record, session) {
   const fileName = cleanKugouText(firstKugouValue(record.FileName, record.filename, record.file_name));
   let title = cleanKugouText(firstKugouValue(record.SongName, record.songname, record.song_name, record.name, record.title));
   let singerName = cleanKugouText(firstKugouValue(record.SingerName, record.singername, record.singer_name, record.author_name, record.AuthorName));
-  if (!title && fileName) {
-    const parts = fileName.split(/\s+-\s+/);
-    if (parts.length >= 2) {
-      singerName = singerName || parts.shift();
-      title = parts.join(' - ');
-    } else {
-      title = fileName;
-    }
+  const splitTitle = splitKugouFileTitle(title) || splitKugouFileTitle(fileName);
+  if (splitTitle) {
+    singerName = singerName || splitTitle.artist;
+    if (!title || title === fileName || /\.(mp3|flac|wav|m4a|aac|ogg)$/i.test(title)) title = splitTitle.title;
   }
+  title = stripKugouAudioSuffix(title || fileName);
   const artists = mapKugouArtists(firstKugouValue(record.Singers, record.singers, record.authors), singerName);
   const hash = cleanKugouText(firstKugouValue(
     record.FileHash,
@@ -2138,6 +2155,18 @@ const QQ_HEADERS = {
   Referer: 'https://y.qq.com/',
   'User-Agent': UA,
 };
+const QQ_WEB_LOGIN_URL = 'https://y.qq.com/portal/pop_login.html';
+const QQ_WEB_PROFILE_URL = 'https://y.qq.com/portal/profile.html';
+const QQ_PT_XLOGIN_URL = 'https://xui.ptlogin2.qq.com/cgi-bin/xlogin';
+const QQ_PT_LOGIN_JUMP_URL = 'https://graph.qq.com/oauth2.0/login_jump';
+const QQ_PT_QR_SHOW_URL = 'https://ssl.ptlogin2.qq.com/ptqrshow';
+const QQ_PT_QR_CHECK_URL = 'https://ssl.ptlogin2.qq.com/ptqrlogin';
+const QQ_PT_QR_APPID = '716027609';
+const QQ_PT_QR_DAID = '383';
+const QQ_PT_QR_3RD_AID = '100497308';
+const QQ_PT_FEEDBACK_LINK = 'https://support.qq.com/products/77942?customInfo=.appid100497308';
+const QQ_QR_SESSION_TTL = 5 * 60 * 1000;
+const qqQrLoginSessions = new Map();
 const KUGOU_LOGIN_BASE_URL = 'https://login-user.kugou.com';
 const KUGOU_QR_PAGE_URL = 'https://h5.kugou.com/apps/loginQRCode/html/index.html';
 const KUGOU_SOURCE_APPID = 2919;
@@ -2154,6 +2183,8 @@ const KUGOU_ANDROID_SIGNATURE_SALT = 'LnT6xpN3khm36zse0QzvmgTZ3waWdRSA';
 const KUGOU_LITE_SIGN_KEY_SALT = '185672dd44712f60bb1736df5a377e82';
 const KUGOU_MUSIC_ANDROID_SIGNATURE_SALT = 'OIlwieks28dk2k092lksi2UIkp';
 const KUGOU_MUSIC_SIGN_KEY_SALT = '57ae12eb6890223e355ccfcb74edf70d';
+const KUGOU_RSA_PUBLIC_KEY = '-----BEGIN PUBLIC KEY-----\nMIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDIAG7QOELSYoIJvTFJhMpe1s/gbjDJX51HBNnEl5HXqTW6lQ7LC8jr9fWZTwusknp+sVGzwd40MwP6U5yDE27M/X1+UR4tvOGOqp94TJtQ1EPnWGWXngpeIW5GxoQGao1rmYWAu6oi1z9XkChrsUdC6DJE5E221wf/4WLFxwAtRQIDAQAB\n-----END PUBLIC KEY-----';
+const KUGOU_LITE_RSA_PUBLIC_KEY = '-----BEGIN PUBLIC KEY-----\nMIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQDECi0Np2UR87scwrvTr72L6oO01rBbbBPriSDFPxr3Z5syug0O24QyQO8bg27+0+4kBzTBTBOZ/WWU0WryL1JSXRTXLgFVxtzIY41Pe7lPOgsfTCn5kZcvKhYKJesKnnJDNr5/abvTGf+rHG3YRwsCHcQ08/q6ifSioBszvb3QiwIDAQAB\n-----END PUBLIC KEY-----';
 const KUGOU_CONCEPT_SESSION = {
   provider: 'kugou',
   source: 'kugou',
@@ -2209,6 +2240,715 @@ function normalizeKugouSession(session) {
   return KUGOU_CONCEPT_SESSION;
 }
 
+const QISHUI_TRACK_V2_URL = 'https://api.qishui.com/luna/pc/track_v2';
+const QISHUI_APP_VERSION = '3.5.1';
+const QISHUI_APP_VERSION_CODE = '30050000';
+const QISHUI_TRON_BUILD_ID = '408871041';
+const QISHUI_USER_AGENT = `LunaPC/${QISHUI_APP_VERSION}(${QISHUI_TRON_BUILD_ID})`;
+const QISHUI_SHARE_IMPORT_LIMIT = 200;
+let qishuiSqlJsPromise = null;
+let qishuiBdms = null;
+let qishuiBdmsDeviceId = '';
+let qishuiDesktopCredentialCache = null;
+
+function qishuiAppDataDir() {
+  return process.env.QISHUI_APPDATA_DIR
+    || (process.env.APPDATA ? path.join(process.env.APPDATA, 'SodaMusic') : '');
+}
+
+function qishuiNativeDir() {
+  if (process.env.QISHUI_NATIVE_DIR) return process.env.QISHUI_NATIVE_DIR;
+  if (!process.env.LOCALAPPDATA) return '';
+  return path.join(process.env.LOCALAPPDATA, 'Programs', 'Soda Music', QISHUI_APP_VERSION, 'resources', 'app.asar.unpacked');
+}
+
+async function qishuiSqlJs() {
+  if (!qishuiSqlJsPromise) {
+    qishuiSqlJsPromise = Promise.resolve().then(() => {
+      const initSqlJs = require('sql.js');
+      const wasmPath = require.resolve('sql.js/dist/sql-wasm.wasm');
+      return initSqlJs({ locateFile: () => wasmPath });
+    });
+  }
+  return qishuiSqlJsPromise;
+}
+
+async function qishuiDesktopCookieHeader() {
+  const appDataDir = qishuiAppDataDir();
+  if (!appDataDir) return '';
+  const cookiePath = path.join(appDataDir, 'Network', 'Cookies');
+  if (!cookiePath || !fs.existsSync(cookiePath)) return '';
+  const SQL = await qishuiSqlJs();
+  const bytes = fs.readFileSync(cookiePath);
+  const db = new SQL.Database(new Uint8Array(bytes));
+  try {
+    const rows = [];
+    const stmt = db.prepare(`
+      select name, value
+      from cookies
+      where host_key = '.qishui.com'
+         or host_key = 'qishui.com'
+         or host_key like '%.qishui.com'
+      order by host_key, name
+    `);
+    try {
+      while (stmt.step()) {
+        const row = stmt.getAsObject();
+        if (row.name && row.value) rows.push(`${row.name}=${row.value}`);
+      }
+    } finally {
+      stmt.free();
+    }
+    return normalizeCookieHeader(rows.join('; ')) || rows.join('; ');
+  } finally {
+    db.close();
+  }
+}
+
+function qishuiDesktopDeviceInfo() {
+  const appDataDir = qishuiAppDataDir();
+  if (!appDataDir) return {};
+  const devicePath = path.join(appDataDir, 'DeviceV1');
+  if (!devicePath || !fs.existsSync(devicePath)) return {};
+  try {
+    const raw = fs.readFileSync(devicePath);
+    return JSON.parse(zlib.gunzipSync(raw).toString('utf8')) || {};
+  } catch (e) {
+    return {};
+  }
+}
+
+function qishuiLoadBdms(deviceId) {
+  if (!deviceId) return null;
+  if (qishuiBdms && qishuiBdmsDeviceId === deviceId) return qishuiBdms;
+  const nativeDir = qishuiNativeDir();
+  if (!nativeDir) return null;
+  try {
+    const bdms = require(path.join(nativeDir, 'bdms.node'));
+    if (bdms && typeof bdms.init === 'function') bdms.init({ deviceId });
+    qishuiBdms = bdms;
+    qishuiBdmsDeviceId = deviceId;
+    return qishuiBdms;
+  } catch (e) {
+    return null;
+  }
+}
+
+async function qishuiDesktopCredentials() {
+  const previous = qishuiDesktopCredentialCache || {};
+  const device = qishuiDesktopDeviceInfo();
+  const cookie = await qishuiDesktopCookieHeader().catch(() => '');
+  const deviceId = String(device.did || previous.deviceId || '').trim();
+  const installId = String(device.iid || previous.installId || '').trim();
+  const bdms = qishuiLoadBdms(deviceId) || previous.bdms || null;
+  const result = {
+    cookie: cookie || previous.cookie || '',
+    deviceId,
+    installId,
+    bdms,
+  };
+  if (result.cookie && result.deviceId) qishuiDesktopCredentialCache = result;
+  return result;
+}
+
+async function qishuiCredentials() {
+  const desktop = await qishuiDesktopCredentials().catch(() => ({}));
+  const cookie = String(process.env.QISHUI_COOKIE || '').trim();
+  const deviceId = String(process.env.QISHUI_DEVICE_ID || process.env.QISHUI_FP || '').trim();
+  const installId = String(process.env.QISHUI_INSTALL_ID || process.env.QISHUI_IID || '').trim();
+  const xHelios = String(process.env.QISHUI_X_HELIOS || '').trim();
+  const xMedusa = String(process.env.QISHUI_X_MEDUSA || '').trim();
+  const resolvedCookie = cookie || desktop.cookie || '';
+  const resolvedDeviceId = deviceId || desktop.deviceId || '';
+  const resolvedInstallId = installId || desktop.installId || '';
+  const bdms = desktop.bdms || qishuiLoadBdms(resolvedDeviceId);
+  const missing = [];
+  if (!resolvedCookie) missing.push('QISHUI_COOKIE');
+  if (!resolvedDeviceId) missing.push('QISHUI_DEVICE_ID');
+  if (!bdms && !xHelios) missing.push('QISHUI_X_HELIOS');
+  if (!bdms && !xMedusa) missing.push('QISHUI_X_MEDUSA');
+  return {
+    configured: missing.length === 0,
+    missing,
+    cookie: resolvedCookie,
+    deviceId: resolvedDeviceId,
+    installId: resolvedInstallId,
+    xHelios,
+    xMedusa,
+    bdms,
+  };
+}
+
+function qishuiTrackV2RequestUrl(creds) {
+  const u = new URL(QISHUI_TRACK_V2_URL);
+  const params = {
+    aid: '386088',
+    app_name: 'luna_pc',
+    region: 'cn',
+    geo_region: 'cn',
+    os_region: 'cn',
+    sim_region: '',
+    version_name: QISHUI_APP_VERSION,
+    version_code: QISHUI_APP_VERSION_CODE,
+    device_platform: 'windows',
+    device_type: 'Windows',
+    channel: 'official',
+    build_mode: 'release',
+    network_carrier: '',
+    ac: 'wifi',
+    tz_name: Intl.DateTimeFormat().resolvedOptions().timeZone,
+    resolution: '',
+    fp: creds.deviceId,
+    device_id: creds.deviceId,
+    iid: creds.installId || '',
+    cdid: '',
+    os_name: 'windows',
+    os_version: '10',
+  };
+  Object.keys(params).forEach(key => u.searchParams.set(key, params[key]));
+  return u.toString();
+}
+
+function qishuiDecodeText(text) {
+  let current = String(text || '');
+  for (let i = 0; i < 2; i++) {
+    try {
+      const decoded = decodeURIComponent(current);
+      if (decoded === current) break;
+      current = decoded;
+    } catch (e) {
+      break;
+    }
+  }
+  return current;
+}
+
+function extractQishuiTrackIds(text) {
+  const sources = [];
+  const raw = String(text || '');
+  sources.push(raw);
+  const decoded = qishuiDecodeText(raw);
+  if (decoded !== raw) sources.push(decoded);
+  const ids = [];
+  const seen = new Set();
+  function add(value) {
+    value = String(value || '').trim();
+    if (!/^\d{10,24}$/.test(value) || seen.has(value)) return;
+    seen.add(value);
+    ids.push(value);
+  }
+  sources.forEach(source => {
+    const keyPattern = /(?:track[_-]?id|trackId|trackID|music[_-]?id|item[_-]?id|object[_-]?id|song[_-]?id|id)["'=:\s%22%27]+(\d{10,24})/gi;
+    let match;
+    while ((match = keyPattern.exec(source))) add(match[1]);
+    if (/playlist_id|\/share\/playlist/i.test(source)) return;
+    if (/qishui|luna|soda|汽水/i.test(source) || /^\s*\d{10,24}\s*$/.test(source)) {
+      const idPattern = /(^|[^\d])(\d{16,24})(?!\d)/g;
+      while ((match = idPattern.exec(source))) add(match[2]);
+    }
+  });
+  return ids;
+}
+
+function extractHttpUrls(text) {
+  const urls = [];
+  const seen = new Set();
+  const pattern = /https?:\/\/[^\s"'<>]+/gi;
+  let match;
+  while ((match = pattern.exec(String(text || '')))) {
+    let value = match[0].replace(/[)\]，。；;]+$/g, '');
+    const decoded = qishuiDecodeText(value);
+    [value, decoded].forEach(url => {
+      if (!/^https?:\/\//i.test(url) || seen.has(url)) return;
+      seen.add(url);
+      urls.push(url);
+    });
+  }
+  return urls;
+}
+
+function extractQishuiBalancedJson(text, marker) {
+  const source = String(text || '');
+  const markerIndex = source.indexOf(marker);
+  if (markerIndex < 0) return '';
+  const start = source.indexOf('{', markerIndex);
+  if (start < 0) return '';
+  let depth = 0;
+  let inString = false;
+  let quote = '';
+  let escaped = false;
+  for (let i = start; i < source.length; i++) {
+    const ch = source[i];
+    if (inString) {
+      if (escaped) {
+        escaped = false;
+      } else if (ch === '\\') {
+        escaped = true;
+      } else if (ch === quote) {
+        inString = false;
+        quote = '';
+      }
+      continue;
+    }
+    if (ch === '"' || ch === "'") {
+      inString = true;
+      quote = ch;
+      continue;
+    }
+    if (ch === '{') depth += 1;
+    if (ch === '}') {
+      depth -= 1;
+      if (depth === 0) return source.slice(start, i + 1);
+    }
+  }
+  return '';
+}
+
+function extractQishuiRouterData(text) {
+  const json = extractQishuiBalancedJson(text, 'window._ROUTER_DATA')
+    || extractQishuiBalancedJson(text, '_ROUTER_DATA');
+  if (!json) return null;
+  try {
+    return JSON.parse(json);
+  } catch (e) {
+    return null;
+  }
+}
+
+function extractQishuiRouterTrackIds(text) {
+  return extractQishuiRouterMediaItems(text)
+    .filter(item => item.mediaType === 'track')
+    .map(item => item.id);
+}
+
+function extractQishuiRouterMediaItems(text) {
+  const data = extractQishuiRouterData(text);
+  const medias = data
+    && data.loaderData
+    && data.loaderData.playlist_page
+    && data.loaderData.playlist_page.medias;
+  if (!Array.isArray(medias)) return [];
+  const items = [];
+  const seen = new Set();
+  medias.forEach(item => {
+    if (!item || (item.type !== 'track' && item.type !== 'video')) return;
+    const entity = item.entity || {};
+    const track = entity.track;
+    const video = entity.video;
+    const id = String(firstQishuiValue(item.id, track && track.id, item.media_id, item.mediaId) || '').trim();
+    const key = item.type + ':' + id;
+    if (!/^\d{10,24}$/.test(id) || seen.has(key)) return;
+    seen.add(key);
+    items.push({ id, mediaType: item.type, track, video });
+  });
+  return items;
+}
+
+async function fetchQishuiSharePageTrackIds(text) {
+  return (await fetchQishuiSharePageMediaItems(text))
+    .filter(item => item.mediaType === 'track')
+    .map(item => item.id);
+}
+
+async function fetchQishuiSharePageMediaItems(text) {
+  const urls = extractHttpUrls(text).filter(item => /qishui|luna|soda|iesdouyin|snssdk/i.test(item));
+  const items = [];
+  const seen = new Set();
+  for (const shareUrl of urls.slice(0, 3)) {
+    try {
+      const resp = await fetch(shareUrl, {
+        headers: {
+          'User-Agent': UA,
+          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        },
+      });
+      const pageText = await resp.text();
+      const pageItems = extractQishuiRouterMediaItems(pageText);
+      (pageItems.length ? pageItems : extractQishuiTrackIds(pageText).map(id => ({ id, mediaType: 'track' }))).forEach(item => {
+        const key = item.mediaType + ':' + item.id;
+        if (!seen.has(key)) {
+          seen.add(key);
+          items.push(item);
+        }
+      });
+    } catch (e) {
+      console.warn('[QishuiSharePage]', shareUrl, e.message);
+    }
+  }
+  return items;
+}
+
+function qishuiPlaceholderSong(trackId, sourceUrl, missing) {
+  return {
+    provider: 'qishui',
+    source: 'qishui',
+    type: 'qishui',
+    mediaType: 'track',
+    qishuiMediaType: 'track',
+    id: String(trackId || ''),
+    qishuiTrackId: String(trackId || ''),
+    name: '汽水音乐 ' + String(trackId || ''),
+    artist: '汽水音乐',
+    artists: [],
+    album: '',
+    cover: '',
+    duration: 0,
+    playable: false,
+    sourceUrl: sourceUrl || '',
+    needsCredentials: true,
+    missingCredentials: missing || [],
+  };
+}
+
+function qishuiVideoPlaceholderSong(item, sourceUrl) {
+  item = item || {};
+  const video = item.video || {};
+  const artists = qishuiArtists(video);
+  const id = String(item.id || video.id || video.video_id || video.vid || '');
+  return {
+    provider: 'qishui',
+    source: 'qishui',
+    type: 'qishui',
+    mediaType: 'video',
+    qishuiMediaType: 'video',
+    id,
+    qishuiTrackId: id,
+    name: firstQishuiValue(video.title, video.description, '汽水视频 ' + id),
+    artist: artists.map(a => a.name).join(' / ') || '汽水视频',
+    artists,
+    album: '',
+    cover: qishuiImageUrl(firstQishuiValue(video.cover_url, video.share_cover_url, video.image_url, video.url_cover)),
+    duration: qishuiDurationMs(video),
+    playable: false,
+    sourceUrl: sourceUrl || '',
+    experimental: true,
+    restriction: playbackRestriction('qishui', 'video_unavailable', '汽水视频条目暂不能作为音频播放', 'switch_source'),
+  };
+}
+
+function firstQishuiValue() {
+  for (let i = 0; i < arguments.length; i++) {
+    const value = arguments[i];
+    if (value !== undefined && value !== null && value !== '') return value;
+  }
+  return '';
+}
+
+function qishuiTrackPayloadData(body) {
+  const data = body && (body.data || body.result || body);
+  if (data && data.track && (data.track_player || data.trackPlayer || data.player)) return data;
+  return firstQishuiValue(
+    data && data.track_data,
+    data && data.trackData,
+    data && data.track_info,
+    data && data.trackInfo,
+    data && data.track,
+    data
+  ) || {};
+}
+
+function qishuiArtists(track) {
+  const raw = track && (track.artists || track.artist_list || track.artistList || track.singers || []);
+  const list = Array.isArray(raw) ? raw : [];
+  return list.map(item => ({
+    id: item && (item.id || item.artist_id || item.artistId || ''),
+    name: item && (item.name || item.artist_name || item.artistName || ''),
+  })).filter(item => item.name);
+}
+
+function qishuiImageUrl(value) {
+  if (!value) return '';
+  if (typeof value === 'string') return value;
+  const urls = Array.isArray(value.urls) ? value.urls : [];
+  const uri = value.uri || '';
+  if (urls.length && uri) return `${urls[0]}${uri}`;
+  return firstQishuiValue(value.url, value.cover_url, value.coverUrl, urls[0], uri);
+}
+
+function qishuiCover(track) {
+  const album = track && (track.album || track.album_info || track.albumInfo || {});
+  return qishuiImageUrl(firstQishuiValue(
+    track && track.cover,
+    track && track.cover_url,
+    track && track.coverUrl,
+    track && track.url_cover,
+    track && track.urlCover,
+    track && track.image_url,
+    album && album.cover,
+    album && album.cover_url,
+    album && album.coverUrl,
+    album && album.url_cover,
+    album && album.urlCover
+  ));
+}
+
+function qishuiDurationMs(track) {
+  const duration = Number(firstQishuiValue(
+    track && track.duration,
+    track && track.duration_ms,
+    track && track.durationMs,
+    track && track.length
+  )) || 0;
+  return duration && duration < 10000 ? duration * 1000 : duration;
+}
+
+function qishuiPlayerInfoUrl(trackData) {
+  const player = trackData && (trackData.track_player || trackData.trackPlayer || trackData.player || {});
+  return firstQishuiValue(
+    player && player.url_player_info,
+    player && player.urlPlayerInfo,
+    trackData && trackData.url_player_info,
+    trackData && trackData.urlPlayerInfo
+  );
+}
+
+function qishuiPlayInfoUrl(playInfo) {
+  return pickFirstHttpUrl(playInfo && (
+    playInfo.MainPlayUrl ||
+    playInfo.BackupPlayUrl ||
+    playInfo.main_play_url ||
+    playInfo.backup_play_url ||
+    playInfo.url ||
+    playInfo.play_url ||
+    playInfo
+  ));
+}
+
+function qishuiMp4HeaderLooksEncrypted(buffer) {
+  const text = Buffer.from(buffer || []).toString('latin1');
+  const encaAt = text.indexOf('enca');
+  if (encaAt < 0) return false;
+  const mdatAt = text.indexOf('mdat');
+  const hasProtectionBox = text.indexOf('sinf', Math.max(0, encaAt - 32)) >= 0;
+  return hasProtectionBox && (mdatAt < 0 || encaAt < mdatAt);
+}
+
+async function qishuiAudioUrlIsBrowserUnsupported(audioUrl) {
+  if (!audioUrl) return false;
+  try {
+    const host = new URL(audioUrl).hostname.toLowerCase();
+    if (!host.includes('douyinvod.com')) return false;
+    const resp = await fetch(audioUrl, {
+      headers: audioProxyHeadersFor(audioUrl, 'bytes=0-131071'),
+    });
+    if (!resp.ok && resp.status !== 206) return false;
+    const buffer = Buffer.from(await resp.arrayBuffer());
+    return qishuiMp4HeaderLooksEncrypted(buffer);
+  } catch (e) {
+    console.warn('[QishuiAudioInspect]', e.message);
+    return false;
+  }
+}
+
+function qishuiFirstPlayInfo(payload) {
+  const result = payload && (payload.Result || payload.result || payload);
+  const data = result && (result.Data || result.data || payload.data || {});
+  const list = firstQishuiValue(
+    data && data.PlayInfoList,
+    data && data.playInfoList,
+    data && data.play_info_list,
+    payload && payload.PlayInfoList
+  );
+  if (Array.isArray(list)) return list[0] || {};
+  return list || data || {};
+}
+
+async function fetchQishuiPlayInfo(playerInfoUrl, creds) {
+  if (!playerInfoUrl) return {};
+  const text = await requestText(playerInfoUrl, {
+    headers: {
+      'User-Agent': QISHUI_USER_AGENT,
+      'Referer': 'https://music.qishui.com/',
+      'Cookie': creds.cookie,
+    },
+  });
+  return qishuiFirstPlayInfo(parseJSONText(text));
+}
+
+function qishuiHasHeader(headers, name) {
+  const target = String(name || '').toLowerCase();
+  return Object.keys(headers || {}).some(key => key.toLowerCase() === target);
+}
+
+function qishuiApplySignature(targetUrl, headers, body, creds) {
+  headers = headers || {};
+  if (body && !qishuiHasHeader(headers, 'x-ss-stub')) {
+    headers['X-SS-STUB'] = crypto.createHash('md5').update(String(body)).digest('hex').toUpperCase();
+  }
+  if (creds && creds.bdms && typeof creds.bdms.generateHttpSignatureHeaders === 'function') {
+    const headerLines = [];
+    Object.entries(headers).forEach(([key, value]) => {
+      if (/^(origin|referer)$/i.test(key)) return;
+      headerLines.push(`${key}\r\n${value}`);
+    });
+    const signatureData = String(creds.bdms.generateHttpSignatureHeaders(targetUrl, headerLines.join('\r\n')) || '')
+      .split('\r\n')
+      .filter(item => item.trim());
+    for (let i = 0; i < signatureData.length / 2; i++) {
+      headers[signatureData[i * 2]] = signatureData[i * 2 + 1];
+    }
+  } else if (creds) {
+    if (creds.xHelios) headers['x-helios'] = creds.xHelios;
+    if (creds.xMedusa) headers['x-medusa'] = creds.xMedusa;
+  }
+  return headers;
+}
+
+function mapQishuiTrackSong(trackId, trackData, playInfo, sourceUrl) {
+  const track = trackData && (trackData.track || trackData.song || trackData);
+  const artists = qishuiArtists(track);
+  const album = track && (track.album || track.album_info || track.albumInfo || {});
+  const url = qishuiPlayInfoUrl(playInfo) || pickFirstHttpUrl(trackData);
+  return {
+    provider: 'qishui',
+    source: 'qishui',
+    type: 'qishui',
+    id: String(firstQishuiValue(trackId, track && track.id, track && track.track_id)),
+    qishuiTrackId: String(firstQishuiValue(trackId, track && track.id, track && track.track_id)),
+    name: firstQishuiValue(track && track.name, track && track.title, '汽水音乐 ' + trackId),
+    artist: artists.map(a => a.name).join(' / ') || firstQishuiValue(track && track.artist_name, track && track.artistName, '汽水音乐'),
+    artists,
+    artistId: artists[0] && artists[0].id,
+    album: firstQishuiValue(album && album.name, album && album.title, track && track.album_name),
+    cover: qishuiCover(track),
+    duration: qishuiDurationMs(track),
+    playable: !!url,
+    url,
+    playAuth: firstQishuiValue(playInfo && playInfo.PlayAuth, playInfo && playInfo.playAuth),
+    playAuthID: firstQishuiValue(playInfo && playInfo.PlayAuthID, playInfo && playInfo.playAuthID),
+    sourceUrl: sourceUrl || '',
+    experimental: true,
+  };
+}
+
+async function handleQishuiTrackV2(trackId, sourceUrl) {
+  trackId = String(trackId || '').trim();
+  if (!trackId) throw new Error('Missing Qishui track id');
+  const creds = await qishuiCredentials();
+  if (!creds.configured) return qishuiPlaceholderSong(trackId, sourceUrl, creds.missing);
+  const body = JSON.stringify({
+    track_id: trackId,
+    media_type: 'track',
+    queue_type: 'favorite_track_playlist',
+    scene_name: 'undefined',
+  });
+  const requestUrl = qishuiTrackV2RequestUrl(creds);
+  const headers = qishuiApplySignature(requestUrl, {
+    'accept': 'application/json, text/plain, */*',
+    'content-type': 'application/json; charset=utf-8',
+    'cookie': creds.cookie,
+    'user-agent': QISHUI_USER_AGENT,
+  }, body, creds);
+  const text = await requestText(requestUrl, {
+    method: 'POST',
+    headers,
+  }, body);
+  const payload = parseJSONText(text);
+  const trackData = qishuiTrackPayloadData(payload);
+  let playInfo = {};
+  const playerInfoUrl = qishuiPlayerInfoUrl(trackData);
+  if (playerInfoUrl) {
+    try {
+      playInfo = await fetchQishuiPlayInfo(playerInfoUrl, creds);
+    } catch (e) {
+      console.warn('[QishuiPlayInfo]', trackId, e.message);
+    }
+  }
+  return mapQishuiTrackSong(trackId, trackData, playInfo, sourceUrl);
+}
+
+async function handleQishuiShareImport(input) {
+  input = String(input || '').trim();
+  const creds = await qishuiCredentials();
+  if (!input) {
+    return { provider: 'qishui', experimental: true, configured: creds.configured, missing: creds.missing, songs: [], message: 'EMPTY_QISHUI_SHARE_TEXT' };
+  }
+  let mediaItems = extractQishuiTrackIds(input).map(id => ({ id, mediaType: 'track' }));
+  if (!mediaItems.length) mediaItems = await fetchQishuiSharePageMediaItems(input);
+  const seenMedia = new Set();
+  mediaItems = mediaItems.filter(item => {
+    if (!item || !item.id) return false;
+    const key = String(item.mediaType || 'track') + ':' + String(item.id || '');
+    if (seenMedia.has(key)) return false;
+    seenMedia.add(key);
+    return true;
+  }).slice(0, QISHUI_SHARE_IMPORT_LIMIT);
+  const songs = [];
+  for (const item of mediaItems) {
+    const id = item.id;
+    try {
+      songs.push(item.mediaType === 'video' ? qishuiVideoPlaceholderSong(item, input) : await handleQishuiTrackV2(id, input));
+    } catch (e) {
+      console.warn('[QishuiTrackV2]', id, e.message);
+      songs.push(qishuiPlaceholderSong(id, input, creds.missing));
+    }
+  }
+  return {
+    provider: 'qishui',
+    experimental: true,
+    configured: creds.configured,
+    missing: creds.missing,
+    songs,
+    count: songs.length,
+    message: songs.length ? '' : 'NO_QISHUI_TRACK_ID_FOUND',
+  };
+}
+
+async function handleQishuiSongUrl(trackId, mediaType) {
+  mediaType = String(mediaType || 'track').toLowerCase();
+  if (mediaType === 'video') {
+    return {
+      provider: 'qishui',
+      url: '',
+      playable: false,
+      reason: 'video_unavailable',
+      message: '汽水视频条目暂不能作为音频播放',
+      restriction: playbackRestriction('qishui', 'video_unavailable', '汽水视频条目暂不能作为音频播放', 'switch_source'),
+    };
+  }
+  const creds = await qishuiCredentials();
+  if (!creds.configured) {
+    return {
+      provider: 'qishui',
+      url: '',
+      playable: false,
+      reason: 'credentials_required',
+      message: '汽水音乐实验音源需要先配置电脑版请求凭证',
+      missing: creds.missing,
+      restriction: playbackRestriction('qishui', 'credentials_required', '汽水音乐实验音源需要先配置电脑版请求凭证', 'configure', { missing: creds.missing }),
+    };
+  }
+  const song = await handleQishuiTrackV2(trackId, '');
+  if (song && song.url) {
+    if (await qishuiAudioUrlIsBrowserUnsupported(song.url)) {
+      return {
+        provider: 'qishui',
+        url: '',
+        playable: false,
+        reason: 'encrypted_audio_unsupported',
+        message: '汽水音乐返回的是浏览器暂不能解码的加密音频，正在尝试自动换源',
+        restriction: playbackRestriction('qishui', 'encrypted_audio_unsupported', '汽水音乐返回的是浏览器暂不能解码的加密音频', 'switch_source'),
+      };
+    }
+    return {
+      provider: 'qishui',
+      url: song.url,
+      playable: true,
+      level: 'source',
+      quality: '汽水原始音质',
+      song,
+    };
+  }
+  return {
+    provider: 'qishui',
+    url: '',
+    playable: false,
+    reason: 'url_unavailable',
+    message: '汽水音乐没有返回可播放地址',
+    restriction: playbackRestriction('qishui', 'url_unavailable', '汽水音乐没有返回可播放地址', 'switch_source'),
+  };
+}
+
 function requestText(targetUrl, opts, body) {
   opts = opts || {};
   return new Promise((resolve, reject) => {
@@ -2230,6 +2970,41 @@ function requestText(targetUrl, opts, body) {
           return;
         }
         resolve(text);
+      });
+    });
+    req.setTimeout(10000, () => req.destroy(new Error('Request timeout')));
+    req.on('error', reject);
+    if (body) req.write(body);
+    req.end();
+  });
+}
+
+function requestRaw(targetUrl, opts, body) {
+  opts = opts || {};
+  return new Promise((resolve, reject) => {
+    const u = new URL(targetUrl);
+    const lib = u.protocol === 'https:' ? https : http;
+    const req = lib.request(u, {
+      method: opts.method || 'GET',
+      headers: opts.headers || {},
+    }, response => {
+      const chunks = [];
+      response.on('data', chunk => chunks.push(chunk));
+      response.on('end', () => {
+        const buffer = Buffer.concat(chunks);
+        if (response.statusCode >= 400) {
+          const err = new Error('HTTP ' + response.statusCode);
+          err.statusCode = response.statusCode;
+          err.body = buffer.toString('utf8');
+          reject(err);
+          return;
+        }
+        resolve({
+          statusCode: response.statusCode,
+          headers: response.headers || {},
+          buffer,
+          text: buffer.toString('utf8'),
+        });
       });
     });
     req.setTimeout(10000, () => req.destroy(new Error('Request timeout')));
@@ -2322,6 +3097,251 @@ function kugouAndroidSignature(params, data, session) {
 function kugouSignKey(hash, mid, userid, appid, session) {
   session = normalizeKugouSession(session);
   return md5Hex(`${String(hash || '').toLowerCase()}${session.signKeySalt}${appid || session.appid}${mid || ''}${userid || 0}`);
+}
+
+function kugouRsaRawEncryptJson(data, session) {
+  session = normalizeKugouSession(session);
+  const input = Buffer.from(JSON.stringify(data || {}), 'utf8');
+  const padded = Buffer.alloc(128);
+  input.copy(padded, 0);
+  const key = session.provider === 'kugouMusic' ? KUGOU_RSA_PUBLIC_KEY : KUGOU_LITE_RSA_PUBLIC_KEY;
+  return crypto.publicEncrypt({ key, padding: crypto.constants.RSA_NO_PADDING }, padded).toString('hex');
+}
+
+function extractKugouListenList(body) {
+  const data = body && (body.data || body.result || body);
+  return [
+    data && data.list,
+    data && data.lists,
+    data && data.info,
+    data && data.songs,
+    body && body.list,
+  ].find(Array.isArray) || [];
+}
+
+function extractKugouPlayHistoryData(body) {
+  return body && (body.data || body.result || body) || {};
+}
+
+function extractKugouPlayHistorySongs(body) {
+  const data = extractKugouPlayHistoryData(body);
+  return [
+    data && data.songs,
+    data && data.list,
+    data && data.lists,
+    data && data.info,
+    body && body.songs,
+  ].find(Array.isArray) || [];
+}
+
+function kugouPlayHistoryNextBp(body) {
+  const data = extractKugouPlayHistoryData(body);
+  return cleanKugouText(firstKugouValue(
+    data && data.bp,
+    data && data.next_bp,
+    data && data.nextBp,
+    body && body.bp,
+    body && body.next_bp,
+    ''
+  ));
+}
+
+function isKugouPlayHistoryFinished(body) {
+  const data = extractKugouPlayHistoryData(body);
+  const value = firstKugouValue(data && data.bp_finished, data && data.finished, body && body.bp_finished, '');
+  return value === true || value === 1 || value === '1' || value === 'true';
+}
+
+function kugouListenCountText(value) {
+  return stripKugouAudioSuffix(cleanKugouText(value)).toLowerCase().replace(/\s+/g, '').trim();
+}
+
+function addKugouListenCountKey(counts, key, count) {
+  key = String(key || '').trim();
+  count = Number(count) || 0;
+  if (!key || count <= 0) return;
+  if (counts[key] == null || count > counts[key]) counts[key] = count;
+}
+
+function addKugouListenCountKeys(counts, song, session, count) {
+  session = normalizeKugouSession(session);
+  song = song || {};
+  [
+    song.hash,
+    song.id,
+    song.albumAudioId,
+    song.album_audio_id,
+    song.mid,
+    song.songmid,
+  ].forEach(id => {
+    id = String(id || '').trim();
+    if (!id) return;
+    addKugouListenCountKey(counts, session.provider + ':' + id, count);
+    addKugouListenCountKey(counts, 'song:' + id, count);
+    addKugouListenCountKey(counts, 'hash:' + id.toLowerCase(), count);
+  });
+  const nameKey = kugouListenCountText(song.name || song.title);
+  const artistKey = kugouListenCountText(song.artist || song.singername);
+  if (nameKey) addKugouListenCountKey(counts, 'text:' + nameKey + '|' + artistKey, count);
+}
+
+function kugouCountRecordKey(song, session) {
+  session = normalizeKugouSession(session);
+  song = song || {};
+  return [
+    song.hash && ('hash:' + String(song.hash).toLowerCase()),
+    song.albumAudioId && (session.provider + ':' + song.albumAudioId),
+    song.album_audio_id && (session.provider + ':' + song.album_audio_id),
+    song.id && (session.provider + ':' + song.id),
+    song.name && ('text:' + kugouListenCountText(song.name) + '|' + kugouListenCountText(song.artist)),
+  ].find(Boolean) || '';
+}
+
+function mergeKugouCountRecord(recordMap, song, session, count, source) {
+  count = Number(count) || 0;
+  if (!song || !song.name || count <= 0) return;
+  const key = kugouCountRecordKey(song, session);
+  if (!key) return;
+  const current = recordMap.get(key);
+  if (!current || count > Number(current.platformPlayCount || 0)) {
+    recordMap.set(key, { ...song, listenCount: count, platformPlayCount: count, countSource: source });
+  } else if (current.countSource && !String(current.countSource).split('+').includes(source)) {
+    current.countSource += '+' + source;
+  }
+}
+
+function mapKugouPlayHistorySong(record, session) {
+  record = record || {};
+  const song = mapKugouSearchSong(record.info || record.base || record.audio_info || record.song || record, session);
+  const mxid = cleanKugouText(firstKugouValue(record.mxid, record.mixsongid, record.MixSongID, ''));
+  if (mxid && !song.albumAudioId) {
+    song.albumAudioId = mxid;
+    song.album_audio_id = mxid;
+  }
+  if (mxid && !song.id) song.id = mxid;
+  return song;
+}
+
+function kugouPlayHistoryCount(record) {
+  return Number(firstKugouValue(record && record.pc, record && record.play_count, record && record.listen_count, record && record.count, 0)) || 0;
+}
+
+async function fetchKugouPlayHistoryCounts(session, maxPages) {
+  session = normalizeKugouSession(session);
+  const cookieObj = kugouCookieObject(session);
+  const userid = kugouCookieUserId(cookieObj);
+  const token = kugouCookieToken(cookieObj);
+  if (!userid || !token || maxPages <= 0) {
+    return { pages: 0, records: 0, songs: [], hasMore: false };
+  }
+  let bp = '';
+  const seenBp = new Set();
+  const songs = [];
+  let rawRecords = 0;
+  let pages = 0;
+  let hasMore = false;
+  for (let page = 1; page <= maxPages; page++) {
+    const payload = {
+      token,
+      userid,
+      source_classify: 'app',
+      to_subdivide_sr: 1,
+    };
+    if (bp) payload.bp = bp;
+    const body = await kugouApiRequest('/playhistory/v1/get_songs', {}, {
+      session,
+      method: 'POST',
+      data: payload,
+    });
+    const pageRecords = extractKugouPlayHistorySongs(body);
+    pages += 1;
+    rawRecords += pageRecords.length;
+    pageRecords.forEach(record => {
+      const count = kugouPlayHistoryCount(record);
+      const song = mapKugouPlayHistorySong(record, session);
+      if (song.name && count > 0) songs.push({ song, count });
+    });
+    const nextBp = kugouPlayHistoryNextBp(body);
+    hasMore = !!(nextBp && pageRecords.length && !isKugouPlayHistoryFinished(body));
+    if (!hasMore || seenBp.has(nextBp)) break;
+    seenBp.add(nextBp);
+    bp = nextBp;
+  }
+  return { pages, records: rawRecords, songs, hasMore };
+}
+
+async function handleKugouListenCounts(type, session, options) {
+  options = options || {};
+  session = normalizeKugouSession(session);
+  const info = getKugouLoginInfo(session);
+  if (!info.loggedIn || !info.userId || !info.tokenReady) {
+    return { provider: session.provider, platform: session.platform, loggedIn: false, records: [], counts: {} };
+  }
+  const cookieObj = kugouCookieObject(session);
+  const userid = kugouCookieUserId(cookieObj) || info.userId;
+  const token = kugouCookieToken(cookieObj);
+  if (!userid || !token) {
+    return { provider: session.provider, platform: session.platform, loggedIn: false, records: [], counts: {} };
+  }
+  const clienttime = Math.floor(Date.now() / 1000);
+  const listType = Number(type) === 0 ? 0 : 1;
+  const body = await kugouApiRequest('/v2/get_list', {
+    clienttime,
+    plat: 0,
+  }, {
+    session,
+    baseURL: 'https://listenservice.kugou.com',
+    method: 'POST',
+    data: {
+      t_userid: userid,
+      userid,
+      list_type: listType,
+      area_code: 1,
+      cover: 2,
+      p: kugouRsaRawEncryptJson({ clienttime, token }, session).toUpperCase(),
+    },
+  });
+  const rawRecords = extractKugouListenList(body);
+  const counts = {};
+  const recordMap = new Map();
+  rawRecords.forEach(record => {
+    const song = mapKugouSearchSong(record, session);
+    const listenCount = Number(firstKugouValue(record.listen_count, record.listenCount, record.play_count, record.playCount, record.count, 0)) || 0;
+    addKugouListenCountKeys(counts, song, session, listenCount);
+    mergeKugouCountRecord(recordMap, song, session, listenCount, 'rank');
+  });
+  const maxHistoryPages = Math.max(0, Math.min(8, parseInt(options.historyPages == null ? '8' : options.historyPages, 10) || 0));
+  let history = { pages: 0, records: 0, songs: [], hasMore: false };
+  let historyError = '';
+  if (maxHistoryPages > 0) {
+    try {
+      history = await fetchKugouPlayHistoryCounts(session, maxHistoryPages);
+      history.songs.forEach(item => {
+        addKugouListenCountKeys(counts, item.song, session, item.count);
+        mergeKugouCountRecord(recordMap, item.song, session, item.count, 'history');
+      });
+    } catch (err) {
+      historyError = err && err.message || 'KUGOU_PLAY_HISTORY_FAILED';
+      console.warn('[KugouPlayHistoryCounts]', session.provider, historyError);
+    }
+  }
+  const records = Array.from(recordMap.values())
+    .filter(song => song.name && song.listenCount > 0)
+    .sort((a, b) => (Number(b.platformPlayCount) || 0) - (Number(a.platformPlayCount) || 0));
+  return {
+    provider: session.provider,
+    platform: session.platform,
+    loggedIn: true,
+    type: listType,
+    limit: records.length,
+    rankRecords: rawRecords.length,
+    historyRecords: history.records,
+    historyPages: history.pages,
+    historyHasMore: history.hasMore,
+    historyError,
+    records,
+    counts,
+  };
 }
 
 async function kugouApiRequest(pathname, params, opts) {
@@ -2505,6 +3525,33 @@ function kugouFallbackBitrate(quality) {
   if (quality === 'flac' || quality === 'high') return 999000;
   return 0;
 }
+function kugouResolvedQualityFromResponse(candidate, data, br) {
+  candidate = candidate || {};
+  data = data || {};
+  br = Number(br) || 0;
+  const rawQuality = String(firstKugouValue(
+    data.quality,
+    data.audio_quality,
+    data.audioQuality,
+    data.fileQuality,
+    data.file_quality,
+    data.extname,
+    data.type,
+    ''
+  )).toLowerCase();
+  if (br > 0) {
+    if (br <= 192000) return { level: 'standard', quality: '128k', br };
+    if (br < 700000) return { level: 'exhigh', quality: '320k', br };
+  }
+  if (/128|standard/.test(rawQuality)) return { level: 'standard', quality: '128k', br: br || 128000 };
+  if (/320|exhigh|hq/.test(rawQuality)) return { level: 'exhigh', quality: '320k', br: br || 320000 };
+  if (/flac|lossless|sq|ape/.test(rawQuality)) return { level: 'lossless', quality: 'FLAC', br: br || 999000 };
+  return {
+    level: candidate.level || 'hires',
+    quality: candidate.label || 'Hi-Res',
+    br,
+  };
+}
 
 async function handleKugouSongUrl(params, session) {
   session = normalizeKugouSession(session);
@@ -2524,6 +3571,7 @@ async function handleKugouSongUrl(params, session) {
   const qualities = qualityCandidatesFrom(requestedQuality, KUGOU_QUALITY_CANDIDATES);
   let lastBody = null;
   let lastError = null;
+  let bestPlayable = null;
   for (const q of qualities) {
     try {
       const body = await kugouApiRequest('/v5/url', {
@@ -2554,23 +3602,45 @@ async function handleKugouSongUrl(params, session) {
       const data = body && (body.data || body.result || body);
       if (playableUrl) {
         const br = Number(data && (data.bitrate || data.bitRate || data.br)) || kugouFallbackBitrate(q.quality);
-        return {
+        const resolvedQuality = kugouResolvedQualityFromResponse(q, data, br);
+        const result = {
           provider: session.provider,
           url: playableUrl,
           playable: true,
           trial: !!(data && (data.free_part || data.is_free_part || data.isFreePart)),
-          level: q.level,
-          quality: q.label,
-          br,
+          level: resolvedQuality.level,
+          quality: resolvedQuality.quality,
+          br: resolvedQuality.br,
           requestedQuality,
           loggedIn: loginInfo.loggedIn,
         };
+        if (session.provider === 'kugouMusic' && !params.skipConceptFallback && qualityRankValue(resolvedQuality.level) < qualityRankValue(requestedQuality)) {
+          const fallback = await handleKugouSongUrl({
+            ...params,
+            skipConceptFallback: true,
+          }, KUGOU_CONCEPT_SESSION);
+          if (fallback && fallback.playable && fallback.url && qualityRankValue(fallback.level) > qualityRankValue(resolvedQuality.level)) {
+            return {
+              ...fallback,
+              provider: session.provider,
+              fallbackProvider: KUGOU_CONCEPT_SESSION.provider,
+              fallbackPlatform: KUGOU_CONCEPT_SESSION.platform,
+              playbackProvider: KUGOU_CONCEPT_SESSION.provider,
+              originalProviderLevel: resolvedQuality.level,
+              originalProviderQuality: resolvedQuality.quality,
+              loggedIn: loginInfo.loggedIn,
+            };
+          }
+        }
+        if (!bestPlayable || qualityRankValue(result.level) > qualityRankValue(bestPlayable.level)) bestPlayable = result;
+        if (qualityRankValue(resolvedQuality.level) >= qualityRankValue(q.level) || q.level === 'standard') return result;
       }
     } catch (err) {
       lastError = err;
       console.warn('[KugouSongUrl]', q.level, 'failed:', err.message);
     }
   }
+  if (bestPlayable) return bestPlayable;
   if (session.provider === 'kugouMusic' && !params.skipConceptFallback) {
     const fallback = await handleKugouSongUrl({
       ...params,
@@ -3067,25 +4137,27 @@ function kugouTrackLikeIds(track) {
   ].map(value => String(value || '').trim().toLowerCase()).filter(Boolean);
 }
 
-async function getKugouLikedPlaylist() {
-  const data = await handleKugouUserPlaylists(100);
+async function getKugouLikedPlaylist(session) {
+  session = normalizeKugouSession(session);
+  const data = await handleKugouUserPlaylists(100, session);
   if (!data.loggedIn) return null;
   return pickKugouLikedPlaylist(data.playlists || []);
 }
 
-async function handleKugouSongLikeCheck(ids) {
-  const info = getKugouLoginInfo();
+async function handleKugouSongLikeCheck(ids, session) {
+  session = normalizeKugouSession(session);
+  const info = getKugouLoginInfo(session);
   const rawIds = String(ids || '').split(',').map(id => id.trim()).filter(Boolean);
   const liked = {};
   rawIds.forEach(id => { liked[id] = false; });
   if (!info.loggedIn || !rawIds.length) {
-    return { provider: 'kugou', platform: 'lite', loggedIn: info.loggedIn, liked };
+    return { provider: session.provider, platform: session.platform, loggedIn: info.loggedIn, liked };
   }
-  const likedPlaylist = await getKugouLikedPlaylist();
+  const likedPlaylist = await getKugouLikedPlaylist(session);
   if (!likedPlaylist || !likedPlaylist.id) {
-    return { provider: 'kugou', platform: 'lite', loggedIn: true, liked, likedPlaylistId: '' };
+    return { provider: session.provider, platform: session.platform, loggedIn: true, liked, likedPlaylistId: '' };
   }
-  const detail = await handleKugouPlaylistTracks(likedPlaylist.id, 500);
+  const detail = await handleKugouPlaylistTracks(likedPlaylist.id, 500, session);
   const likedSet = new Set();
   (detail.tracks || []).forEach(track => {
     kugouTrackLikeIds(track).forEach(id => likedSet.add(id));
@@ -3093,24 +4165,25 @@ async function handleKugouSongLikeCheck(ids) {
   rawIds.forEach(id => {
     liked[id] = likedSet.has(String(id).toLowerCase());
   });
-  return { provider: 'kugou', platform: 'lite', loggedIn: true, liked, likedPlaylistId: likedPlaylist.id };
+  return { provider: session.provider, platform: session.platform, loggedIn: true, liked, likedPlaylistId: likedPlaylist.id };
 }
 
-async function handleKugouPlaylistCreate(params) {
+async function handleKugouPlaylistCreate(params, session) {
+  session = normalizeKugouSession(session);
   params = params || {};
-  const info = getKugouLoginInfo();
+  const info = getKugouLoginInfo(session);
   if (!info.loggedIn || !info.userId || !info.tokenReady) {
-    return { provider: 'kugou', platform: 'lite', loggedIn: false, success: false, error: 'LOGIN_REQUIRED' };
+    return { provider: session.provider, platform: session.platform, loggedIn: false, success: false, error: 'LOGIN_REQUIRED' };
   }
   const name = cleanKugouText(params.name || '');
   if (!name) {
-    return { provider: 'kugou', platform: 'lite', loggedIn: true, success: false, error: 'Missing KuGou playlist name' };
+    return { provider: session.provider, platform: session.platform, loggedIn: true, success: false, error: 'Missing KuGou playlist name' };
   }
-  const cookieObj = kugouCookieObject();
+  const cookieObj = kugouCookieObject(session);
   const userid = kugouCookieUserId(cookieObj) || info.userId;
   const token = kugouCookieToken(cookieObj);
   if (!userid || !token) {
-    return { provider: 'kugou', platform: 'lite', loggedIn: false, success: false, error: 'LOGIN_REQUIRED' };
+    return { provider: session.provider, platform: session.platform, loggedIn: false, success: false, error: 'LOGIN_REQUIRED' };
   }
   const clienttime = Math.floor(Date.now() / 1000);
   const body = await kugouApiRequest('/cloudlist.service/v5/add_list', {
@@ -3133,10 +4206,11 @@ async function handleKugouPlaylistCreate(params) {
       list_create_gid: params.list_create_gid || '',
       from_shupinmv: 0,
     },
+    session,
   });
   const data = body && (body.data || body.body || body);
   const rawPlaylist = data && (data.info || data.playlist || data.list || data);
-  const playlist = mapKugouPlaylist(rawPlaylist);
+  const playlist = mapKugouPlaylist(rawPlaylist, session);
   const id = cleanKugouText(firstKugouValue(
     playlist && playlist.id,
     data && data.listid,
@@ -3151,8 +4225,8 @@ async function handleKugouPlaylistCreate(params) {
   const message = kugouPlaylistAddMessage(body);
   const success = !!(id || kugouPlaylistAddSucceeded(body));
   return {
-    provider: 'kugou',
-    platform: 'lite',
+    provider: session.provider,
+    platform: session.platform,
     loggedIn: true,
     success,
     code,
@@ -3163,22 +4237,23 @@ async function handleKugouPlaylistCreate(params) {
   };
 }
 
-async function handleKugouPlaylistAddSong(params) {
+async function handleKugouPlaylistAddSong(params, session) {
+  session = normalizeKugouSession(session);
   params = params || {};
-  const info = getKugouLoginInfo();
+  const info = getKugouLoginInfo(session);
   if (!info.loggedIn || !info.userId || !info.tokenReady) {
-    return { provider: 'kugou', platform: 'lite', loggedIn: false, success: false, error: 'LOGIN_REQUIRED' };
+    return { provider: session.provider, platform: session.platform, loggedIn: false, success: false, error: 'LOGIN_REQUIRED' };
   }
   const listid = String(params.listid || params.pid || '').trim();
   const hash = String(params.hash || params.filehash || params.FileHash || '').trim().toLowerCase();
   if (!listid || !hash) {
-    return { provider: 'kugou', platform: 'lite', loggedIn: true, success: false, error: 'Missing KuGou playlist id or song hash' };
+    return { provider: session.provider, platform: session.platform, loggedIn: true, success: false, error: 'Missing KuGou playlist id or song hash' };
   }
-  const cookieObj = kugouCookieObject();
+  const cookieObj = kugouCookieObject(session);
   const userid = kugouCookieUserId(cookieObj) || info.userId;
   const token = kugouCookieToken(cookieObj);
   if (!userid || !token) {
-    return { provider: 'kugou', platform: 'lite', loggedIn: false, success: false, error: 'LOGIN_REQUIRED' };
+    return { provider: session.provider, platform: session.platform, loggedIn: false, success: false, error: 'LOGIN_REQUIRED' };
   }
   const albumId = Number(params.albumId || params.album_id || 0) || 0;
   const albumAudioId = Number(params.albumAudioId || params.album_audio_id || params.mixsongid || params.id || 0) || 0;
@@ -3212,13 +4287,14 @@ async function handleKugouPlaylistAddSong(params) {
       scene: 'false;null',
       data: [resource],
     },
+    session,
   });
   const code = kugouPlaylistAddCode(body);
   const message = kugouPlaylistAddMessage(body);
   const success = kugouPlaylistAddSucceeded(body);
   return {
-    provider: 'kugou',
-    platform: 'lite',
+    provider: session.provider,
+    platform: session.platform,
     loggedIn: true,
     pid: listid,
     id: albumAudioId || hash,
@@ -3243,24 +4319,26 @@ function kugouPlaylistDeleteSucceeded(body) {
   ));
 }
 
-async function handleKugouPlaylistDeleteSong(params) {
+async function handleKugouPlaylistDeleteSong(params, session) {
+  session = normalizeKugouSession(session);
   params = params || {};
-  const info = getKugouLoginInfo();
+  const info = getKugouLoginInfo(session);
   if (!info.loggedIn || !info.userId || !info.tokenReady) {
-    return { provider: 'kugou', platform: 'lite', loggedIn: false, success: false, error: 'LOGIN_REQUIRED' };
+    return { provider: session.provider, platform: session.platform, loggedIn: false, success: false, error: 'LOGIN_REQUIRED' };
   }
   const listid = String(params.listid || params.pid || '').trim();
   const fileid = Number(params.fileid || params.fileId || 0) || 0;
   if (!listid || !fileid) {
-    return { provider: 'kugou', platform: 'lite', loggedIn: true, success: false, error: 'Missing KuGou playlist id or fileid' };
+    return { provider: session.provider, platform: session.platform, loggedIn: true, success: false, error: 'Missing KuGou playlist id or fileid' };
   }
-  const cookieObj = kugouCookieObject();
+  const cookieObj = kugouCookieObject(session);
   const userid = kugouCookieUserId(cookieObj) || info.userId;
   const token = kugouCookieToken(cookieObj);
   if (!userid || !token) {
-    return { provider: 'kugou', platform: 'lite', loggedIn: false, success: false, error: 'LOGIN_REQUIRED' };
+    return { provider: session.provider, platform: session.platform, loggedIn: false, success: false, error: 'LOGIN_REQUIRED' };
   }
   const body = await kugouApiRequest('/v4/delete_songs', {}, {
+    session,
     method: 'POST',
     data: {
       listid,
@@ -3276,8 +4354,8 @@ async function handleKugouPlaylistDeleteSong(params) {
   const message = kugouPlaylistAddMessage(body);
   const success = kugouPlaylistDeleteSucceeded(body);
   return {
-    provider: 'kugou',
-    platform: 'lite',
+    provider: session.provider,
+    platform: session.platform,
     loggedIn: true,
     pid: listid,
     fileid,
@@ -3289,24 +4367,25 @@ async function handleKugouPlaylistDeleteSong(params) {
   };
 }
 
-async function handleKugouSongLike(params) {
+async function handleKugouSongLike(params, session) {
+  session = normalizeKugouSession(session);
   params = params || {};
-  const info = getKugouLoginInfo();
+  const info = getKugouLoginInfo(session);
   const like = params.like !== false && String(params.like) !== 'false';
   if (!info.loggedIn || !info.userId || !info.tokenReady) {
-    return { provider: 'kugou', platform: 'lite', loggedIn: false, success: false, liked: !like, error: 'LOGIN_REQUIRED' };
+    return { provider: session.provider, platform: session.platform, loggedIn: false, success: false, liked: !like, error: 'LOGIN_REQUIRED' };
   }
   const songId = kugouSongLikeId(params);
   const hash = String(params.hash || '').trim().toLowerCase();
   if (!songId || (like && !hash)) {
-    return { provider: 'kugou', platform: 'lite', loggedIn: true, success: false, liked: !like, error: 'Missing KuGou song hash' };
+    return { provider: session.provider, platform: session.platform, loggedIn: true, success: false, liked: !like, error: 'Missing KuGou song hash' };
   }
-  const likedPlaylist = await getKugouLikedPlaylist();
+  const likedPlaylist = await getKugouLikedPlaylist(session);
   if (!likedPlaylist || !likedPlaylist.id) {
-    return { provider: 'kugou', platform: 'lite', loggedIn: true, success: false, liked: !like, error: 'KUGOU_LIKED_PLAYLIST_NOT_FOUND' };
+    return { provider: session.provider, platform: session.platform, loggedIn: true, success: false, liked: !like, error: 'KUGOU_LIKED_PLAYLIST_NOT_FOUND' };
   }
   if (like) {
-    const added = await handleKugouPlaylistAddSong({ ...params, pid: likedPlaylist.id });
+    const added = await handleKugouPlaylistAddSong({ ...params, pid: likedPlaylist.id }, session);
     return {
       ...added,
       liked: !!added.success,
@@ -3314,13 +4393,13 @@ async function handleKugouSongLike(params) {
       error: added.success ? undefined : (added.error || 'KUGOU_LIKE_ADD_FAILED'),
     };
   }
-  const detail = await handleKugouPlaylistTracks(likedPlaylist.id, 500);
+  const detail = await handleKugouPlaylistTracks(likedPlaylist.id, 500, session);
   const match = (detail.tracks || []).find(track => kugouTrackLikeIds(track).indexOf(songId) >= 0);
   const fileid = match && (match.fileid || match.fileId);
   if (!fileid) {
-    return { provider: 'kugou', platform: 'lite', loggedIn: true, success: true, liked: false, alreadyRemoved: true, likedPlaylistId: likedPlaylist.id };
+    return { provider: session.provider, platform: session.platform, loggedIn: true, success: true, liked: false, alreadyRemoved: true, likedPlaylistId: likedPlaylist.id };
   }
-  const removed = await handleKugouPlaylistDeleteSong({ pid: likedPlaylist.id, fileid });
+  const removed = await handleKugouPlaylistDeleteSong({ pid: likedPlaylist.id, fileid }, session);
   return {
     ...removed,
     liked: !removed.success,
@@ -3791,6 +4870,362 @@ function parseJSONText(text) {
   return JSON.parse(json);
 }
 
+function cookieHeaderFromSetCookie(setCookie) {
+  const rows = Array.isArray(setCookie) ? setCookie : (setCookie ? [setCookie] : []);
+  return rows.map(row => String(row || '').split(';')[0].trim())
+    .filter(pair => pair && pair.includes('='))
+    .join('; ');
+}
+
+function mergeCookieHeaders() {
+  const merged = {};
+  Array.from(arguments).forEach(header => {
+    Object.assign(merged, parseCookieString(header));
+  });
+  return serializeCookieObject(merged);
+}
+
+function qqPtQrToken(qrsig) {
+  let hash = 0;
+  String(qrsig || '').split('').forEach(ch => {
+    hash += (hash << 5) + ch.charCodeAt(0);
+  });
+  return hash & 0x7fffffff;
+}
+
+function qqGtkFromSkey(skey) {
+  let hash = 5381;
+  String(skey || '').split('').forEach(ch => {
+    hash += (hash << 5) + ch.charCodeAt(0);
+  });
+  return hash & 0x7fffffff;
+}
+
+function qqGuid() {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+    const r = Math.floor(Math.random() * 16);
+    const v = c === 'x' ? r : ((r & 0x3) | 0x8);
+    return v.toString(16);
+  }).toUpperCase();
+}
+
+function cleanupQQQrLoginSessions() {
+  const now = Date.now();
+  qqQrLoginSessions.forEach((session, key) => {
+    if (!session || now - session.createdAt > QQ_QR_SESSION_TTL) qqQrLoginSessions.delete(key);
+  });
+}
+
+function parseQQPtuiCallback(text) {
+  const raw = String(text || '');
+  const match = raw.match(/ptuiCB\(([\s\S]*)\)/);
+  if (!match) return { code: -1, message: raw.trim(), raw };
+  const args = [];
+  const re = /'((?:\\'|[^'])*)'/g;
+  let item;
+  while ((item = re.exec(match[1]))) {
+    args.push(item[1].replace(/\\'/g, "'").replace(/\\\\/g, '\\'));
+  }
+  return {
+    code: Number(args[0]),
+    subCode: args[1] || '',
+    url: args[2] || '',
+    message: args[4] || '',
+    nickname: args[5] || '',
+    raw,
+  };
+}
+
+function buildQQPtXLoginUrl() {
+  const u = new URL(QQ_PT_XLOGIN_URL);
+  u.searchParams.set('appid', QQ_PT_QR_APPID);
+  u.searchParams.set('daid', QQ_PT_QR_DAID);
+  u.searchParams.set('style', '33');
+  u.searchParams.set('login_text', '授权并登录');
+  u.searchParams.set('hide_title_bar', '1');
+  u.searchParams.set('hide_border', '1');
+  u.searchParams.set('target', 'self');
+  u.searchParams.set('s_url', QQ_PT_LOGIN_JUMP_URL);
+  u.searchParams.set('pt_3rd_aid', QQ_PT_QR_3RD_AID);
+  u.searchParams.set('pt_feedback_link', QQ_PT_FEEDBACK_LINK);
+  return u.toString();
+}
+
+async function handleQQQrLoginKey() {
+  cleanupQQQrLoginSessions();
+  const xloginUrl = buildQQPtXLoginUrl();
+  const xlogin = await requestRaw(xloginUrl, {
+    headers: {
+      Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+      Referer: QQ_WEB_LOGIN_URL,
+      'User-Agent': UA,
+    },
+  });
+  const loginCookie = cookieHeaderFromSetCookie(xlogin.headers['set-cookie']);
+  const u = new URL(QQ_PT_QR_SHOW_URL);
+  u.searchParams.set('appid', QQ_PT_QR_APPID);
+  u.searchParams.set('e', '2');
+  u.searchParams.set('l', 'M');
+  u.searchParams.set('s', '3');
+  u.searchParams.set('d', '72');
+  u.searchParams.set('v', '4');
+  u.searchParams.set('t', String(Math.random()));
+  u.searchParams.set('daid', QQ_PT_QR_DAID);
+  u.searchParams.set('pt_3rd_aid', QQ_PT_QR_3RD_AID);
+  u.searchParams.set('u1', QQ_PT_LOGIN_JUMP_URL);
+  const response = await requestRaw(u.toString(), {
+    headers: {
+      Accept: 'image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8',
+      Referer: xloginUrl,
+      'User-Agent': UA,
+      ...(loginCookie ? { Cookie: loginCookie } : {}),
+    },
+  });
+  const cookie = mergeCookieHeaders(loginCookie, cookieHeaderFromSetCookie(response.headers['set-cookie']));
+  const qrsig = parseCookieString(cookie).qrsig || '';
+  if (!qrsig || !response.buffer || response.buffer.length < 100) throw new Error('QQ_QR_CREATE_FAILED');
+  const key = crypto.randomBytes(12).toString('hex');
+  qqQrLoginSessions.set(key, {
+    key,
+    qrsig,
+    cookie,
+    xloginUrl,
+    createdAt: Date.now(),
+  });
+  const qrcodeImg = 'data:image/png;base64,' + response.buffer.toString('base64');
+  return {
+    provider: 'qq',
+    status: 1,
+    code: 66,
+    key,
+    expiresIn: QQ_QR_SESSION_TTL,
+    data: {
+      status: 1,
+      key,
+      qrcode: key,
+      qrcode_img: qrcodeImg,
+      expiresIn: QQ_QR_SESSION_TTL,
+    },
+  };
+}
+
+async function collectQQLoginCookies(redirectUrl, cookie) {
+  let mergedCookie = cookie || '';
+  const visit = async (targetUrl, referer, opts) => {
+    opts = opts || {};
+    const response = await requestRaw(targetUrl, {
+      method: opts.method || 'GET',
+      headers: {
+        Accept: opts.accept || 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        Referer: referer || QQ_WEB_LOGIN_URL,
+        'User-Agent': UA,
+        ...(opts.headers || {}),
+        ...(mergedCookie ? { Cookie: mergedCookie } : {}),
+      },
+    }, opts.body);
+    const nextCookie = cookieHeaderFromSetCookie(response.headers['set-cookie']);
+    if (nextCookie) mergedCookie = mergeCookieHeaders(mergedCookie, nextCookie);
+    return response;
+  };
+
+  let current = redirectUrl || '';
+  let referer = QQ_WEB_LOGIN_URL;
+  let oauthCode = '';
+  for (let i = 0; current && i < 4; i++) {
+    const response = await visit(current, referer);
+    const location = response.headers && response.headers.location;
+    if (location && /[?&]code=([^&]+)/.test(location)) {
+      try { oauthCode = new URL(location, current).searchParams.get('code') || oauthCode; }
+      catch (e) {
+        const match = String(location).match(/[?&]code=([^&]+)/);
+        if (match) oauthCode = decodeURIComponent(match[1]);
+      }
+    }
+    if (response.statusCode >= 300 && response.statusCode < 400 && location) {
+      referer = current;
+      current = new URL(location, current).toString();
+    } else {
+      break;
+    }
+  }
+
+  const cookieObj = parseCookieString(mergedCookie);
+  const pSkey = cookieObj.p_skey || cookieObj.skey || '';
+  if (!oauthCode && pSkey) {
+    try {
+      const gtk = qqGtkFromSkey(pSkey);
+      const body = new URLSearchParams({
+        response_type: 'code',
+        client_id: QQ_PT_QR_3RD_AID,
+        redirect_uri: 'https://y.qq.com/portal/wx_redirect.html?login_type=1&surl=https://y.qq.com/',
+        scope: 'get_user_info,get_app_friends',
+        state: 'state',
+        switch: '',
+        from_ptlogin: '1',
+        src: '1',
+        update_auth: '1',
+        openapi: '1010_1030',
+        g_tk: String(gtk),
+        auth_time: new Date().toString(),
+        ui: qqGuid(),
+      }).toString();
+      const authorize = await visit('https://graph.qq.com/oauth2.0/authorize', QQ_PT_LOGIN_JUMP_URL, {
+        method: 'POST',
+        accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'Content-Length': Buffer.byteLength(body),
+        },
+        body,
+      });
+      const location = authorize.headers && authorize.headers.location;
+      if (location) {
+        try { oauthCode = new URL(location, 'https://graph.qq.com/').searchParams.get('code') || oauthCode; }
+        catch (e) {
+          const match = String(location).match(/[?&]code=([^&]+)/);
+          if (match) oauthCode = decodeURIComponent(match[1]);
+        }
+      }
+    } catch (e) {
+      console.warn('[QQLoginQR] authorize failed:', e.message);
+    }
+  }
+
+  if (oauthCode) {
+    try {
+      const cookieNow = parseCookieString(mergedCookie);
+      const gtk = qqGtkFromSkey(cookieNow.p_skey || cookieNow.skey || pSkey || '');
+      const body = JSON.stringify({
+        comm: { g_tk: gtk, platform: 'yqq', ct: 24, cv: 0 },
+        req: {
+          module: 'QQConnectLogin.LoginServer',
+          method: 'QQLogin',
+          param: { code: oauthCode },
+        },
+      });
+      await visit(QQ_MUSICU_URL, QQ_WEB_LOGIN_URL, {
+        method: 'POST',
+        accept: 'application/json, text/plain, */*',
+        headers: {
+          'Content-Type': 'application/json;charset=UTF-8',
+          'Content-Length': Buffer.byteLength(body),
+        },
+        body,
+      });
+    } catch (e) {
+      console.warn('[QQLoginQR] music login failed:', e.message);
+    }
+  }
+
+  const warmups = [
+    QQ_WEB_PROFILE_URL,
+    'https://y.qq.com/n/ryqq/profile',
+    'https://y.qq.com/n/ryqq/player',
+    'https://y.qq.com/portal/player.html',
+  ];
+  for (const warmup of warmups) {
+    try { await visit(warmup, QQ_WEB_LOGIN_URL); }
+    catch (e) { console.warn('[QQLoginQR] warmup failed:', warmup, e.message); }
+  }
+  return mergedCookie;
+}
+
+async function handleQQQrLoginCheck(key) {
+  cleanupQQQrLoginSessions();
+  key = String(key || '').trim();
+  const session = qqQrLoginSessions.get(key);
+  if (!session) {
+    return {
+      provider: 'qq',
+      status: 0,
+      code: 65,
+      loggedIn: false,
+      message: 'QQ 二维码已过期，请刷新',
+      data: { status: 0 },
+    };
+  }
+
+  const sessionCookieObj = parseCookieString(session.cookie);
+  const u = new URL(QQ_PT_QR_CHECK_URL);
+  u.searchParams.set('u1', QQ_PT_LOGIN_JUMP_URL);
+  u.searchParams.set('ptqrtoken', String(qqPtQrToken(session.qrsig)));
+  u.searchParams.set('ptredirect', '0');
+  u.searchParams.set('h', '1');
+  u.searchParams.set('t', '1');
+  u.searchParams.set('g', '1');
+  u.searchParams.set('from_ui', '1');
+  u.searchParams.set('ptlang', '2052');
+  u.searchParams.set('action', '0-0-' + Date.now());
+  u.searchParams.set('js_ver', '10249');
+  u.searchParams.set('js_type', '1');
+  u.searchParams.set('login_sig', sessionCookieObj.pt_login_sig || '');
+  u.searchParams.set('pt_uistyle', '40');
+  u.searchParams.set('aid', QQ_PT_QR_APPID);
+  u.searchParams.set('daid', QQ_PT_QR_DAID);
+  u.searchParams.set('pt_3rd_aid', QQ_PT_QR_3RD_AID);
+
+  const response = await requestRaw(u.toString(), {
+    headers: {
+      Accept: '*/*',
+      Referer: session.xloginUrl || QQ_WEB_LOGIN_URL,
+      'User-Agent': UA,
+      Cookie: session.cookie,
+    },
+  });
+  const nextCookie = cookieHeaderFromSetCookie(response.headers['set-cookie']);
+  if (nextCookie) session.cookie = mergeCookieHeaders(session.cookie, nextCookie);
+  const parsed = parseQQPtuiCallback(response.text);
+
+  if (parsed.code === 66) {
+    return { provider: 'qq', status: 1, code: 66, loggedIn: false, message: '请使用 QQ 或 QQ 音乐 App 扫码', data: { status: 1 } };
+  }
+  if (parsed.code === 67) {
+    return { provider: 'qq', status: 2, code: 67, loggedIn: false, message: '已扫码，请在手机上确认登录', data: { status: 2 } };
+  }
+  if (parsed.code === 65) {
+    qqQrLoginSessions.delete(key);
+    return { provider: 'qq', status: 0, code: 65, loggedIn: false, message: 'QQ 二维码已过期，请刷新', data: { status: 0 } };
+  }
+  if (parsed.code !== 0) {
+    return { provider: 'qq', status: 1, code: parsed.code, loggedIn: false, message: parsed.message || 'QQ 登录等待确认', data: { status: 1 } };
+  }
+
+  const cookie = normalizeQQCookieInput(await collectQQLoginCookies(parsed.url, session.cookie));
+  const obj = parseCookieString(cookie);
+  if (!qqCookieUin(obj) || !qqCookieMusicKey(obj)) {
+    return {
+      provider: 'qq',
+      status: 4,
+      code: 0,
+      loggedIn: false,
+      saved: false,
+      error: 'INVALID_QQ_COOKIE',
+      message: 'QQ 已确认，但没有拿到有效登录票据，请改用安装版官方窗口或手动导入。',
+      data: { status: 4, loggedIn: false },
+    };
+  }
+  saveQQCookie(cookie);
+  qqQrLoginSessions.delete(key);
+  const info = await getQQLoginInfo();
+  return {
+    ...info,
+    provider: 'qq',
+    status: 4,
+    code: 0,
+    loggedIn: !!info.loggedIn,
+    saved: true,
+    message: info.playbackKeyReady ? 'QQ 音乐登录成功' : 'QQ 账号已同步，播放授权不完整，部分歌曲会自动换源',
+    data: {
+      status: 4,
+      loggedIn: !!info.loggedIn,
+      userId: info.userId,
+      nickname: info.nickname,
+      avatar: info.avatar,
+      playbackKeyReady: !!info.playbackKeyReady,
+    },
+  };
+}
+
 async function qqMusicRequest(payload, opts) {
   opts = opts || {};
   const body = JSON.stringify(payload);
@@ -3894,6 +5329,7 @@ function audioProxyHeadersFor(audioUrl, range) {
   try {
     const host = new URL(audioUrl).hostname.toLowerCase();
     if (host.includes('qq.com') || host.includes('qpic.cn')) headers.Referer = 'https://y.qq.com/';
+    if (host.includes('qishui.com') || host.includes('douyinvod.com')) headers.Referer = 'https://music.qishui.com/';
   } catch (e) {}
   if (range) headers.Range = range;
   return headers;
@@ -3901,7 +5337,14 @@ function audioProxyHeadersFor(audioUrl, range) {
 
 function audioContentTypeForUrl(audioUrl, upstreamType) {
   let pathname = '';
-  try { pathname = new URL(audioUrl).pathname.toLowerCase(); } catch (e) {}
+  let mimeType = '';
+  try {
+    const parsed = new URL(audioUrl);
+    pathname = parsed.pathname.toLowerCase();
+    mimeType = String(parsed.searchParams.get('mime_type') || '').toLowerCase();
+  } catch (e) {}
+  if (/audio_(mp4|m4a)|m4a|aac/.test(mimeType)) return 'audio/mp4';
+  if (/audio_(mpeg|mp3)|mp3/.test(mimeType)) return 'audio/mpeg';
   if (/\.flac$/.test(pathname)) return 'audio/flac';
   if (/\.mp3$/.test(pathname)) return 'audio/mpeg';
   if (/\.(m4a|mp4)$/.test(pathname)) return 'audio/mp4';
@@ -5000,6 +6443,32 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
+  if (pn === '/api/qishui/share') {
+    try {
+      const body = req.method === 'POST' ? await readRequestBody(req) : {};
+      const input = body.text || body.url || url.searchParams.get('text') || url.searchParams.get('url') || '';
+      const data = await handleQishuiShareImport(input);
+      sendJSON(res, data);
+    } catch (err) {
+      console.error('[QishuiShare]', err);
+      sendJSON(res, { provider: 'qishui', experimental: true, error: err.message, songs: [] }, 500);
+    }
+    return;
+  }
+
+  if (pn === '/api/qishui/song/url') {
+    try {
+      const id = url.searchParams.get('id') || url.searchParams.get('trackId') || url.searchParams.get('track_id') || '';
+      const mediaType = url.searchParams.get('mediaType') || url.searchParams.get('media_type') || '';
+      const info = await handleQishuiSongUrl(id, mediaType);
+      sendJSON(res, info);
+    } catch (err) {
+      console.error('[QishuiSongUrl]', err);
+      sendJSON(res, { provider: 'qishui', url: '', playable: false, error: err.message }, 500);
+    }
+    return;
+  }
+
   if (pn === '/api/qq/lyric') {
     try {
       const mid = url.searchParams.get('mid') || url.searchParams.get('songmid') || '';
@@ -5022,6 +6491,26 @@ const server = http.createServer(async (req, res) => {
     } catch (err) {
       console.error('[QQLoginStatus]', err);
       sendJSON(res, { provider: 'qq', loggedIn: false, error: err.message }, 500);
+    }
+    return;
+  }
+
+  if (pn === '/api/qq/login/qr/key') {
+    try {
+      sendJSON(res, await handleQQQrLoginKey());
+    } catch (err) {
+      console.error('[QQLoginQrKey]', err);
+      sendJSON(res, { provider: 'qq', status: 0, loggedIn: false, error: err.message }, 500);
+    }
+    return;
+  }
+
+  if (pn === '/api/qq/login/qr/check') {
+    try {
+      sendJSON(res, await handleQQQrLoginCheck(url.searchParams.get('key') || url.searchParams.get('qrcode') || ''));
+    } catch (err) {
+      console.error('[QQLoginQrCheck]', err);
+      sendJSON(res, { provider: 'qq', status: 0, loggedIn: false, error: err.message }, 500);
     }
     return;
   }
@@ -5281,6 +6770,88 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
+  if (pn === '/api/kugou-music/listen-counts') {
+    try {
+      const data = await handleKugouListenCounts(url.searchParams.get('type'), KUGOU_MUSIC_SESSION, {
+        historyPages: url.searchParams.get('historyPages'),
+      });
+      sendJSON(res, data);
+    } catch (err) {
+      console.error('[KugouMusicListenCounts]', err);
+      sendJSON(res, { provider: 'kugouMusic', platform: 'music', loggedIn: false, error: err.message, records: [], counts: {} }, 500);
+    }
+    return;
+  }
+
+  if (pn === '/api/kugou-music/playlist/add-song') {
+    try {
+      const body = req.method === 'POST' ? await readRequestBody(req) : {};
+      const data = await handleKugouPlaylistAddSong({
+        pid: body.pid || body.listid || url.searchParams.get('pid') || url.searchParams.get('listid') || '',
+        hash: body.hash || body.filehash || url.searchParams.get('hash') || '',
+        id: body.id || url.searchParams.get('id') || '',
+        name: body.name || body.songName || url.searchParams.get('name') || '',
+        albumId: body.albumId || body.album_id || url.searchParams.get('albumId') || url.searchParams.get('album_id') || '',
+        albumAudioId: body.albumAudioId || body.album_audio_id || url.searchParams.get('albumAudioId') || url.searchParams.get('album_audio_id') || '',
+      }, KUGOU_MUSIC_SESSION);
+      const status = data.success ? 200 : (data.error === 'LOGIN_REQUIRED' ? 401 : (/Missing/i.test(String(data.error || '')) ? 400 : 409));
+      sendJSON(res, data, status);
+    } catch (err) {
+      console.error('[KugouMusicPlaylistAddSong]', err);
+      sendJSON(res, { provider: 'kugouMusic', platform: 'music', success: false, error: err.message }, 500);
+    }
+    return;
+  }
+
+  if (pn === '/api/kugou-music/playlist/create') {
+    try {
+      const body = req.method === 'POST' ? await readRequestBody(req) : {};
+      const data = await handleKugouPlaylistCreate({
+        name: body.name || url.searchParams.get('name') || '',
+        privacy: body.privacy || body.is_private || url.searchParams.get('privacy') || url.searchParams.get('is_private') || '',
+        is_pri: body.is_pri || url.searchParams.get('is_pri') || '',
+      }, KUGOU_MUSIC_SESSION);
+      const status = data.success ? 200 : (data.error === 'LOGIN_REQUIRED' ? 401 : (/Missing/i.test(String(data.error || '')) ? 400 : 409));
+      sendJSON(res, data, status);
+    } catch (err) {
+      console.error('[KugouMusicPlaylistCreate]', err);
+      sendJSON(res, { provider: 'kugouMusic', platform: 'music', success: false, error: err.message }, 500);
+    }
+    return;
+  }
+
+  if (pn === '/api/kugou-music/song/like/check') {
+    try {
+      const ids = url.searchParams.get('ids') || '';
+      const data = await handleKugouSongLikeCheck(ids, KUGOU_MUSIC_SESSION);
+      sendJSON(res, data);
+    } catch (err) {
+      console.error('[KugouMusicLikeCheck]', err);
+      sendJSON(res, { provider: 'kugouMusic', platform: 'music', loggedIn: false, liked: {}, error: err.message }, 500);
+    }
+    return;
+  }
+
+  if (pn === '/api/kugou-music/song/like') {
+    try {
+      const body = req.method === 'POST' ? await readRequestBody(req) : {};
+      const data = await handleKugouSongLike({
+        like: body.like != null ? body.like : (url.searchParams.get('like') || 'true'),
+        hash: body.hash || url.searchParams.get('hash') || '',
+        id: body.id || url.searchParams.get('id') || '',
+        name: body.name || url.searchParams.get('name') || '',
+        albumId: body.albumId || body.album_id || url.searchParams.get('albumId') || url.searchParams.get('album_id') || '',
+        albumAudioId: body.albumAudioId || body.album_audio_id || url.searchParams.get('albumAudioId') || url.searchParams.get('album_audio_id') || '',
+      }, KUGOU_MUSIC_SESSION);
+      const status = data.success ? 200 : (data.error === 'LOGIN_REQUIRED' ? 401 : (/Missing/i.test(String(data.error || '')) ? 400 : 409));
+      sendJSON(res, data, status);
+    } catch (err) {
+      console.error('[KugouMusicLike]', err);
+      sendJSON(res, { provider: 'kugouMusic', platform: 'music', success: false, liked: false, error: err.message }, 500);
+    }
+    return;
+  }
+
   if (pn === '/api/kugou/search') {
     try {
       const kw = url.searchParams.get('keywords') || '';
@@ -5306,6 +6877,19 @@ const server = http.createServer(async (req, res) => {
     } catch (err) {
       console.error('[KugouSongUrl]', err);
       sendJSON(res, { provider: 'kugou', platform: 'lite', url: '', playable: false, error: err.message }, 500);
+    }
+    return;
+  }
+
+  if (pn === '/api/kugou/listen-counts') {
+    try {
+      const data = await handleKugouListenCounts(url.searchParams.get('type'), KUGOU_CONCEPT_SESSION, {
+        historyPages: url.searchParams.get('historyPages'),
+      });
+      sendJSON(res, data);
+    } catch (err) {
+      console.error('[KugouListenCounts]', err);
+      sendJSON(res, { provider: 'kugou', platform: 'lite', loggedIn: false, error: err.message, records: [], counts: {} }, 500);
     }
     return;
   }

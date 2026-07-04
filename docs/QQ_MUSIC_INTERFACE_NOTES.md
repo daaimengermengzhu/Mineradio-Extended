@@ -1,5 +1,24 @@
 # QQ 音乐接口排障记录
 
+## 2026-07-03 - 浏览器环境 QQ 二维码登录补齐
+
+- 触发症状：在 `http://127.0.0.1:3025/` 这类普通浏览器环境中，QQ 音乐登录页只能提示“当前环境不支持自动网页登录/手动导入”，无法直接扫码。
+- 根因：原项目 QQ 登录主要依赖 Electron 的 `window.desktopWindow.openQQMusicLogin()` 桥接能力；浏览器环境没有这个桥接，所以不会生成 QQ 二维码。`desktop/main.js` / `desktop/preload.js` 与上游原项目无差异，说明这不是酷狗接入改坏的。
+- 修复点：
+  - `server.js` 新增 `/api/qq/login/qr/key` 和 `/api/qq/login/qr/check`。
+  - QQ 扫码流程先请求 `xui.ptlogin2.qq.com/cgi-bin/xlogin` 获取 `pt_login_sig` 等前置会话，再请求 `ssl.ptlogin2.qq.com/ptqrshow` 获取二维码和 `qrsig`。
+  - 轮询 `ssl.ptlogin2.qq.com/ptqrlogin` 时使用 `qrsig` 计算 `ptqrtoken`，并带上 `pt_login_sig`，否则会返回 HTTP 403。
+  - 手机确认后不能只跟到 `check_sig`；还需要请求 `graph.qq.com/oauth2.0/authorize` 拿 OAuth `code`，再调用 `u.y.qq.com/cgi-bin/musicu.fcg` 的 `QQConnectLogin.LoginServer/QQLogin` 换取 QQ 音乐会话票据。
+  - `public/index.html` 在非 Electron 环境下直接显示本地生成的 QQ 二维码；Electron 安装版仍优先打开官方窗口。
+  - `desktop/main.js` 的 QQ 登录窗口入口改为 `https://y.qq.com/portal/pop_login.html`，避免先进入个人页再猜测点击登录按钮。
+- 验证：
+  - `node --check server.js` 通过。
+  - `git diff --check` 通过。
+  - `/api/qq/login/qr/key` 能返回 PNG data URL。
+  - `/api/qq/login/qr/check` 未扫码时返回 `status: 1`、`code: 66`。
+  - 前端 QQ 登录弹窗已显示真实 `data:image/png;base64,...` 二维码。
+- 保留风险：扫码确认后如果只拿到 `p_skey`，可能只是网页登录态；完整播放授权仍以 `qm_keyst`、`qqmusic_key`、`music_key` 或 `wxskey` 为准。
+
 更新日期：2026-06-21
 
 ## 触发症状

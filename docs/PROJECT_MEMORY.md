@@ -1,5 +1,12 @@
 # Mineradio Project Memory
 
+### 2026-07-03 - QQ 音乐浏览器扫码登录修复
+
+- 用户认可/要求保留：QQ 音乐登录不能只依赖安装版 Electron 官方窗口；在本地浏览器调试环境也要能直接显示可扫码二维码，方便用户直观看到登录效果。
+- 涉及文件：`server.js`、`public/index.html`、`desktop/main.js`、`docs/QQ_MUSIC_INTERFACE_NOTES.md`。
+- 关键参数/实现：新增 `/api/qq/login/qr/key` 与 `/api/qq/login/qr/check`；QQ 扫码必须先跑 `xui.ptlogin2.qq.com/cgi-bin/xlogin` 拿 `pt_login_sig`，再用 `ptqrshow` 的 `qrsig` 计算 `ptqrtoken` 去轮询 `ptqrlogin`。缺少 `xlogin`/`pt_login_sig` 会触发 HTTP 403。手机确认后还要跑 `graph.qq.com/oauth2.0/authorize` 和 `QQConnectLogin.LoginServer/QQLogin`，否则只会显示已确认但播放器拿不到有效 QQ 音乐会话。
+- 禁止回退或改坏的点：不要把普通浏览器环境重新退回“只能手动导入 QQ cookie”；不要把 `p_skey` 当作完整播放授权，完整播放授权仍以 `qm_keyst`、`qqmusic_key`、`music_key` 或 `wxskey` 为准。
+
 ### 2026-06-25 - P0 Installer In-Place Repair Rule
 
 - User requirement: all users must receive the installer/uninstaller safety fix with zero risk to unrelated files.
@@ -180,8 +187,29 @@
 
 - 用户认可/要求保留：普通酷狗音乐先一步步接入，不照搬其它项目代码，只参考可验证接口事实；第一阶段优先完成登录入口、搜索、播放、歌单读取、歌词和评论读取。
 - 涉及文件：`server.js`、`public/index.html`、`scripts/verify-kugou-music-basic.js`、`docs/KUGOU_MUSIC_INTERFACE_NOTES.md`。
-- 关键参数/实现：普通酷狗音乐独立使用 `provider: 'kugouMusic'`、本地私有状态 `.kugou-music-cookie`、接口前缀 `/api/kugou-music/*`；普通酷狗音乐与酷狗概念版分开保存登录态和前端入口。2026-07-03 登录实测后补充：普通酷狗音乐歌单可读，但部分歌单曲目普通 `/v5/url` 返回空地址；已增加酷狗概念版同曲播放兜底，并用 `fallbackProvider: 'kugou'` 明确标记。
-- 禁止回退或改坏的点：不要把普通酷狗音乐混进酷狗概念版 `provider: 'kugou'`；不要提交 `.kugou-music-cookie`；不要在第一阶段贸然接入会修改真实账号数据的红心、收藏和创建歌单写入操作。
+- 关键参数/实现：普通酷狗音乐独立使用 `provider: 'kugouMusic'`、本地私有状态 `.kugou-music-cookie`、接口前缀 `/api/kugou-music/*`；普通酷狗音乐与酷狗概念版分开保存登录态和前端入口。2026-07-03 登录实测后补充：普通酷狗音乐歌单可读，但部分歌单曲目普通 `/v5/url` 返回空地址；已增加酷狗概念版同曲播放兜底，并用 `fallbackProvider: 'kugou'` 明确标记。同日音质实测补充：普通酷狗音乐请求 `jymaster` 可能只返回 `standard/128k`，酷狗概念版同曲可返回 `jymaster/Hi-Res`；因此普通酷狗音乐在高音质降级时会尝试概念版高音质兜底，并通过 `playbackProvider: 'kugou'`、`originalProviderLevel` 标记实际来源和原始降级结果。服务端必须按返回码率校正展示音质，不能只按请求参数显示 Hi-Res；酷狗平台音效、蝰蛇音效、均衡器等 provider audio effects 尚未接入。2026-07-03 继续补齐：普通酷狗音乐已接入红心检查/红心写入、新建歌单、收藏到歌单，写入接口必须使用 `KUGOU_MUSIC_SESSION`，不能误写到酷狗概念版账号。
+- 禁止回退或改坏的点：不要把普通酷狗音乐混进酷狗概念版 `provider: 'kugou'`；不要提交 `.kugou-music-cookie`；不要把普通酷狗写入路由改回酷狗概念版 session；不要在自动验证里创建歌单、收藏歌曲或切换红心，除非用户明确同意修改真实账号。
+
+### 2026-07-03 - 汽水音乐实验音源边界
+
+- 用户认可/要求保留：汽水音乐长期目标是让只有汽水会员的用户也能尽量走汽水自身音源；但如果汽水直接播放会员音源当前确实无法解决，阶段性接受“只做歌单导入，实际播放通过其它可用音源换源”的边界。
+- 涉及文件：`server.js`、`public/index.html`、`scripts/verify-qishui-share-import.js`。
+- 当前事实：用户分享歌单可解析 89 首；`/api/qishui/song/url` 对样例《绝对占有 相对自由》返回 `encrypted_audio_unsupported`，说明当前汽水直链是浏览器音频标签不能解码的加密音频。现阶段只能自动换源，尚未完成汽水-only 用户的直连播放闭环。
+- 禁止回退或改坏的点：不要把汽水导入伪装成已完整支持汽水播放；提示和逻辑必须明确区分“汽水歌单解析成功”和“汽水自身音源可播成功”。
+
+### 2026-07-03 - Home 个人音乐海报
+
+- 用户认可/要求保留：二创版本的 Home 左侧不再保留“此处施工，敬请期待”占位；主方向是个性化图片和文案，工具控制台只作为次级入口。
+- 涉及文件：`public/index.html`。
+- 关键参数/实现：左侧 `home-hero` 改为“我的音乐海报”，支持用户选择本地图片、使用当前歌曲封面、页面内编辑一句文案、重置；配置保存在 `localStorage` 的 `mineradio-home-personal-poster-v1`，图片会压缩后保存，不上传外部服务。2026-07-03 修复：文案编辑不再使用 `window.prompt`，改为海报内联 textarea，避免桌面壳或内置浏览器拦截原生弹窗导致“改文案”无反应。
+- 禁止回退或改坏的点：不要恢复施工占位；不要把左侧主视觉做成大面积工具控制台；工具入口保留为折叠/次级按钮。
+
+### 2026-07-04 - 支持渠道区分
+
+- 用户认可/要求保留：README 和支持页要同时展示原作者支持渠道与二创作者支持渠道，并明确区分，避免用户误以为二创作者收款码属于原作者。
+- 涉及文件：`README.md`、`docs/SUPPORT.md`、`docs/assets/support/extended-author-wechat-pay.png`。
+- 关键参数/实现：原作者支持渠道继续使用 `docs/assets/support/mineradio-author-support-poster.png`；二创作者支持渠道使用用户提供并已遮盖姓名后半段的微信收款码 `docs/assets/support/extended-author-wechat-pay.png`。
+- 禁止回退或改坏的点：不要删除原作者支持渠道；不要把二创作者支持渠道写成官方原作者入口；发布前需要提醒用户该图片会公开到 GitHub。
 
 ### 2026-06-25 - 安装器路径与卸载防误删 P0 规则
 

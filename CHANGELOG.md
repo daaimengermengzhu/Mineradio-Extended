@@ -1,5 +1,14 @@
 # Changelog
 
+## main / 2026-07-04 扩展版预览更新
+
+- README 和支持页新增“二创作者支持渠道”，并保留“原作者支持渠道”，避免用户把两个支持入口混淆。
+- Home 左侧新增“我的音乐海报”：支持换本地图片、使用当前封面、页面内编辑文案和重置；文案编辑不再依赖浏览器原生弹窗。
+- 普通酷狗音乐补齐第一阶段写入链路：支持红心喜欢、新建歌单、收藏到歌单，并与酷狗概念版登录态分开处理。
+- 汽水音乐分享歌单导入补齐：支持导入用户分享歌单并生成本地“汽水音乐歌单”；汽水自身加密音源不可播时会尝试换源到其它可用平台。
+- 我的歌单详情新增排序能力，支持按收藏时间、歌手名和播放次数查看。
+- DIY 视觉扩展路线已记录为作品化方向，后续计划把用户存档升级成更自由的“我的作品”。
+
 ## v1.1.1
 
 - P0 installer safety fix: installation now defaults to the first available non-C drive from `D:\Mineradio` through `Z:\Mineradio`; it falls back to `C:\Mineradio` only when no D-Z drive exists.

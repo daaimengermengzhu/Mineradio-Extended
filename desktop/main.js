@@ -35,7 +35,7 @@ const APP_ICON_ICO = path.join(__dirname, '..', 'build', 'icon.ico');
 const NETEASE_LOGIN_PARTITION = 'persist:mineradio-netease-login';
 const NETEASE_LOGIN_URL = 'https://music.163.com/#/login';
 const QQ_LOGIN_PARTITION = 'persist:mineradio-qqmusic-login';
-const QQ_LOGIN_URL = 'https://y.qq.com/n/ryqq/profile';
+const QQ_LOGIN_URL = 'https://y.qq.com/portal/pop_login.html';
 
 const CHROMIUM_PERFORMANCE_SWITCHES = [
   ['autoplay-policy', 'no-user-gesture-required'],
