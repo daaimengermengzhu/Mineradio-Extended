@@ -1107,6 +1107,13 @@ body.desktop-shell.diy-mode #bottom-bar.stage-mode{left:50%;width:min(1080px,cal
 .fx-section-label{display:flex;align-items:center;gap:8px;font-size:10px;color:rgba(0,245,212,.56);letter-spacing:1.2px;text-transform:uppercase;margin:18px 0 9px;font-weight:700}
 .fx-section-label::after{content:'';height:1px;flex:1;background:linear-gradient(90deg,rgba(0,245,212,.16),transparent)}
 .fx-section-label:first-of-type{margin-top:0}
+body.shape-workshop-mode .preset-grid-label,
+body.shape-workshop-mode #preset-grid,
+body.shape-workshop-mode .sandbox-builder-label,
+body.shape-workshop-mode #sandbox-builder-grid,
+body.shape-workshop-mode .user-archive-label,
+body.shape-workshop-mode #user-archive-grid{display:none!important}
+body.shape-workshop-mode .shape-workshop-label{display:none!important}
 
 /* --- 预设卡片网格 --- */
 .preset-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-bottom:10px}
@@ -1130,8 +1137,11 @@ body.desktop-shell.diy-mode #bottom-bar.stage-mode{left:50%;width:min(1080px,cal
 .preset-card.user-shape-preset{font-family:inherit;text-align:left;color:inherit;border-color:rgba(244,210,138,.12);background:linear-gradient(145deg,rgba(244,210,138,.045),rgba(255,255,255,.022))}
 .preset-card.user-shape-preset:hover{border-color:rgba(244,210,138,.24);background:linear-gradient(145deg,rgba(244,210,138,.075),rgba(255,255,255,.032))}
 .preset-card.user-shape-preset.active{border-color:rgba(244,210,138,.56);background:linear-gradient(145deg,rgba(244,210,138,.12),rgba(var(--fc-accent-rgb),.055));box-shadow:0 0 0 1px rgba(244,210,138,.20),0 16px 46px rgba(244,210,138,.060)}
-.preset-card.user-shape-preset .pc-icon{color:rgba(244,210,138,.78)}
+.preset-card.user-shape-preset .pc-icon{right:auto;left:8px;color:rgba(244,210,138,.78)}
 .preset-card.user-shape-preset.active .pc-icon{color:rgba(244,210,138,.95)}
+.user-shape-card-delete{position:absolute;right:7px;top:7px;z-index:2;height:23px;min-width:38px;border-radius:8px;border:1px solid rgba(255,255,255,.10);background:rgba(0,0,0,.28);color:rgba(255,255,255,.66);font-family:inherit;font-size:9.5px;font-weight:760;cursor:pointer}
+.user-shape-card-delete:hover{border-color:rgba(244,210,138,.36);background:rgba(244,210,138,.12);color:#fff}
+.user-shape-card-delete.confirm{border-color:rgba(255,120,120,.36);background:rgba(255,92,92,.13);color:#fff}
 @keyframes preset-card-pulse{0%{opacity:0;transform:scale(.6) rotate(0deg)}35%{opacity:1}100%{opacity:0;transform:scale(1.25) rotate(12deg)}}
 .user-archive-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin:0 0 12px}
 .user-archive-toolbar{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:2px;padding:9px;border-radius:12px;border:1px dashed rgba(255,255,255,.10);background:rgba(255,255,255,.018)}
@@ -1173,6 +1183,7 @@ body.desktop-shell.diy-mode #bottom-bar.stage-mode{left:50%;width:min(1080px,cal
 .shape-workshop-closed{border:1px dashed rgba(244,210,138,.22);border-radius:14px;background:linear-gradient(135deg,rgba(244,210,138,.060),rgba(var(--fc-accent-rgb),.035));padding:12px;display:flex;align-items:center;justify-content:space-between;gap:12px}
 .shape-workshop-closed strong{display:block;font-size:12px;color:rgba(255,255,255,.90);margin-bottom:4px}
 .shape-workshop-closed span{display:block;font-size:10.5px;line-height:1.42;color:rgba(255,255,255,.46)}
+.shape-workshop-closed-actions{display:flex;align-items:center;gap:6px;flex-shrink:0}
 .shape-workshop-panel{border:1px solid rgba(244,210,138,.18);border-radius:15px;background:linear-gradient(145deg,rgba(244,210,138,.055),rgba(255,255,255,.026));padding:12px;box-shadow:inset 0 1px 0 rgba(255,255,255,.06)}
 .shape-workshop-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:10px}
 .shape-workshop-title{font-size:13px;font-weight:800;color:rgba(255,255,255,.94)}
@@ -1181,21 +1192,46 @@ body.desktop-shell.diy-mode #bottom-bar.stage-mode{left:50%;width:min(1080px,cal
 .shape-workshop-name:focus{border-color:rgba(244,210,138,.42);box-shadow:0 0 0 1px rgba(244,210,138,.12)}
 .shape-workshop-preview{min-height:150px;border-radius:14px;border:1px solid rgba(255,255,255,.075);background:radial-gradient(circle at 50% 52%,rgba(var(--fc-accent-rgb),.12),transparent 42%),linear-gradient(135deg,rgba(255,255,255,.04),rgba(255,255,255,.012));position:relative;overflow:hidden;margin-bottom:10px}
 .shape-workshop-preview::before{content:'';position:absolute;inset:10px;border-radius:12px;background:linear-gradient(90deg,rgba(255,255,255,.045) 1px,transparent 1px),linear-gradient(0deg,rgba(255,255,255,.035) 1px,transparent 1px);background-size:22px 22px;opacity:.32;pointer-events:none}
+.shape-workshop-preview-summary{min-height:auto;padding:12px;display:grid;gap:10px}
+.shape-workshop-preview-summary::before{content:none}
+.shape-3d-preview-note{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.shape-3d-preview-note strong{font-size:12px;color:rgba(255,255,255,.88)}
+.shape-3d-preview-note span{font-size:10.5px;line-height:1.42;color:rgba(255,255,255,.46);text-align:right}
+.shape-3d-stat-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+.shape-3d-stat{border-radius:10px;border:1px solid rgba(255,255,255,.07);background:rgba(255,255,255,.035);padding:8px 7px}
+.shape-3d-stat b{display:block;font-size:13px;color:rgba(255,255,255,.86);font-variant-numeric:tabular-nums}
+.shape-3d-stat span{display:block;margin-top:3px;font-size:9.5px;color:rgba(255,255,255,.40)}
 .shape-preview-scene{position:absolute;inset:0;display:block}
 .shape-preview-primitive{position:absolute;left:50%;top:50%;width:70px;height:70px;transform:translate(-50%,-50%) rotate(calc(var(--i,0) * 23deg)) scale(var(--scale,1));opacity:.72;mix-blend-mode:screen}
-.shape-workshop-stage{position:fixed;z-index:12;left:24px;right:min(492px,34vw);top:92px;bottom:92px;border-radius:28px;border:1px solid rgba(244,210,138,.16);background:radial-gradient(circle at 50% 48%,rgba(var(--fc-accent-rgb),.09),transparent 38%),linear-gradient(135deg,rgba(9,10,14,.38),rgba(2,3,5,.20));box-shadow:0 28px 110px rgba(0,0,0,.46),inset 0 1px 0 rgba(255,255,255,.07);opacity:0;visibility:hidden;pointer-events:none;overflow:hidden;transform:translateY(12px) scale(.992);transition:opacity .26s ease,visibility .26s,transform .32s cubic-bezier(.16,1,.3,1);backdrop-filter:blur(3px)}
+.shape-workshop-stage{position:fixed;z-index:12;left:24px;right:min(492px,34vw);top:92px;bottom:92px;border-radius:28px;border:1px solid rgba(244,210,138,.16);background:radial-gradient(circle at 50% 48%,rgba(var(--fc-accent-rgb),.035),transparent 42%),linear-gradient(135deg,rgba(9,10,14,.14),rgba(2,3,5,.06));box-shadow:0 28px 110px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.07);opacity:0;visibility:hidden;pointer-events:none;overflow:hidden;transform:translateY(12px) scale(.992);transition:opacity .26s ease,visibility .26s,transform .32s cubic-bezier(.16,1,.3,1);backdrop-filter:none}
 .shape-workshop-stage::before{content:'';position:absolute;inset:0;background:linear-gradient(90deg,rgba(255,255,255,.045) 1px,transparent 1px),linear-gradient(0deg,rgba(255,255,255,.035) 1px,transparent 1px);background-size:34px 34px;opacity:.38;pointer-events:none}
 .shape-workshop-stage::after{content:'';position:absolute;left:50%;top:50%;width:1px;height:1px;border-radius:50%;box-shadow:0 0 0 1px rgba(244,210,138,.34),0 0 0 120px rgba(244,210,138,.015),0 0 0 240px rgba(var(--fc-accent-rgb),.012);opacity:.62;pointer-events:none}
-body.shape-workshop-mode #shape-workshop-stage{opacity:1;visibility:visible;pointer-events:auto;transform:translateY(0) scale(1)}
-body.shape-workshop-mode #fx-panel{right:24px;opacity:1;pointer-events:auto;transform:translateY(0) scale(1)}
+body.shape-workshop-mode #shape-workshop-stage{right:496px;opacity:1;visibility:visible;pointer-events:auto;transform:translateY(0) scale(1)}
+body.shape-workshop-mode #fx-panel{right:24px;top:92px;bottom:92px;max-height:none;opacity:1;pointer-events:auto;transform:translateY(0) scale(1)}
 body.shape-workshop-mode #empty-home,body.shape-workshop-mode #playlist-panel,body.shape-workshop-mode #bottom-bar,body.shape-workshop-mode #bottom-handle,body.shape-workshop-mode #thumb-wrap{opacity:0!important;pointer-events:none!important}
 body.shape-workshop-mode #search-area{opacity:0!important;pointer-events:none!important}
 body.shape-workshop-mode #canvas-container{opacity:1;filter:brightness(.92) saturate(1.05)}
 .shape-stage-head{position:absolute;z-index:2;left:18px;top:16px;display:flex;align-items:flex-start;justify-content:space-between;gap:14px;right:18px;pointer-events:none}
 .shape-stage-title{font-size:13px;font-weight:820;color:rgba(255,255,255,.88);letter-spacing:.08em;text-transform:uppercase}
 .shape-stage-sub{margin-top:4px;font-size:11px;line-height:1.45;color:rgba(255,255,255,.46);max-width:430px}
+.shape-stage-sub{font-size:11px}
+.shape-stage-sub::before{content:none}
 .shape-stage-count{flex:0 0 auto;border-radius:999px;border:1px solid rgba(244,210,138,.22);background:rgba(244,210,138,.075);padding:6px 10px;font-size:10.5px;color:rgba(255,255,255,.62);font-weight:720}
 .shape-stage-empty{position:absolute;z-index:1;left:50%;top:52%;width:min(390px,calc(100% - 48px));transform:translate(-50%,-50%);text-align:center;color:rgba(255,255,255,.46);font-size:12px;line-height:1.55;pointer-events:none}
+.shape-stage-status{position:absolute;left:18px;right:18px;bottom:16px;z-index:2;display:flex;align-items:center;justify-content:space-between;gap:12px;color:rgba(255,255,255,.46);font-size:10.5px;pointer-events:none}
+.shape-stage-status strong{color:rgba(244,210,138,.78);font-size:11px}
+.shape-stage-gizmo{position:absolute;z-index:5;left:50%;top:50%;width:116px;height:116px;transform:translate(-50%,-50%) rotate(var(--shape-rot,0deg));pointer-events:auto;touch-action:none}
+.shape-stage-gizmo.dragging{filter:drop-shadow(0 0 24px rgba(244,210,138,.20))}
+.shape-stage-gizmo-move,.shape-stage-gizmo-rotate{position:absolute;border:1px solid rgba(244,210,138,.38);background:rgba(8,10,12,.48);color:rgba(255,255,255,.82);font-family:inherit;cursor:grab;touch-action:none}
+.shape-stage-gizmo-move{inset:31px;border-radius:16px;box-shadow:inset 0 1px 0 rgba(255,255,255,.10),0 0 30px rgba(244,210,138,.10)}
+.shape-stage-gizmo-move::before,.shape-stage-gizmo-move::after{content:'';position:absolute;left:50%;top:50%;background:rgba(244,210,138,.78);border-radius:999px;transform:translate(-50%,-50%)}
+.shape-stage-gizmo-move::before{width:30px;height:1px}
+.shape-stage-gizmo-move::after{width:1px;height:30px}
+.shape-stage-gizmo-move:active,.shape-stage-gizmo-rotate:active{cursor:grabbing}
+.shape-stage-gizmo-rotate{left:50%;top:-2px;width:25px;height:25px;border-radius:50%;transform:translateX(-50%);box-shadow:0 0 20px rgba(244,210,138,.18)}
+.shape-stage-gizmo-rotate::before{content:'';position:absolute;left:50%;top:24px;width:1px;height:24px;background:linear-gradient(180deg,rgba(244,210,138,.54),transparent)}
+.shape-stage-gizmo-rotate::after{content:'';position:absolute;inset:7px;border:2px solid rgba(244,210,138,.86);border-left-color:transparent;border-radius:50%}
+.shape-stage-gizmo-label{position:absolute;left:50%;bottom:-25px;max-width:170px;transform:translateX(-50%) rotate(var(--shape-label-rot,0deg));border-radius:999px;border:1px solid rgba(255,255,255,.10);background:rgba(5,6,8,.54);padding:5px 9px;color:rgba(255,255,255,.68);font-size:10px;font-weight:740;white-space:nowrap;pointer-events:none;box-shadow:0 12px 30px rgba(0,0,0,.24)}
 .shape-stage-item{position:absolute;z-index:3;left:50%;top:50%;width:86px;height:86px;border:0;background:transparent;padding:0;color:inherit;cursor:grab;transform:translate(-50%,-50%) rotate(calc(var(--i,0) * 18deg)) scale(var(--scale,1));touch-action:none}
 .shape-stage-item:active,.shape-stage-item.dragging{cursor:grabbing}
 .shape-stage-item.active{filter:drop-shadow(0 0 20px rgba(244,210,138,.35))}
@@ -1209,8 +1245,9 @@ body.shape-workshop-mode #canvas-container{opacity:1;filter:brightness(.92) satu
 .shape-stage-item.tunnel{width:116px;height:116px;border-radius:50%;border:1px solid rgba(255,255,255,.22);box-shadow:0 0 0 18px rgba(var(--fc-accent-rgb),.060),0 0 0 36px rgba(244,210,138,.050),0 0 42px rgba(var(--fc-accent-rgb),.14)}
 .shape-stage-item.sphere{width:112px;height:112px;border-radius:50%;background:radial-gradient(circle at 35% 30%,rgba(255,255,255,.34),rgba(var(--fc-accent-rgb),.11) 42%,rgba(244,210,138,.035) 70%,transparent 72%);border:1px solid rgba(255,255,255,.20);box-shadow:inset -16px -18px 42px rgba(0,0,0,.32),0 0 34px rgba(var(--fc-accent-rgb),.16)}
 .shape-stage-item.dust{width:16px;height:16px;border-radius:50%;background:rgba(255,255,255,.85);box-shadow:-86px -42px 0 rgba(255,255,255,.32),74px -18px 0 rgba(var(--fc-accent-rgb),.46),42px 56px 0 rgba(244,210,138,.38),-38px 64px 0 rgba(255,255,255,.24),0 0 34px rgba(var(--fc-accent-rgb),.32)}
+.shape-stage-item.mobius{width:152px;height:82px;border-radius:50%;border:0;background:radial-gradient(ellipse at 30% 50%,transparent 29%,rgba(244,210,138,.88) 31%,rgba(var(--fc-accent-rgb),.58) 38%,transparent 42%),radial-gradient(ellipse at 70% 50%,transparent 29%,rgba(var(--fc-accent-rgb),.68) 31%,rgba(244,210,138,.74) 38%,transparent 42%);box-shadow:0 0 42px rgba(var(--fc-accent-rgb),.18)}
 .shape-stage-item.card{width:112px;height:74px;border-radius:13px;border:1px solid rgba(255,255,255,.22);background:linear-gradient(135deg,rgba(255,255,255,.18),rgba(var(--fc-accent-rgb),.09));box-shadow:0 22px 48px rgba(0,0,0,.30)}
-@media (max-width:960px){.shape-workshop-stage{left:16px;right:16px;top:86px;bottom:210px;border-radius:22px}.shape-stage-head{left:14px;right:14px}.shape-stage-title{font-size:12px}.shape-stage-sub{font-size:10.5px}.shape-stage-count{display:none}}
+@media (max-width:960px){.shape-workshop-stage{left:16px;right:16px;top:86px;bottom:210px;border-radius:22px}body.shape-workshop-mode #shape-workshop-stage{left:16px;right:16px;top:86px;bottom:210px}body.shape-workshop-mode #fx-panel{left:16px;right:16px;top:auto;bottom:18px;width:auto;max-height:42vh}.shape-stage-head{left:14px;right:14px}.shape-stage-title{font-size:12px}.shape-stage-sub{font-size:10.5px}.shape-stage-count{display:none}}
 .shape-preview-primitive.ring{border:2px solid rgba(244,210,138,.82);border-radius:50%;box-shadow:0 0 28px rgba(244,210,138,.18)}
 .shape-preview-primitive.spiral{border-radius:50%;border:2px dashed rgba(var(--fc-accent-rgb),.78);width:94px;height:94px;box-shadow:inset 0 0 32px rgba(var(--fc-accent-rgb),.10)}
 .shape-preview-primitive.point{width:12px;height:12px;border-radius:50%;background:rgba(255,255,255,.9);box-shadow:-42px -16px 0 rgba(var(--fc-accent-rgb),.55),36px 20px 0 rgba(244,210,138,.62),0 0 24px rgba(255,255,255,.3)}
@@ -1220,6 +1257,7 @@ body.shape-workshop-mode #canvas-container{opacity:1;filter:brightness(.92) satu
 .shape-preview-primitive.tunnel{width:92px;height:92px;border-radius:50%;border:1px solid rgba(255,255,255,.18);box-shadow:0 0 0 14px rgba(var(--fc-accent-rgb),.055),0 0 0 28px rgba(244,210,138,.045),0 0 34px rgba(var(--fc-accent-rgb),.12)}
 .shape-preview-primitive.sphere{width:88px;height:88px;border-radius:50%;background:radial-gradient(circle at 35% 30%,rgba(255,255,255,.30),rgba(var(--fc-accent-rgb),.10) 42%,rgba(244,210,138,.030) 70%,transparent 72%);border:1px solid rgba(255,255,255,.18);box-shadow:inset -12px -14px 32px rgba(0,0,0,.28),0 0 28px rgba(var(--fc-accent-rgb),.13)}
 .shape-preview-primitive.dust{width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,.82);box-shadow:-62px -28px 0 rgba(255,255,255,.28),54px -12px 0 rgba(var(--fc-accent-rgb),.42),34px 42px 0 rgba(244,210,138,.34),-30px 48px 0 rgba(255,255,255,.22),0 0 26px rgba(var(--fc-accent-rgb),.26)}
+.shape-preview-primitive.mobius{width:112px;height:60px;border-radius:50%;background:radial-gradient(ellipse at 30% 50%,transparent 29%,rgba(244,210,138,.82) 31%,rgba(var(--fc-accent-rgb),.52) 38%,transparent 42%),radial-gradient(ellipse at 70% 50%,transparent 29%,rgba(var(--fc-accent-rgb),.62) 31%,rgba(244,210,138,.68) 38%,transparent 42%);box-shadow:0 0 32px rgba(var(--fc-accent-rgb),.15)}
 .shape-preview-primitive.card{width:86px;height:58px;border-radius:10px;border:1px solid rgba(255,255,255,.18);background:linear-gradient(135deg,rgba(255,255,255,.16),rgba(var(--fc-accent-rgb),.08));box-shadow:0 18px 38px rgba(0,0,0,.24)}
 .shape-workshop-summary{position:absolute;left:12px;right:12px;bottom:10px;display:flex;justify-content:space-between;gap:8px;font-size:10px;color:rgba(255,255,255,.48)}
 .shape-workshop-section{margin-top:10px}
@@ -1228,16 +1266,38 @@ body.shape-workshop-mode #canvas-container{opacity:1;filter:brightness(.92) satu
 .shape-chip-grid button,.shape-layer-actions button,.shape-workshop-actions button{height:27px;border-radius:8px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.040);color:rgba(255,255,255,.72);font-family:inherit;font-size:10px;font-weight:730;line-height:1;cursor:pointer;padding:0 7px}
 .shape-chip-grid button:hover,.shape-layer-actions button:hover,.shape-workshop-actions button:hover{background:rgba(244,210,138,.10);border-color:rgba(244,210,138,.28);color:#fff}
 .shape-layer-list{display:flex;flex-direction:column;gap:6px}
-.shape-layer-row{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;border:1px solid rgba(255,255,255,.065);border-radius:10px;background:rgba(255,255,255,.026);padding:8px;cursor:pointer}
-.shape-layer-row.active{border-color:rgba(244,210,138,.38);background:rgba(244,210,138,.075)}
+.shape-layer-row{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;border:1px solid rgba(255,255,255,.065);border-radius:10px;background:rgba(255,255,255,.026);padding:8px;cursor:pointer;transition:border-color .18s,background .18s,box-shadow .18s,transform .18s}
+.shape-layer-row:hover{border-color:rgba(244,210,138,.20);background:rgba(255,255,255,.045)}
+.shape-layer-row.active{border-color:rgba(244,210,138,.62);background:linear-gradient(135deg,rgba(244,210,138,.15),rgba(var(--fc-accent-rgb),.055));box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 0 26px rgba(244,210,138,.10)}
+.shape-layer-row.hidden{opacity:.52;border-color:rgba(255,255,255,.045);background:rgba(255,255,255,.018)}
+.shape-layer-row.solo{border-color:rgba(var(--fc-accent-rgb),.42);box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 0 24px rgba(var(--fc-accent-rgb),.09)}
 .shape-layer-name{font-size:11px;font-weight:760;color:rgba(255,255,255,.84)}
 .shape-layer-meta{font-size:9.5px;color:rgba(255,255,255,.40);margin-top:3px}
-.shape-layer-actions{display:flex;gap:5px}
-.shape-param-grid{display:grid;grid-template-columns:1fr;gap:7px}
-.shape-param-row{display:grid;grid-template-columns:58px minmax(0,1fr) 42px;align-items:center;gap:8px;padding:7px;border-radius:10px;background:rgba(255,255,255,.024);border:1px solid rgba(255,255,255,.055)}
-.shape-param-row label{font-size:10.5px;color:rgba(255,255,255,.62)}
-.shape-param-row input{width:100%;min-width:0;accent-color:#f4d28a}
-.shape-param-row output{font-size:10px;color:rgba(255,255,255,.42);text-align:right}
+.shape-layer-actions{display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end;max-width:152px}
+.shape-workshop-params-section{position:relative;z-index:2;margin-top:10px;padding:10px;border-radius:13px;border:1px solid rgba(244,210,138,.18);background:linear-gradient(145deg,rgba(14,14,18,.88),rgba(10,11,14,.76));box-shadow:0 16px 42px rgba(0,0,0,.22),inset 0 1px 0 rgba(255,255,255,.06);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
+.shape-workshop-params-section .shape-workshop-section-title{margin-bottom:9px;color:rgba(244,210,138,.86)}
+.shape-motion-seg{display:flex;border-radius:10px;border:1px solid rgba(255,255,255,.08);overflow:hidden;background:rgba(255,255,255,.028);margin-bottom:9px}
+.shape-motion-seg button{flex:1;height:31px;border:0;border-right:1px solid rgba(255,255,255,.06);background:transparent;color:rgba(255,255,255,.56);font-family:inherit;font-size:10.5px;font-weight:760;cursor:pointer}
+.shape-motion-seg button:last-child{border-right:0}
+.shape-motion-seg button:hover{background:rgba(255,255,255,.055);color:#fff}
+.shape-motion-seg button.active{background:rgba(244,210,138,.12);color:#fff;box-shadow:inset 0 1px 0 rgba(255,255,255,.08)}
+.shape-motion-hint{margin:-2px 0 9px;font-size:10px;line-height:1.45;color:rgba(255,255,255,.42)}
+.shape-stability-actions{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:9px}
+.shape-stability-actions button{height:29px;border-radius:9px;border:1px solid rgba(255,255,255,.075);background:rgba(255,255,255,.038);color:rgba(255,255,255,.64);font-family:inherit;font-size:10px;font-weight:760;cursor:pointer}
+.shape-stability-actions button:hover{border-color:rgba(244,210,138,.26);background:rgba(244,210,138,.09);color:#fff}
+.shape-stability-actions button.active{border-color:rgba(244,210,138,.44);background:rgba(244,210,138,.13);color:#fff}
+.shape-layer-visibility{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:9px}
+.shape-layer-visibility button{height:28px;border-radius:9px;border:1px solid rgba(255,255,255,.075);background:rgba(255,255,255,.038);color:rgba(255,255,255,.64);font-family:inherit;font-size:10px;font-weight:760;cursor:pointer}
+.shape-layer-visibility button:hover{border-color:rgba(244,210,138,.26);background:rgba(244,210,138,.09);color:#fff}
+.shape-layer-visibility button.active{border-color:rgba(244,210,138,.44);background:rgba(244,210,138,.13);color:#fff}
+.shape-preview-hint{margin:-3px 0 9px;font-size:10px;line-height:1.45;color:rgba(255,255,255,.42)}
+.shape-param-grid{display:grid;grid-template-columns:1fr;gap:9px}
+.shape-param-row{display:grid;grid-template-columns:54px minmax(0,1fr) 48px;align-items:center;gap:9px;min-height:42px;padding:8px 9px;border-radius:11px;background:rgba(255,255,255,.038);border:1px solid rgba(255,255,255,.070)}
+.shape-param-row label{font-size:11px;color:rgba(255,255,255,.74);font-weight:720}
+.shape-param-row input[type=range]{width:100%;min-width:0;height:24px;accent-color:#f4d28a;cursor:ew-resize}
+.shape-param-row input[type=range]::-webkit-slider-runnable-track{height:5px;border-radius:999px;background:rgba(255,255,255,.16)}
+.shape-param-row input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:17px;height:17px;margin-top:-6px;border-radius:50%;background:#f4d28a;border:1px solid rgba(255,255,255,.72);box-shadow:0 0 18px rgba(244,210,138,.34)}
+.shape-param-row output{font-size:10.5px;color:rgba(255,255,255,.62);text-align:right;font-variant-numeric:tabular-nums}
 .shape-workshop-actions{display:flex;flex-wrap:wrap;gap:6px;margin-top:11px}
 .shape-saved-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
 .shape-saved-card{min-height:74px;border-radius:10px;border:1px solid rgba(255,255,255,.075);background:rgba(255,255,255,.026);padding:8px;text-align:left;color:inherit;font-family:inherit}
@@ -2176,13 +2236,13 @@ html.control-glass-svg-ok #visual-guide-btn:hover{
     <div><div class="fx-title">视觉控制台</div><div class="fx-sub">MINERADIO VISUALS · 鼠标移开自动隐藏</div></div>
   </div>
 
-  <div class="fx-section-label">形态预设</div>
+  <div class="fx-section-label preset-grid-label">形态预设</div>
   <div class="preset-grid" id="preset-grid"></div>
-  <div class="fx-section-label">形态工坊</div>
+  <div class="fx-section-label shape-workshop-label">形态工坊</div>
   <div class="shape-workshop-shell" id="shape-workshop"></div>
-  <div class="fx-section-label">作品组合台</div>
+  <div class="fx-section-label sandbox-builder-label">作品组合</div>
   <div class="sandbox-builder-grid" id="sandbox-builder-grid"></div>
-  <div class="fx-section-label">我的作品</div>
+  <div class="fx-section-label user-archive-label">我的作品</div>
   <div class="user-archive-grid" id="user-archive-grid"></div>
   <div class="fx-section-label">自定义颜色</div>
   <div class="lyric-color-row">
@@ -2240,7 +2300,7 @@ html.control-glass-svg-ok #visual-guide-btn:hover{
   </div>
   <div class="lyric-color-row image-pick-row">
     <button class="fx-mini-btn ghost" type="button" onclick="document.getElementById('background-image-input').click()">选择</button>
-    <div class="fx-color-row-label">背景媒体<small id="bg-image-value">未设置</small></div>
+    <div class="fx-color-row-label">整屏背景媒体<small id="bg-image-value">未设置</small></div>
     <button class="fx-mini-btn ghost" type="button" onclick="clearCustomBackgroundImage()">清除</button>
   </div>
   <div class="fx-slider"><label>背景透明度</label><input id="fx-bgopacity" type="range" min="0" max="1" step="0.01"><output></output></div>
@@ -2629,6 +2689,7 @@ html.control-glass-svg-ok #visual-guide-btn:hover{
 
 <input type="file" id="file-input" accept=".mp3,.flac,.wav,.ogg,.m4a,.jpg,.jpeg,.png,.webp" multiple style="display:none">
 <input type="file" id="background-image-input" accept=".jpg,.jpeg,.png,.webp,.mp4,.webm,.mov,image/jpeg,image/png,image/webp,video/mp4,video/webm,video/quicktime" style="display:none">
+<input type="file" id="shape-material-input" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" style="display:none">
 <div id="drop-overlay"><div class="drop-text">拖放音乐或封面</div></div>
 <div id="free-camera-hint"><b>自由镜头</b> R 固定/退出 · WASD 移动 · 鼠标转向 · Shift 加速 · Space/Ctrl 升降 · Q/E 轻微旋转 · 滚轮景深 · K 回正</div>
 <div id="loading-overlay"><div class="spinner"></div></div>
@@ -3434,6 +3495,7 @@ var fxDefaults = {
   backgroundColorCustom: false,
   backgroundImage: '',
   backgroundMedia: null,
+  shapeMaterialMedia: null,
   desktopLyrics: false,
   desktopLyricsSize: 1.0,
   desktopLyricsOpacity: 0.92,
@@ -5724,16 +5786,17 @@ function isPointerOverUi(e) {
 function particleLocalPointFromNdc(ndcX, ndcY, out) {
   particlePointerNdc.set(ndcX, ndcY);
   particlePointerRay.setFromCamera(particlePointerNdc, camera);
-  if (particles) {
-    particles.updateMatrixWorld(true);
-    particles.getWorldPosition(particlePointerPlanePoint);
-    particles.getWorldQuaternion(particlePointerQuat);
+  var pointerObject = (typeof isCustomShapeRenderActive === 'function' && isCustomShapeRenderActive() && customShapeGroup) ? customShapeGroup : particles;
+  if (pointerObject) {
+    pointerObject.updateMatrixWorld(true);
+    pointerObject.getWorldPosition(particlePointerPlanePoint);
+    pointerObject.getWorldQuaternion(particlePointerQuat);
     particlePointerPlaneNormal.set(0, 0, 1).applyQuaternion(particlePointerQuat).normalize();
     if (Math.abs(particlePointerPlaneNormal.dot(particlePointerRay.ray.direction)) < 0.16) return false;
     particlePointerPlane.setFromNormalAndCoplanarPoint(particlePointerPlaneNormal, particlePointerPlanePoint);
     if (particlePointerRay.ray.intersectPlane(particlePointerPlane, particlePointerWorldHit)) {
       out.copy(particlePointerWorldHit);
-      particles.worldToLocal(out);
+      pointerObject.worldToLocal(out);
       return isFinite(out.x) && isFinite(out.y) && Math.abs(out.x) < 8.5 && Math.abs(out.y) < 8.5;
     }
   }
@@ -7800,6 +7863,7 @@ function readSavedLyricLayout() {
       backgroundColorCustom: savedBgCustom,
       backgroundImage: normalizeCustomBackgroundImage(raw.backgroundImage),
       backgroundMedia: normalizeCustomBackgroundMedia(raw.backgroundMedia || raw.backgroundImage),
+      shapeMaterialMedia: normalizeShapeMaterialMedia(raw.shapeMaterialMedia),
       desktopLyrics: raw.desktopLyrics === true,
       desktopLyricsSize: clampRange(Number(raw.desktopLyricsSize) || fxDefaults.desktopLyricsSize, 0.72, 1.55),
       desktopLyricsOpacity: clampRange(raw.desktopLyricsOpacity == null ? fxDefaults.desktopLyricsOpacity : Number(raw.desktopLyricsOpacity), 0.28, 1),
@@ -7890,6 +7954,7 @@ function saveLyricLayout() {
       backgroundColorCustom: fx.backgroundColorMode === 'custom' || !!fx.backgroundColorCustom,
       backgroundImage: normalizeCustomBackgroundImage(fx.backgroundImage),
       backgroundMedia: normalizeCustomBackgroundMedia(fx.backgroundMedia || fx.backgroundImage),
+      shapeMaterialMedia: normalizeShapeMaterialMedia(fx.shapeMaterialMedia),
       desktopLyrics: !!fx.desktopLyrics,
       desktopLyricsSize: clampRange(Number(fx.desktopLyricsSize) || fxDefaults.desktopLyricsSize, 0.72, 1.55),
       desktopLyricsOpacity: clampRange(fx.desktopLyricsOpacity == null ? fxDefaults.desktopLyricsOpacity : Number(fx.desktopLyricsOpacity), 0.28, 1),
@@ -8192,6 +8257,114 @@ function customBackgroundMediaLabel(media) {
   media = normalizeCustomBackgroundMedia(media);
   if (!media) return '未设置';
   return media.type === 'video' ? '视频已设置' : '图片已设置';
+}
+function normalizeShapeMaterialMedia(value) {
+  var media = normalizeCustomBackgroundMedia(value);
+  return media && media.type === 'image' ? media : null;
+}
+var shapeMaterialCanvas = null;
+var shapeMaterialLoadingSrc = '';
+var shapeMaterialLoadToken = 0;
+function currentShapeMaterialMedia() {
+  return normalizeShapeMaterialMedia(fx.shapeMaterialMedia);
+}
+function shapeMaterialMediaLabel(media) {
+  media = normalizeShapeMaterialMedia(media);
+  return media ? '上传图片底片' : '当前歌曲封面';
+}
+function loadShapeMaterialCanvas(media, silent) {
+  media = normalizeShapeMaterialMedia(media);
+  var src = media && media.type === 'image' ? media.src : '';
+  var token = ++shapeMaterialLoadToken;
+  if (!src) {
+    shapeMaterialCanvas = null;
+    shapeMaterialLoadingSrc = '';
+    syncCustomShapeLayer(true);
+    return;
+  }
+  if (shapeMaterialCanvas && shapeMaterialCanvas._shapeMaterialSrc === src) return;
+  if (shapeMaterialLoadingSrc === src) return;
+  shapeMaterialLoadingSrc = src;
+  var img = new Image();
+  img.onload = function() {
+    if (token !== shapeMaterialLoadToken) return;
+    var maxSide = 1200;
+    var iw = img.naturalWidth || img.width || 1;
+    var ih = img.naturalHeight || img.height || 1;
+    var scale = Math.min(1, maxSide / Math.max(iw, ih));
+    var w = Math.max(1, Math.round(iw * scale));
+    var h = Math.max(1, Math.round(ih * scale));
+    var cv = document.createElement('canvas');
+    cv.width = w;
+    cv.height = h;
+    var ctx = cv.getContext('2d');
+    ctx.drawImage(img, 0, 0, w, h);
+    cv._shapeMaterialSrc = src;
+    shapeMaterialCanvas = cv;
+    shapeMaterialLoadingSrc = '';
+    syncCustomShapeLayer(true);
+    if (!silent) showToast('形态素材已应用，不会铺满整屏背景');
+  };
+  img.onerror = function() {
+    if (token !== shapeMaterialLoadToken) return;
+    shapeMaterialCanvas = null;
+    shapeMaterialLoadingSrc = '';
+    showToast('形态素材读取失败，已保留当前歌曲封面');
+    syncCustomShapeLayer(true);
+  };
+  img.src = src;
+}
+function ensureShapeMaterialCanvas() {
+  var media = currentShapeMaterialMedia();
+  var src = media && media.type === 'image' ? media.src : '';
+  if (!src) return null;
+  if (shapeMaterialCanvas && shapeMaterialCanvas._shapeMaterialSrc === src) return shapeMaterialCanvas;
+  loadShapeMaterialCanvas(media, true);
+  return null;
+}
+function setShapeMaterialMedia(media, silent) {
+  media = normalizeShapeMaterialMedia(media);
+  fx.shapeMaterialMedia = media;
+  refreshCreativeSandboxBuilder();
+  saveLyricLayout();
+  loadShapeMaterialCanvas(media, silent);
+  if (!media && !silent) showToast('形态素材已切回当前歌曲封面');
+}
+function clearShapeMaterialMedia(silent) {
+  setShapeMaterialMedia(null, silent);
+}
+function readShapeMaterialImageFile(file) {
+  if (!file || !/^image\//i.test(file.type || '')) {
+    showToast('形态素材目前请选择图片文件');
+    return;
+  }
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var img = new Image();
+    img.onload = function() {
+      var maxSide = 1600;
+      var iw = img.naturalWidth || img.width || 1;
+      var ih = img.naturalHeight || img.height || 1;
+      var scale = Math.min(1, maxSide / Math.max(iw, ih));
+      var w = Math.max(1, Math.round(iw * scale));
+      var h = Math.max(1, Math.round(ih * scale));
+      var cv = document.createElement('canvas');
+      cv.width = w;
+      cv.height = h;
+      var cx = cv.getContext('2d');
+      cx.drawImage(img, 0, 0, w, h);
+      var out = '';
+      try { out = cv.toDataURL('image/webp', 0.86); } catch (err) {}
+      if (!/^data:image\/webp/i.test(out)) {
+        try { out = cv.toDataURL('image/jpeg', 0.88); } catch (err2) { out = String(e.target.result || ''); }
+      }
+      setShapeMaterialMedia({ type: 'image', src: out });
+    };
+    img.onerror = function(){ showToast('形态素材读取失败'); };
+    img.src = e.target.result;
+  };
+  reader.onerror = function(){ showToast('形态素材读取失败'); };
+  reader.readAsDataURL(file);
 }
 var CUSTOM_BG_DB_NAME = 'mineradio-custom-background-v1';
 var CUSTOM_BG_STORE = 'media';
@@ -9270,6 +9443,15 @@ function updateStageLyrics3D(dt) {
       layoutZ = clampRange(layoutZ + 0.18, -1.6, 1.6);
     }
   }
+  var mobiusGalaxyLyrics = !skullMouthLyrics && !fx.lyricCameraLock && !wallpaperLyricLock && typeof isMobiusGalaxyShapeActive === 'function' && isMobiusGalaxyShapeActive() && customShapeGroup;
+  if (mobiusGalaxyLyrics) {
+    layoutScale *= 0.74;
+    layoutX = clampRange(layoutX + 1.08, -2.0, 2.0);
+    layoutY = clampRange(layoutY + 0.02, -1.2, 1.35);
+    layoutZ = clampRange(layoutZ + 0.58, -1.6, 1.6);
+    layoutTiltX = 0;
+    layoutTiltY = 0;
+  }
   var lockBaseDistance = wallpaperShelfLyrics ? 5.58 : 4.85;
   var lockDistance = lockBaseDistance + layoutZ;
   var cameraLockedLyrics = (fx.lyricCameraLock || wallpaperLyricLock) && camera;
@@ -9320,7 +9502,17 @@ function updateStageLyrics3D(dt) {
   } else {
     if (stageLyrics.group.userData) stageLyrics.group.userData.skullMouthLocked = false;
     stageLyrics.snapCameraLockFrames = 0;
-    if (particles) {
+    if (mobiusGalaxyLyrics) {
+      customShapeGroup.updateMatrixWorld(true);
+      customShapeGroup.getWorldPosition(lyricCoverWorldPos);
+      if (camera) {
+        setStageLyricViewBasisFromCameraOrQuaternion(null);
+        lyricCoverWorldQuat.copy(camera.quaternion);
+      } else {
+        customShapeGroup.getWorldQuaternion(lyricCoverWorldQuat);
+        setStageLyricViewBasisFromCameraOrQuaternion(lyricCoverWorldQuat);
+      }
+    } else if (particles) {
       particles.updateMatrixWorld(true);
       particles.getWorldPosition(lyricCoverWorldPos);
       particles.getWorldQuaternion(lyricCoverWorldQuat);
@@ -21481,18 +21673,19 @@ var USER_SHAPE_PRESET_SCHEMA = 1;
 var SHAPE_PRIMITIVE_LIMIT = 12;
 var SHAPE_TOTAL_PARTICLE_LIMIT = 6000;
 var shapePrimitiveDefs = {
-  point: { name: '点', desc: '粒子簇', count: 120, size: 0.62, depth: 0.12, rotation: 0.08, audioFollow: 0.32, opacity: 0.88, material: 'cover' },
-  line: { name: '线', desc: '直线排布', count: 180, size: 0.72, depth: 0.08, rotation: 0.18, audioFollow: 0.26, opacity: 0.84, material: 'cover' },
-  ring: { name: '环', desc: '圆形轨道', count: 240, size: 1.00, depth: 0.15, rotation: 0.24, audioFollow: 0.40, opacity: 0.92, material: 'cover' },
-  plane: { name: '面', desc: '平面网格', count: 360, size: 1.00, depth: 0.18, rotation: 0.10, audioFollow: 0.28, opacity: 0.86, material: 'cover' },
-  spiral: { name: '螺旋', desc: '旋转排布', count: 420, size: 1.08, depth: 0.42, rotation: 0.34, audioFollow: 0.56, opacity: 0.88, material: 'cover' },
-  wave: { name: '波', desc: '曲面起伏', count: 360, size: 1.00, depth: 0.30, rotation: 0.16, audioFollow: 0.62, opacity: 0.82, material: 'cover' },
-  tunnel: { name: '隧道', desc: '深度环阵', count: 480, size: 1.12, depth: 0.62, rotation: 0.30, audioFollow: 0.46, opacity: 0.78, material: 'cover' },
-  sphere: { name: '球面', desc: '球形粒子', count: 420, size: 1.04, depth: 0.42, rotation: 0.24, audioFollow: 0.38, opacity: 0.86, material: 'cover' },
-  dust: { name: '星尘', desc: '深度星点', count: 520, size: 1.18, depth: 0.74, rotation: 0.18, audioFollow: 0.44, opacity: 0.72, material: 'cover' },
-  card: { name: '卡片', desc: '底片平面', count: 96, size: 0.90, depth: 0.24, rotation: 0.12, audioFollow: 0.20, opacity: 0.86, material: 'cover' }
+  point: { name: '点', desc: '粒子簇', count: 180, size: 0.90, depth: 0.22, rotation: 0.12, audioFollow: 0.42, opacity: 0.96, material: 'cover' },
+  line: { name: '线', desc: '直线排布', count: 240, size: 0.86, depth: 0.12, rotation: 0.20, audioFollow: 0.30, opacity: 0.90, material: 'cover' },
+  ring: { name: '环', desc: '圆形轨道', count: 280, size: 1.05, depth: 0.18, rotation: 0.26, audioFollow: 0.42, opacity: 0.94, material: 'cover' },
+  plane: { name: '面', desc: '平面网格', count: 400, size: 1.02, depth: 0.20, rotation: 0.10, audioFollow: 0.30, opacity: 0.88, material: 'cover' },
+  spiral: { name: '螺旋', desc: '旋转排布', count: 460, size: 1.10, depth: 0.46, rotation: 0.36, audioFollow: 0.58, opacity: 0.90, material: 'cover' },
+  wave: { name: '波', desc: '曲面起伏', count: 400, size: 1.02, depth: 0.34, rotation: 0.18, audioFollow: 0.64, opacity: 0.86, material: 'cover' },
+  tunnel: { name: '隧道', desc: '深度环阵', count: 520, size: 1.14, depth: 0.66, rotation: 0.32, audioFollow: 0.48, opacity: 0.82, material: 'cover' },
+  sphere: { name: '球面', desc: '球形粒子', count: 460, size: 1.08, depth: 0.46, rotation: 0.26, audioFollow: 0.40, opacity: 0.88, material: 'cover' },
+  dust: { name: '星尘', desc: '深度星点', count: 560, size: 1.24, depth: 0.78, rotation: 0.20, audioFollow: 0.46, opacity: 0.84, material: 'cover' },
+  mobius: { name: '莫比乌斯', desc: '无限环轨道', count: 720, size: 1.04, depth: 0.48, rotation: 0.12, audioFollow: 0.48, opacity: 0.92, material: 'accent' },
+  card: { name: '卡片', desc: '底片平面', count: 120, size: 0.96, depth: 0.28, rotation: 0.14, audioFollow: 0.22, opacity: 0.90, material: 'cover' }
 };
-var shapePrimitiveOrder = ['point','line','ring','plane','spiral','wave','tunnel','sphere','dust','card'];
+var shapePrimitiveOrder = ['point','line','ring','plane','spiral','wave','tunnel','sphere','dust','mobius','card'];
 var shapeStructureTemplates = {
   disc: {
     name: '唱片结构',
@@ -21576,18 +21769,22 @@ function shapeRecipeNumber(raw, key, fallback, min, max) {
   if (!isFinite(value)) value = fallback;
   return clampRange(value, min, max);
 }
+function shapePrimitiveCountMax(raw) {
+  return raw && raw.id === 'mobius-cover-nebula' ? 2600 : 1200;
+}
 function normalizeShapePrimitive(raw, index) {
   raw = raw && typeof raw === 'object' ? raw : {};
   var type = shapePrimitiveDefs[raw.type] ? raw.type : 'point';
   var def = shapePrimitiveDef(type);
   var spawn = shapePrimitiveSpawnPosition(index);
+  var countMax = shapePrimitiveCountMax(raw);
   return {
     id: String(raw.id || (type + '-' + index)).replace(/[^a-z0-9_-]/gi, '').slice(0, 36) || (type + '-' + index),
     type: type,
     x: shapeRecipeNumber(raw, 'x', spawn.x, -0.95, 0.95),
     y: shapeRecipeNumber(raw, 'y', spawn.y, -0.95, 0.95),
     z: shapeRecipeNumber(raw, 'z', def.z || 0, -0.95, 0.95),
-    count: Math.round(shapeRecipeNumber(raw, 'count', def.count, 8, 1200)),
+    count: Math.round(shapeRecipeNumber(raw, 'count', def.count, 8, countMax)),
     size: shapeRecipeNumber(raw, 'size', def.size, 0.2, 1.8),
     depth: shapeRecipeNumber(raw, 'depth', def.depth, 0, 1.2),
     rotation: shapeRecipeNumber(raw, 'rotation', def.rotation, 0, 1.2),
@@ -21612,6 +21809,7 @@ function normalizeShapeRecipe(raw) {
       return p;
     });
   }
+  var stability = raw.stability && typeof raw.stability === 'object' ? raw.stability : {};
   return {
     type: USER_SHAPE_PRESET_EXPORT_TYPE,
     version: USER_SHAPE_PRESET_SCHEMA,
@@ -21624,6 +21822,9 @@ function normalizeShapeRecipe(raw) {
     camera: {
       mode: /^(static|slow-orbit|stage)$/.test(String(raw.camera && raw.camera.mode || 'slow-orbit')) ? String(raw.camera && raw.camera.mode || 'slow-orbit') : 'slow-orbit',
       distance: clampRange(Number(raw.camera && raw.camera.distance) || 3.2, 1.8, 6.5)
+    },
+    stability: {
+      driftLock: stability.driftLock === true
     }
   };
 }
@@ -21647,6 +21848,22 @@ function shapePrimitiveLabel(primitive) {
 function shapeRecipeSummary(recipe) {
   recipe = normalizeShapeRecipe(recipe);
   return recipe.primitives.length + ' 层 · ' + shapeRecipeTotalParticles(recipe) + ' 粒子';
+}
+var MOBIUS_GALAXY_USER_PRESET_SEED_KEY = 'mineradio-user-shape-mobius-galaxy-seeded-v1';
+var MOBIUS_GALAXY_USER_PRESET_VERSION_KEY = 'mineradio-user-shape-mobius-galaxy-version-v2';
+function mobiusGalaxyUserShapeRecipe() {
+  return normalizeShapeRecipe({
+    name: '星河莫比乌斯',
+    primitives: [
+      { id: 'mobius-galaxy-spiral', type: 'spiral', x: 0, y: 0.01, z: -0.78, count: 460, size: 1.04, depth: 0.58, rotation: 0.18, audioFollow: 0.24, opacity: 0.14, material: 'accent' },
+      { id: 'mobius-galaxy-dust', type: 'dust', x: 0.02, y: -0.02, z: -0.70, count: 420, size: 1.12, depth: 0.78, rotation: 0.12, audioFollow: 0.20, opacity: 0.12, material: 'accent' },
+      { id: 'mobius-cover-nebula', type: 'plane', x: 0, y: 0.02, z: -0.14, count: 2200, size: 0.80, depth: 0.08, rotation: 0.00, audioFollow: 0.20, opacity: 0.98, material: 'cover' },
+      { id: 'mobius-infinity-ring', type: 'mobius', x: 0, y: 0, z: 0.18, count: 1180, size: 1.10, depth: 0.56, rotation: 0.08, audioFollow: 0.42, opacity: 0.96, material: 'accent' }
+    ],
+    materialBinding: { mode: 'cover-texture', colorSource: 'cover' },
+    camera: { mode: 'slow-orbit', distance: 3.2 },
+    stability: { driftLock: true }
+  });
 }
 function readUserShapePresets() {
   var raw = [];
@@ -21740,6 +21957,9 @@ function importUserShapePresetText(text, fileName) {
   shapeWorkshopState.selectedId = shapeWorkshopState.recipe.primitives[0] ? shapeWorkshopState.recipe.primitives[0].id : '';
   shapeWorkshopState.editingIndex = userShapePresets.length - 1;
   shapeWorkshopState.deleteConfirmIndex = -1;
+  shapeWorkshopState.motionPreview = false;
+  shapeWorkshopResetHistory();
+  shapeWorkshopClearPreviewFocus();
   saveUserShapePresets();
   enterShapeWorkshopRenderMode();
   buildPresetGrid();
@@ -21781,8 +22001,14 @@ var shapeWorkshopState = {
   recipe: defaultShapeRecipe(),
   selectedId: '',
   previewPrevPreset: null,
+  motionPreview: false,
+  soloId: '',
+  hiddenIds: {},
   editingIndex: -1,
-  deleteConfirmIndex: -1
+  deleteConfirmIndex: -1,
+  undoStack: [],
+  redoStack: [],
+  activeParamUndoKey: ''
 };
 shapeWorkshopState.selectedId = shapeWorkshopState.recipe.primitives[0] ? shapeWorkshopState.recipe.primitives[0].id : '';
 var activeUserShapeRecipe = readActiveUserShapeRecipe();
@@ -21822,11 +22048,205 @@ function shapeRecipeRenderKey(recipe) {
     name: recipe.name,
     primitives: recipe.primitives,
     materialBinding: recipe.materialBinding,
-    camera: recipe.camera
+    camera: recipe.camera,
+    stability: recipe.stability
   });
 }
+function isMobiusGalaxyRecipe(recipe) {
+  recipe = recipe ? normalizeShapeRecipe(recipe) : null;
+  if (!recipe || !recipe.primitives || recipe.primitives.length < 4) return false;
+  var hasCoverDisc = recipe.primitives.some(function(p){ return p.id === 'mobius-cover-nebula' && p.type === 'plane'; });
+  var hasInfinityRing = recipe.primitives.some(function(p){ return p.id === 'mobius-infinity-ring' && p.type === 'mobius'; });
+  return hasCoverDisc && hasInfinityRing;
+}
+function shapeRecipeDriftLockEnabled(recipe) {
+  recipe = recipe ? normalizeShapeRecipe(recipe) : null;
+  return !!(recipe && recipe.stability && recipe.stability.driftLock);
+}
+function isCustomShapeLayerDriftLocked(recipe) {
+  return shapeRecipeDriftLockEnabled(recipe) || isMobiusGalaxyRecipe(recipe);
+}
+function isMobiusGalaxyShapeActive() {
+  return !!(activeUserShapeRecipe && fx && Number(fx.preset) === 3 && isMobiusGalaxyRecipe(activeUserShapeRecipe));
+}
+function mobiusGalaxyPresetNeedsRefresh(slot, targetRecipe) {
+  var recipe = normalizeShapeRecipe(slot && slot.recipe);
+  var target = normalizeShapeRecipe(targetRecipe);
+  if (!isMobiusGalaxyRecipe(recipe)) return true;
+  var cover = recipe.primitives.filter(function(p){ return p.id === 'mobius-cover-nebula'; })[0];
+  var targetCover = target.primitives.filter(function(p){ return p.id === 'mobius-cover-nebula'; })[0];
+  if (!cover || !targetCover) return true;
+  return Number(cover.size) < Number(targetCover.size) ||
+    Number(cover.count) < Number(targetCover.count) ||
+    Number(cover.z) > Number(targetCover.z);
+}
+function seedMobiusGalaxyUserShapePreset() {
+  var recipe = mobiusGalaxyUserShapeRecipe();
+  var seeded = false;
+  var currentVersion = '';
+  try {
+    seeded = localStorage.getItem(MOBIUS_GALAXY_USER_PRESET_SEED_KEY) === '1';
+    currentVersion = localStorage.getItem(MOBIUS_GALAXY_USER_PRESET_VERSION_KEY) || '';
+  } catch (e) {
+    seeded = false;
+  }
+  var existingIndex = userShapePresets.findIndex(function(slot){
+    return normalizeShapeRecipeName(slot && slot.name) === recipe.name && isMobiusGalaxyRecipe(slot && slot.recipe);
+  });
+  if (existingIndex >= 0) {
+    var needsRecipeRefresh = currentVersion !== '2' || mobiusGalaxyPresetNeedsRefresh(userShapePresets[existingIndex], recipe);
+    if (needsRecipeRefresh) {
+      userShapePresets[existingIndex] = {
+        name: recipe.name,
+        savedAt: Number(userShapePresets[existingIndex].savedAt) || Date.now(),
+        recipe: cloneShapeRecipe(recipe)
+      };
+      saveUserShapePresets();
+    }
+  } else if (!seeded) {
+    userShapePresets.push({
+      name: recipe.name,
+      savedAt: Date.now(),
+      recipe: cloneShapeRecipe(recipe)
+    });
+    saveUserShapePresets();
+  }
+  try {
+    localStorage.setItem(MOBIUS_GALAXY_USER_PRESET_SEED_KEY, '1');
+    if (existingIndex >= 0 || !seeded) localStorage.setItem(MOBIUS_GALAXY_USER_PRESET_VERSION_KEY, '2');
+  } catch (e) {}
+  if (activeUserShapeRecipe && normalizeShapeRecipeName(activeUserShapeRecipe.name) === recipe.name && isMobiusGalaxyRecipe(activeUserShapeRecipe)) {
+    activeUserShapeRecipe = cloneShapeRecipe(recipe);
+    saveActiveUserShapeRecipe(activeUserShapeRecipe);
+  }
+}
+seedMobiusGalaxyUserShapePreset();
+function shapeWorkshopHiddenIds() {
+  if (!shapeWorkshopState.hiddenIds || typeof shapeWorkshopState.hiddenIds !== 'object') shapeWorkshopState.hiddenIds = {};
+  return shapeWorkshopState.hiddenIds;
+}
+function shapeWorkshopClearPreviewFocus() {
+  shapeWorkshopState.soloId = '';
+  shapeWorkshopState.hiddenIds = {};
+}
+function shapeWorkshopCleanPreviewFocus(recipe) {
+  recipe = normalizeShapeRecipe(recipe || shapeWorkshopState.recipe);
+  var valid = {};
+  recipe.primitives.forEach(function(p){ valid[p.id] = true; });
+  var nextHidden = {};
+  Object.keys(shapeWorkshopHiddenIds()).forEach(function(id){
+    if (valid[id]) nextHidden[id] = true;
+  });
+  shapeWorkshopState.hiddenIds = nextHidden;
+  if (shapeWorkshopState.soloId && !valid[shapeWorkshopState.soloId]) shapeWorkshopState.soloId = '';
+  return recipe;
+}
+function shapeWorkshopResetHistory() {
+  shapeWorkshopState.undoStack = [];
+  shapeWorkshopState.redoStack = [];
+  shapeWorkshopState.activeParamUndoKey = '';
+}
+function shapeWorkshopHistoryEntry() {
+  var recipe = normalizeShapeRecipe(shapeWorkshopState.recipe);
+  return {
+    key: shapeRecipeRenderKey(recipe),
+    recipe: cloneShapeRecipe(recipe),
+    selectedId: shapeWorkshopState.selectedId || ''
+  };
+}
+function shapeWorkshopPushUndo() {
+  shapeWorkshopState.undoStack = Array.isArray(shapeWorkshopState.undoStack) ? shapeWorkshopState.undoStack : [];
+  shapeWorkshopState.redoStack = Array.isArray(shapeWorkshopState.redoStack) ? shapeWorkshopState.redoStack : [];
+  var entry = shapeWorkshopHistoryEntry();
+  var last = shapeWorkshopState.undoStack[shapeWorkshopState.undoStack.length - 1];
+  if (!last || last.key !== entry.key) {
+    shapeWorkshopState.undoStack.push(entry);
+    if (shapeWorkshopState.undoStack.length > 40) shapeWorkshopState.undoStack.shift();
+  }
+  shapeWorkshopState.activeParamUndoKey = '';
+  shapeWorkshopState.redoStack = [];
+}
+function shapeWorkshopRestoreHistoryEntry(entry) {
+  if (!entry || !entry.recipe) return;
+  var recipe = shapeWorkshopCleanPreviewFocus(cloneShapeRecipe(entry.recipe));
+  var selectedExists = recipe.primitives.some(function(p){ return p.id === entry.selectedId; });
+  shapeWorkshopState.recipe = recipe;
+  shapeWorkshopState.selectedId = selectedExists ? entry.selectedId : (recipe.primitives[0] ? recipe.primitives[0].id : '');
+  shapeWorkshopState.deleteConfirmIndex = -1;
+  shapeWorkshopState.activeParamUndoKey = '';
+  syncCustomShapeLayer(true);
+  renderShapeWorkshop();
+}
+function shapeWorkshopUndo() {
+  shapeWorkshopState.undoStack = Array.isArray(shapeWorkshopState.undoStack) ? shapeWorkshopState.undoStack : [];
+  shapeWorkshopState.redoStack = Array.isArray(shapeWorkshopState.redoStack) ? shapeWorkshopState.redoStack : [];
+  var entry = shapeWorkshopState.undoStack.pop();
+  if (!entry) {
+    showToast('没有可撤销的操作');
+    return;
+  }
+  shapeWorkshopState.redoStack.push(shapeWorkshopHistoryEntry());
+  shapeWorkshopRestoreHistoryEntry(entry);
+  showToast('已撤销');
+}
+function shapeWorkshopRedo() {
+  shapeWorkshopState.undoStack = Array.isArray(shapeWorkshopState.undoStack) ? shapeWorkshopState.undoStack : [];
+  shapeWorkshopState.redoStack = Array.isArray(shapeWorkshopState.redoStack) ? shapeWorkshopState.redoStack : [];
+  var entry = shapeWorkshopState.redoStack.pop();
+  if (!entry) {
+    showToast('没有可重做的操作');
+    return;
+  }
+  shapeWorkshopState.undoStack.push(shapeWorkshopHistoryEntry());
+  shapeWorkshopRestoreHistoryEntry(entry);
+  showToast('已重做');
+}
+function shapeWorkshopEnsureParamUndo(id, key) {
+  var editKey = String(id || '') + ':' + String(key || '');
+  if (shapeWorkshopState.activeParamUndoKey === editKey) return;
+  shapeWorkshopPushUndo();
+  shapeWorkshopState.activeParamUndoKey = editKey;
+}
+function shapeWorkshopFinishParamEdit() {
+  shapeWorkshopState.activeParamUndoKey = '';
+  renderShapeWorkshop();
+}
+function shapeWorkshopIsPrimitiveHidden(id) {
+  return !!shapeWorkshopHiddenIds()[id];
+}
+function shapeWorkshopPreviewPrimitives(recipe) {
+  recipe = shapeWorkshopCleanPreviewFocus(recipe);
+  var soloId = String(shapeWorkshopState.soloId || '');
+  if (soloId) {
+    var solo = recipe.primitives.filter(function(p){ return p.id === soloId; });
+    if (solo.length) return solo;
+  }
+  var hidden = shapeWorkshopHiddenIds();
+  return recipe.primitives.filter(function(p){ return !hidden[p.id]; });
+}
+function shapeWorkshopPreviewRecipeForRender() {
+  var recipe = shapeWorkshopState.recipe = normalizeShapeRecipe(shapeWorkshopState.recipe);
+  return normalizeShapeRecipe({
+    name: recipe.name,
+    primitives: shapeWorkshopPreviewPrimitives(recipe),
+    materialBinding: recipe.materialBinding,
+    camera: recipe.camera,
+    stability: recipe.stability
+  });
+}
+function shapeWorkshopPreviewStatus(recipe) {
+  recipe = shapeWorkshopCleanPreviewFocus(recipe);
+  if (!recipe.primitives.length) return '空白形态';
+  if (shapeWorkshopState.soloId) {
+    var soloIndex = recipe.primitives.findIndex(function(p){ return p.id === shapeWorkshopState.soloId; });
+    if (soloIndex >= 0) return '正在单看第 ' + (soloIndex + 1) + ' 层';
+  }
+  var hiddenCount = Object.keys(shapeWorkshopHiddenIds()).length;
+  if (hiddenCount) return '已隐藏 ' + hiddenCount + ' 层';
+  return '全部层可见';
+}
 function customShapeRecipeForRender() {
-  if (shapeWorkshopState && shapeWorkshopState.open) return normalizeShapeRecipe(shapeWorkshopState.recipe);
+  if (shapeWorkshopState && shapeWorkshopState.open) return shapeWorkshopPreviewRecipeForRender();
   if (activeUserShapeRecipe && fx && Number(fx.preset) === 3) return normalizeShapeRecipe(activeUserShapeRecipe);
   return null;
 }
@@ -21866,7 +22286,7 @@ function customShapeRand(seed) {
   return v - Math.floor(v);
 }
 function customShapeCoverSampler() {
-  var cv = coverPickerCanvas || (coverTex && coverTex.image && coverTex.image.getContext ? coverTex.image : null);
+  var cv = ensureShapeMaterialCanvas() || coverPickerCanvas || (coverTex && coverTex.image && coverTex.image.getContext ? coverTex.image : null);
   if (!cv || !cv.getContext) return null;
   try {
     var ctx = cv.getContext('2d');
@@ -21895,7 +22315,8 @@ function customShapeColorForPoint(primitive, sample, u, v, seed, palette) {
   if (primitive.material === 'mono') return [palette.mono.r, palette.mono.g, palette.mono.b];
   if (primitive.material === 'cover' && sample) {
     var c = sample(u, v);
-    var lift = 0.16 + customShapeRand(seed + 21) * 0.16;
+    var detailCover = primitive && primitive.id === 'mobius-cover-nebula';
+    var lift = detailCover ? (0.055 + customShapeRand(seed + 21) * 0.090) : (0.22 + customShapeRand(seed + 21) * 0.22);
     return [
       clampRange(c[0] + lift, 0, 1),
       clampRange(c[1] + lift, 0, 1),
@@ -21905,6 +22326,95 @@ function customShapeColorForPoint(primitive, sample, u, v, seed, palette) {
   var mix = clampRange(0.25 + customShapeRand(seed + 9) * 0.65, 0, 1);
   var col = palette.a.clone().lerp(palette.b, primitive.material === 'accent' ? 0.70 : mix);
   return [col.r, col.g, col.b];
+}
+function customShapeUsesCoverTexture(recipe) {
+  recipe = normalizeShapeRecipe(recipe);
+  return !!(recipe.materialBinding && recipe.materialBinding.mode === 'cover-texture' && recipe.primitives.some(function(p){
+    return p.material === 'cover';
+  }));
+}
+function customShapeTextureReady() {
+  return !!(ensureShapeMaterialCanvas() || (coverTex && coverTex.image));
+}
+function customShapeCoverParticleMaterial(opacity, sizeBoost) {
+  return new THREE.PointsMaterial({
+    size: clampRange(0.030 + (Number(sizeBoost) || 0), 0.028, 0.090),
+    map: dotTexture,
+    vertexColors: true,
+    transparent: true,
+    opacity: clampRange(opacity, 0.14, 0.96),
+    depthWrite: false,
+    sizeAttenuation: true,
+    blending: THREE.AdditiveBlending
+  });
+}
+function applyCustomShapePrimitiveTransform(obj, primitive) {
+  obj.position.set(primitive.x * 2.55, -primitive.y * 2.05, primitive.z * 2.55);
+  obj.rotation.set(primitive.depth * 0.34, primitive.rotation * Math.PI * 0.34, primitive.rotation * Math.PI * 2);
+}
+function buildCustomShapeCoverParticlePoints(opts) {
+  opts = opts || {};
+  var detailCover = String(opts.id || '').indexOf('mobius-cover-nebula') >= 0;
+  var count = Math.max(48, Math.min(detailCover ? 2600 : 1400, Math.round(Number(opts.count) || 420)));
+  var cols = Math.max(8, Math.round(Math.sqrt(count * (opts.aspect || 1))));
+  var rows = Math.max(8, Math.ceil(count / cols));
+  count = cols * rows;
+  var width = Number(opts.width) || 1.4;
+  var height = Number(opts.height) || 1.4;
+  var depth = Number(opts.depth) || 0.18;
+  var seedBase = customShapeSeedFromId(opts.id || 'cover-particles', Number(opts.index) || 0);
+  var sample = customShapeCoverSampler();
+  var palette = customShapePalette();
+  var positions = new Float32Array(count * 3);
+  var base = new Float32Array(count * 3);
+  var rand = new Float32Array(count);
+  var colors = new Float32Array(count * 3);
+  for (var i = 0; i < count; i++) {
+    var gx = i % cols;
+    var gy = Math.floor(i / cols);
+    var u = cols > 1 ? gx / (cols - 1) : 0.5;
+    var v = rows > 1 ? gy / (rows - 1) : 0.5;
+    var r = customShapeRand(seedBase + i * 11 + 3);
+    var px, py, pz;
+    if (detailCover) {
+      var discN = count > 1 ? i / (count - 1) : 0;
+      var discAngle = i * 2.399963229728653 + r * 0.030;
+      var discRadius = Math.sqrt(discN) * (0.94 + customShapeRand(seedBase + i * 13 + 9) * 0.045);
+      var discX = Math.cos(discAngle) * discRadius;
+      var discY = Math.sin(discAngle) * discRadius;
+      u = clampRange(0.5 + discX * 0.5, 0, 1);
+      v = clampRange(0.5 + discY * 0.5, 0, 1);
+      px = discX * width * 0.5;
+      py = discY * height * 0.5;
+      pz = (r - 0.5) * depth + Math.sin(discRadius * Math.PI * 8.0) * depth * 0.035;
+    } else {
+      px = (u - 0.5) * width;
+      py = (v - 0.5) * height;
+      pz = (r - 0.5) * depth;
+    }
+    base[i * 3] = px;
+    base[i * 3 + 1] = py;
+    base[i * 3 + 2] = pz;
+    positions[i * 3] = px;
+    positions[i * 3 + 1] = py;
+    positions[i * 3 + 2] = pz;
+    rand[i] = r;
+    var c = sample ? sample(u, v) : null;
+    if (!c) c = [palette.a.r, palette.a.g, palette.a.b];
+    var lift = detailCover ? (0.055 + customShapeRand(seedBase + i * 7 + 17) * 0.085) : (0.08 + customShapeRand(seedBase + i * 7 + 17) * 0.13);
+    colors[i * 3] = clampRange(c[0] + lift, 0, 1);
+    colors[i * 3 + 1] = clampRange(c[1] + lift, 0, 1);
+    colors[i * 3 + 2] = clampRange(c[2] + lift, 0, 1);
+  }
+  var geometry = new THREE.BufferGeometry();
+  geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+  geometry.userData.basePositions = base;
+  geometry.userData.rand = rand;
+  var material = customShapeCoverParticleMaterial(opts.opacity, opts.sizeBoost);
+  var points = new THREE.Points(geometry, material);
+  points.frustumCulled = false;
+  return points;
 }
 function customShapeLocalPoint(primitive, i, count, seedBase) {
   var n = count > 1 ? i / (count - 1) : 0;
@@ -21978,6 +22488,17 @@ function customShapeLocalPoint(primitive, i, count, seedBase) {
     z = Math.sin(theta) * Math.sin(phi) * pr;
     u = 0.5 + Math.atan2(z, x) / (Math.PI * 2);
     v = 0.5 - Math.asin(y / Math.max(0.001, pr)) / Math.PI;
+  } else if (primitive.type === 'mobius') {
+    var ma = n * Math.PI * 2;
+    var band = (r2 - 0.5) * 0.34 * size;
+    var loop = Math.sin(ma);
+    var cross = Math.cos(ma);
+    var twist = Math.cos(ma * 0.5 + band * 0.9);
+    x = loop * 1.58 * size + band * cross * 0.34;
+    y = loop * cross * 0.94 * size + band * Math.sin(ma * 2.0) * 0.42;
+    z = band * twist * (0.62 + depth * 1.55) + Math.sin(ma * 2.0 + r1 * 1.4) * depth * 0.22;
+    u = 0.5 + x / Math.max(0.001, 3.7 * size);
+    v = 0.5 + y / Math.max(0.001, 2.2 * size);
   } else if (primitive.type === 'dust') {
     var da = r1 * Math.PI * 2;
     var dr = Math.pow(r2, 0.42) * (1.25 + depth * 1.5) * size;
@@ -21997,8 +22518,78 @@ function customShapeLocalPoint(primitive, i, count, seedBase) {
   }
   return { x: x, y: y, z: z, u: clampRange(u, 0, 1), v: clampRange(v, 0, 1) };
 }
+function buildCustomShapePrimitiveCoverObject(primitive, index, recipe) {
+  primitive = normalizeShapePrimitive(primitive, index);
+  recipe = normalizeShapeRecipe(recipe);
+  if (!customShapeTextureReady() || !customShapeUsesCoverTexture(recipe) || primitive.material !== 'cover') return null;
+  if (primitive.type !== 'plane' && primitive.type !== 'card') return null;
+  var aspect = primitive.type === 'card' ? 1.42 : 1;
+  var detailCover = primitive.id === 'mobius-cover-nebula';
+  var points = buildCustomShapeCoverParticlePoints({
+    id: primitive.id + '-cover-particles',
+    index: index,
+    count: Math.max(180, Math.round(primitive.count * (detailCover ? 1.60 : 1.25))),
+    width: 2.1 * primitive.size * aspect,
+    height: 2.1 * primitive.size,
+    depth: detailCover ? Math.max(0.035, primitive.depth * 0.22) : Math.max(0.08, primitive.depth * 0.32),
+    aspect: aspect,
+    opacity: primitive.opacity * (detailCover ? 0.96 : (primitive.type === 'card' ? 0.58 : 0.52)),
+    sizeBoost: primitive.size * 0.010 + (detailCover ? 0.012 : 0)
+  });
+  points.name = 'MineradioCustomShapeCoverParticlePrimitive';
+  points.renderOrder = 23 + index;
+  applyCustomShapePrimitiveTransform(points, primitive);
+  points.userData.primitive = primitive;
+  points.userData.layerIndex = index;
+  points.userData.coverParticles = true;
+  points.userData.coverBaseOpacity = points.material.opacity;
+  return points;
+}
+function buildCustomShapeCoverPlate(recipe) {
+  recipe = normalizeShapeRecipe(recipe);
+  if (!customShapeTextureReady() || !customShapeUsesCoverTexture(recipe)) return null;
+  var hasSurface = recipe.primitives.some(function(p){ return p.type === 'plane' || p.type === 'card'; });
+  if (hasSurface) return null;
+  var avgSize = recipe.primitives.reduce(function(sum, p){ return sum + p.size; }, 0) / Math.max(1, recipe.primitives.length);
+  var plateSize = clampRange(1.10 + avgSize * 0.32 + Math.min(recipe.primitives.length, 4) * 0.05, 1.12, 1.62);
+  var points = buildCustomShapeCoverParticlePoints({
+    id: 'cover-particle-plate',
+    index: 0,
+    count: Math.max(360, Math.min(1100, Math.round(shapeRecipeTotalParticles(recipe) * 0.72))),
+    width: plateSize,
+    height: plateSize,
+    depth: 0.20,
+    aspect: 1,
+    opacity: 0.62,
+    sizeBoost: 0.012
+  });
+  points.name = 'MineradioCustomShapeCoverParticlePlate';
+  points.renderOrder = 22;
+  points.position.set(0, 0, -0.32);
+  points.rotation.set(-0.10, 0, 0);
+  points.userData.primitive = {
+    id: 'cover-particle-plate',
+    type: 'plane',
+    x: 0,
+    y: 0,
+    z: -0.12,
+    count: points.geometry && points.geometry.userData && points.geometry.userData.rand ? points.geometry.userData.rand.length : 420,
+    size: 1,
+    depth: 0.38,
+    rotation: 0.08,
+    audioFollow: 0.78,
+    opacity: 0.62,
+    material: 'cover'
+  };
+  points.userData.layerIndex = -1;
+  points.userData.coverParticles = true;
+  points.userData.coverPlate = true;
+  points.userData.coverBaseOpacity = points.material.opacity;
+  return points;
+}
 function buildCustomShapePrimitiveObject(primitive, index) {
   primitive = normalizeShapePrimitive(primitive, index);
+  var selected = !!(shapeWorkshopState && shapeWorkshopState.open && primitive.id && primitive.id === shapeWorkshopState.selectedId);
   var count = Math.max(8, Math.min(1200, primitive.count));
   var seedBase = customShapeSeedFromId(primitive.id, index);
   var positions = new Float32Array(count * 3);
@@ -22027,20 +22618,19 @@ function buildCustomShapePrimitiveObject(primitive, index) {
   geometry.userData.basePositions = base;
   geometry.userData.rand = rand;
   var material = new THREE.PointsMaterial({
-    size: clampRange(0.022 + primitive.size * 0.018 + primitive.depth * 0.010, 0.018, 0.070),
+    size: clampRange(0.026 + primitive.size * 0.024 + primitive.depth * 0.012 + (selected ? 0.014 : 0), 0.024, 0.095),
     map: dotTexture,
     vertexColors: true,
     transparent: true,
-    opacity: primitive.opacity,
+    opacity: clampRange(primitive.opacity * (selected ? 1.16 : 1), 0.12, 1),
     depthWrite: false,
     sizeAttenuation: true,
-    blending: primitive.type === 'dust' || primitive.type === 'spiral' ? THREE.AdditiveBlending : THREE.NormalBlending
+    blending: selected || primitive.type === 'dust' || primitive.type === 'spiral' || primitive.type === 'mobius' ? THREE.AdditiveBlending : THREE.NormalBlending
   });
   var points = new THREE.Points(geometry, material);
   points.frustumCulled = false;
   points.renderOrder = 24 + index;
-  points.position.set(primitive.x * 2.55, -primitive.y * 2.05, primitive.z * 2.55);
-  points.rotation.set(primitive.depth * 0.34, primitive.rotation * Math.PI * 0.34, primitive.rotation * Math.PI * 2);
+  applyCustomShapePrimitiveTransform(points, primitive);
   points.userData.primitive = primitive;
   points.userData.layerIndex = index;
   return points;
@@ -22048,6 +22638,10 @@ function buildCustomShapePrimitiveObject(primitive, index) {
 function syncCustomShapeLayer(force) {
   var recipe = customShapeRecipeForRender();
   var group = ensureCustomShapeGroup();
+  if (shapeWorkshopState && shapeWorkshopState.open && !shapeWorkshopState.motionPreview) {
+    group.rotation.set(0, 0, 0);
+    group.userData.autoSpinY = 0;
+  }
   if (!recipe || !recipe.primitives || !recipe.primitives.length) {
     clearCustomShapeLayer();
     return;
@@ -22059,7 +22653,12 @@ function syncCustomShapeLayer(force) {
   }
   clearCustomShapeLayer();
   customShapeRenderRecipe = normalizeShapeRecipe(recipe);
+  var coverPlate = buildCustomShapeCoverPlate(customShapeRenderRecipe);
+  if (coverPlate) group.add(coverPlate);
   customShapeRenderRecipe.primitives.forEach(function(primitive, index){
+    var coverMesh = buildCustomShapePrimitiveCoverObject(primitive, index, customShapeRenderRecipe);
+    if (coverMesh) group.add(coverMesh);
+    if (coverMesh && primitive.id === 'mobius-cover-nebula') return;
     group.add(buildCustomShapePrimitiveObject(primitive, index));
   });
   customShapeRecipeKey = key;
@@ -22068,30 +22667,80 @@ function syncCustomShapeLayer(force) {
 function isCustomShapeRenderActive() {
   return !!(customShapeGroup && customShapeGroup.visible && customShapeRenderRecipe && customShapeRenderRecipe.primitives && customShapeRenderRecipe.primitives.length);
 }
+function shapeWorkshopHasLiveAudio() {
+  return !!(audio && playing && !audio.paused && !audio.ended);
+}
+function shapeWorkshopDemoAudioEnergy(t) {
+  var beat = Math.pow(Math.max(0, Math.sin(t * Math.PI * 1.65)), 5);
+  var body = Math.pow(Math.max(0, Math.sin(t * Math.PI * 0.58 + 1.1)), 2);
+  return clampRange(0.18 + beat * 0.78 + body * 0.16, 0, 1.12);
+}
 function updateCustomShapeLayer(dt) {
   if (!isCustomShapeRenderActive()) return;
   var t = uniforms.uTime.value;
-  var audio = clampRange((bass * 0.58 + mid * 0.30 + treble * 0.22 + beatPulse * 0.55) * (fx.intensity || 1), 0, 1.4);
-  customShapeGroup.rotation.y += dt * (0.030 + audio * 0.018);
-  customShapeGroup.children.forEach(function(obj, layerIndex){
-    var primitive = obj.userData && obj.userData.primitive;
+  var workshopStatic = !!(shapeWorkshopState && shapeWorkshopState.open && !shapeWorkshopState.motionPreview);
+  var layerDriftLock = typeof isCustomShapeLayerDriftLocked === 'function' && isCustomShapeLayerDriftLocked(customShapeRenderRecipe);
+  var audioEnergy = workshopStatic ? 0 : clampRange((bass * 0.58 + mid * 0.30 + treble * 0.22 + beatPulse * 0.55) * (fx.intensity || 1), 0, 1.4);
+  if (!workshopStatic && shapeWorkshopState && shapeWorkshopState.open && shapeWorkshopState.motionPreview && !shapeWorkshopHasLiveAudio()) {
+    audioEnergy = Math.max(audioEnergy, shapeWorkshopDemoAudioEnergy(t));
+  }
+  if (!customShapeGroup.userData) customShapeGroup.userData = {};
+  if (!workshopStatic) {
+    customShapeGroup.userData.autoSpinY = (customShapeGroup.userData.autoSpinY || 0) + dt * (0.030 + audioEnergy * 0.026);
+    var targetRotY = (orbit.centerLocked ? 0 : (headParallax.active ? headParallax.x * 0.5 : 0) + gestureRotation.y) + customShapeGroup.userData.autoSpinY;
+    var targetRotX = orbit.centerLocked ? 0 : (headParallax.active ? -headParallax.y * 0.35 : 0) + gestureRotation.x;
+    customShapeGroup.rotation.y += (targetRotY - customShapeGroup.rotation.y) * 0.055;
+    customShapeGroup.rotation.x += (targetRotX - customShapeGroup.rotation.x) * 0.055;
+  }
+  customShapeGroup.children.forEach(function(obj, childIndex){
+    var data = obj.userData || {};
+    var primitive = data.primitive;
+    if (data.coverMesh && !data.coverParticles) {
+      var coverFollow = primitive ? primitive.audioFollow * audioEnergy : 0;
+      if (!workshopStatic && primitive && !layerDriftLock) {
+        obj.rotation.z += dt * (primitive.rotation * 0.18 + coverFollow * 0.030);
+        obj.rotation.y += dt * (primitive.rotation * 0.045 + coverFollow * 0.018);
+      }
+      if (obj.material) obj.material.opacity = clampRange((data.coverBaseOpacity || 0.22) * (0.88 + Math.min(0.22, coverFollow * 0.16)), 0.08, 0.58);
+      return;
+    }
     if (!primitive || !obj.geometry || !obj.geometry.attributes || !obj.geometry.attributes.position) return;
     var attr = obj.geometry.attributes.position;
     var arr = attr.array;
     var base = obj.geometry.userData.basePositions;
     var rand = obj.geometry.userData.rand;
-    var follow = primitive.audioFollow * audio;
+    if (!base || !rand) return;
+    var motionGain = data.coverParticles ? 1.90 : 1.22;
+    var follow = primitive.audioFollow * audioEnergy * motionGain;
+    var layerIndex = data.layerIndex != null ? data.layerIndex : childIndex;
+    var pointerPush = mouseActive && !workshopStatic ? 1 : 0;
     for (var i = 0; i < rand.length; i++) {
       var k = i * 3;
-      var wave = Math.sin(t * (0.70 + primitive.audioFollow * 1.25) + rand[i] * 6.2831 + base[k] * 1.3 + layerIndex);
-      arr[k] = base[k] + Math.cos(t * 0.22 + rand[i] * 5.1) * follow * 0.018;
-      arr[k + 1] = base[k + 1] + Math.sin(t * 0.20 + rand[i] * 4.7) * follow * 0.018;
-      arr[k + 2] = base[k + 2] + wave * follow * (0.08 + primitive.depth * 0.26);
+      var wave = Math.sin(t * (0.86 + primitive.audioFollow * 1.55) + rand[i] * 6.2831 + base[k] * 1.3 + layerIndex);
+      var ripple = Math.cos(t * 1.28 + rand[i] * 9.2 + base[k + 1] * 1.8);
+      var pushX = 0;
+      var pushY = 0;
+      if (pointerPush) {
+        var dx = base[k] - mouseWorld.x;
+        var dy = base[k + 1] - mouseWorld.y;
+        var distSq = dx * dx + dy * dy;
+        var push = Math.max(0, 1 - distSq / 1.35) * 0.090;
+        pushX = dx * push;
+        pushY = dy * push;
+      }
+      arr[k] = base[k] + Math.cos(t * 0.36 + rand[i] * 5.1) * follow * (data.coverParticles ? 0.034 : 0.022) + pushX;
+      arr[k + 1] = base[k + 1] + Math.sin(t * 0.32 + rand[i] * 4.7) * follow * (data.coverParticles ? 0.034 : 0.022) + pushY;
+      arr[k + 2] = base[k + 2] + (wave * 0.72 + ripple * 0.28) * follow * (data.coverParticles ? (0.17 + primitive.depth * 0.42) : (0.10 + primitive.depth * 0.30));
     }
     attr.needsUpdate = true;
-    obj.rotation.z += dt * (primitive.rotation * 0.18 + follow * 0.030);
-    obj.rotation.y += dt * (primitive.rotation * 0.045 + follow * 0.018);
-    if (obj.material) obj.material.opacity = primitive.opacity * (0.86 + Math.min(0.20, follow * 0.16));
+    if (!workshopStatic && !layerDriftLock) {
+      obj.rotation.z += dt * (primitive.rotation * 0.18 + follow * (data.coverParticles ? 0.042 : 0.030));
+      obj.rotation.y += dt * (primitive.rotation * 0.045 + follow * (data.coverParticles ? 0.026 : 0.018));
+    }
+    if (obj.material) {
+      var baseOpacity = data.coverParticles ? (data.coverBaseOpacity || primitive.opacity) : primitive.opacity;
+      obj.material.opacity = clampRange(baseOpacity * (0.86 + Math.min(0.26, follow * 0.18)), 0.10, 1);
+    }
   });
 }
 function refreshCustomShapeColorsFromCover() {
@@ -22203,6 +22852,7 @@ function normalizeFxArchiveSnapshot(raw) {
     backgroundOpacity: archiveNumber(raw, 'backgroundOpacity', fxDefaults.backgroundOpacity, 0, 1),
     controlGlassChromaticOffset: archiveNumber(raw, 'controlGlassChromaticOffset', fxDefaults.controlGlassChromaticOffset, 0, 140),
     backgroundColorCustom: raw.backgroundColorMode === 'custom' || !!raw.backgroundColorCustom,
+    shapeMaterialMedia: normalizeShapeMaterialMedia(raw.shapeMaterialMedia),
     floatLayer: !!raw.floatLayer,
     cinema: raw.cinema !== false,
     edge: !!raw.edge,
@@ -22316,6 +22966,7 @@ function applyFxArchiveSnapshot(snapshot) {
     if (key === 'visualPresetSchema' || key === 'preset') return;
     fx[key] = data[key];
   });
+  loadShapeMaterialCanvas(fx.shapeMaterialMedia, true);
   normalizeDevelopmentLockedFxState();
   setPreset(targetPreset, { silent: true, preserveCamera: false, skipTransition: false, noSave: true, commitPlaybackPreset: true });
   applyCoverParticleResolution(fx.coverResolution, { reload: true });
@@ -22447,8 +23098,8 @@ function userFxArchivePresetName(snapshot) {
   return preset && preset.name ? preset.name : '当前形态';
 }
 function userFxArchiveMaterialLabel(snapshot) {
-  var media = snapshot && normalizeCustomBackgroundMedia(snapshot.backgroundMedia || snapshot.backgroundImage);
-  if (media) return media.type === 'video' ? '上传视频素材' : '上传图片素材';
+  var media = snapshot && normalizeShapeMaterialMedia(snapshot.shapeMaterialMedia);
+  if (media) return '上传图片底片';
   return '当前歌曲封面';
 }
 function userFxArchiveAutoDescription(slot) {
@@ -22467,7 +23118,7 @@ function fxArchiveCreativeRecipe(snapshot) {
     type: 'mineradio-visual-recipe',
     version: 1,
     material: {
-      source: normalizeCustomBackgroundMedia(snapshot.backgroundMedia || snapshot.backgroundImage) ? 'uploaded-media' : 'current-cover'
+      source: normalizeShapeMaterialMedia(snapshot.shapeMaterialMedia) ? 'uploaded-shape-material' : 'current-cover'
     },
     shape: {
       preset: snapshot.preset,
@@ -22767,6 +23418,16 @@ function shapeStageItemHtml(primitive, index) {
     'onpointerdown="beginShapeStageDrag(event,\'' + escHtml(primitive.id) + '\')" onclick="shapeWorkshopSelectPrimitive(\'' + escHtml(primitive.id) + '\')" ' +
     'title="' + escHtml(shapePrimitiveLabel(primitive)) + '"></button>';
 }
+function shapeStageGizmoHtml(primitive, index) {
+  if (!primitive) return '';
+  var dragging = shapeStageDrag && shapeStageDrag.id === primitive.id;
+  var rotationDeg = clampRange(Number(primitive.rotation) || 0, 0, 1.2) * 360;
+  return '<div class="shape-stage-gizmo' + (dragging ? ' dragging' : '') + '" style="' + shapePositionStyle(primitive, index, 1, 42, 38) + ';--shape-rot:' + rotationDeg.toFixed(1) + 'deg;--shape-label-rot:' + (-rotationDeg).toFixed(1) + 'deg">' +
+    '<button class="shape-stage-gizmo-rotate" type="button" onpointerdown="beginShapeStageRotate(event,\'' + escHtml(primitive.id) + '\')" title="拖动旋转层角度"></button>' +
+    '<button class="shape-stage-gizmo-move" type="button" onpointerdown="beginShapeStageDrag(event,\'' + escHtml(primitive.id) + '\')" title="拖动调整左右 / 上下"></button>' +
+    '<div class="shape-stage-gizmo-label">' + escHtml(shapePrimitiveLabel(primitive)) + ' · ' + Math.round(rotationDeg) + '°</div>' +
+  '</div>';
+}
 function renderShapeWorkshopStage() {
   var stage = document.getElementById('shape-workshop-stage');
   if (!stage) return;
@@ -22779,15 +23440,32 @@ function renderShapeWorkshopStage() {
   var recipe = shapeWorkshopState.recipe = normalizeShapeRecipe(shapeWorkshopState.recipe);
   if (document.body) document.body.classList.add('shape-workshop-mode');
   stage.setAttribute('aria-hidden', 'false');
-  var items = recipe.primitives.map(shapeStageItemHtml).join('');
+  var items = '';
   var empty = items ? '' : '<div class="shape-stage-empty">从右侧基础例子库点击一个例子，它会出现在这里；拖动它就能改变形态结构。</div>';
+  empty = recipe.primitives.length ? '' : '<div class="shape-stage-empty">空白形态</div>';
+  var motion = !!shapeWorkshopState.motionPreview;
+  var previewRecipe = shapeWorkshopPreviewRecipeForRender();
+  var previewStatus = shapeWorkshopPreviewStatus(recipe);
+  var selected = shapeWorkshopSelectedPrimitive();
+  var selectedIndex = selected ? recipe.primitives.findIndex(function(p){ return p.id === selected.id; }) : -1;
+  var selectedVisible = !!(selected && (!shapeWorkshopIsPrimitiveHidden(selected.id) || shapeWorkshopState.soloId === selected.id));
+  var gizmo = selectedVisible ? shapeStageGizmoHtml(selected, Math.max(0, selectedIndex)) : '';
+  if (recipe.primitives.length && !previewRecipe.primitives.length) empty = '<div class="shape-stage-empty">当前没有可见层<br>点“全部预览”或在层级里点“显示”。</div>';
+  var countText = previewRecipe.primitives.length === recipe.primitives.length
+    ? shapeRecipeSummary(recipe)
+    : (previewRecipe.primitives.length + ' / ' + recipe.primitives.length + ' 层 · ' + shapeRecipeTotalParticles(previewRecipe) + ' 粒子');
   stage.innerHTML =
     '<div class="shape-stage-head">' +
-      '<div><div class="shape-stage-title">Shape Workshop</div><div class="shape-stage-sub">这是空白创作画布。点击右侧基础例子生成图层，直接拖动图层调整形态位置。</div></div>' +
-      '<div class="shape-stage-count">' + escHtml(shapeRecipeSummary(recipe)) + '</div>' +
+      '<div><div class="shape-stage-title">Shape Workshop</div><div class="shape-stage-sub">真实 3D 点云预览。静态编辑是正面投影操作；前后厚度、层角度和律动预览会展示 3D 深度。</div></div>' +
+      '<div class="shape-stage-count">' + escHtml(countText) + '</div>' +
     '</div>' +
     empty +
-    items;
+    gizmo +
+    '<div class="shape-stage-status"><strong>' + (motion ? '律动预览' : '静态编辑') + '</strong><span>' + escHtml(previewStatus) + ' · ' + (motion ? '自动旋转 / 随音乐起伏' : '停止自转 / 停止音乐抖动') + '</span></div>';
+}
+function shapeWorkshopPrimitiveById(id) {
+  var recipe = shapeWorkshopState.recipe = normalizeShapeRecipe(shapeWorkshopState.recipe);
+  return recipe.primitives.filter(function(p){ return p.id === id; })[0] || null;
 }
 function shapeStagePointFromEvent(event) {
   var stage = document.getElementById('shape-workshop-stage');
@@ -22801,12 +23479,32 @@ function shapeStagePointFromEvent(event) {
     y: clampRange((top - 0.5) / 0.38, -0.95, 0.95)
   };
 }
-function shapeWorkshopSetPrimitivePosition(id, x, y, renderPanel) {
+function shapeStageCenterForPrimitive(primitive) {
+  var stage = document.getElementById('shape-workshop-stage');
+  if (!stage || !primitive) return null;
+  var rect = stage.getBoundingClientRect();
+  if (!rect.width || !rect.height) return null;
+  var x = clampRange(Number(primitive.x) || 0, -0.95, 0.95);
+  var y = clampRange(Number(primitive.y) || 0, -0.95, 0.95);
+  return {
+    x: rect.left + rect.width * (0.5 + x * 0.42),
+    y: rect.top + rect.height * (0.5 + y * 0.38)
+  };
+}
+function shapeStageAngleFromEvent(event, center) {
+  if (!event || !center) return 0;
+  return Math.atan2(event.clientY - center.y, event.clientX - center.x);
+}
+function normalizeShapeStageAngleDelta(delta) {
+  while (delta > Math.PI) delta -= Math.PI * 2;
+  while (delta < -Math.PI) delta += Math.PI * 2;
+  return delta;
+}
+function shapeWorkshopPatchPrimitive(id, patch, renderPanel) {
   var recipe = shapeWorkshopState.recipe = normalizeShapeRecipe(shapeWorkshopState.recipe);
   recipe.primitives = recipe.primitives.map(function(p, index){
     if (p.id !== id) return p;
-    p.x = clampRange(Number(x) || 0, -0.95, 0.95);
-    p.y = clampRange(Number(y) || 0, -0.95, 0.95);
+    Object.keys(patch || {}).forEach(function(key){ p[key] = patch[key]; });
     return normalizeShapePrimitive(p, index);
   });
   shapeWorkshopState.recipe = normalizeShapeRecipe(recipe);
@@ -22814,12 +23512,48 @@ function shapeWorkshopSetPrimitivePosition(id, x, y, renderPanel) {
   if (renderPanel) renderShapeWorkshop();
   else renderShapeWorkshopStage();
 }
+function shapeWorkshopSetPrimitivePosition(id, x, y, renderPanel) {
+  shapeWorkshopPatchPrimitive(id, {
+    x: clampRange(Number(x) || 0, -0.95, 0.95),
+    y: clampRange(Number(y) || 0, -0.95, 0.95)
+  }, renderPanel);
+}
+function shapeWorkshopSetPrimitiveRotation(id, rotation, renderPanel) {
+  shapeWorkshopPatchPrimitive(id, {
+    rotation: clampRange(Number(rotation) || 0, 0, 1.2)
+  }, renderPanel);
+}
 function beginShapeStageDrag(event, id) {
   if (!event || !shapeWorkshopState.open) return;
   event.preventDefault();
   event.stopPropagation();
+  shapeWorkshopPushUndo();
   shapeWorkshopState.selectedId = id;
-  shapeStageDrag = { id: id };
+  shapeStageDrag = { id: id, mode: 'move' };
+  document.removeEventListener('pointermove', moveShapeStageDrag);
+  document.removeEventListener('pointerup', endShapeStageDrag);
+  document.removeEventListener('pointercancel', endShapeStageDrag);
+  document.addEventListener('pointermove', moveShapeStageDrag);
+  document.addEventListener('pointerup', endShapeStageDrag);
+  document.addEventListener('pointercancel', endShapeStageDrag);
+  renderShapeWorkshopStage();
+}
+function beginShapeStageRotate(event, id) {
+  if (!event || !shapeWorkshopState.open) return;
+  var primitive = shapeWorkshopPrimitiveById(id);
+  var center = shapeStageCenterForPrimitive(primitive);
+  if (!primitive || !center) return;
+  event.preventDefault();
+  event.stopPropagation();
+  shapeWorkshopPushUndo();
+  shapeWorkshopState.selectedId = id;
+  shapeStageDrag = {
+    id: id,
+    mode: 'rotate',
+    center: center,
+    startAngle: shapeStageAngleFromEvent(event, center),
+    startRotation: Number(primitive.rotation) || 0
+  };
   document.removeEventListener('pointermove', moveShapeStageDrag);
   document.removeEventListener('pointerup', endShapeStageDrag);
   document.removeEventListener('pointercancel', endShapeStageDrag);
@@ -22830,14 +23564,24 @@ function beginShapeStageDrag(event, id) {
 }
 function moveShapeStageDrag(event) {
   if (!shapeStageDrag) return;
+  if (shapeStageDrag.mode === 'rotate') {
+    var delta = normalizeShapeStageAngleDelta(shapeStageAngleFromEvent(event, shapeStageDrag.center) - shapeStageDrag.startAngle);
+    shapeWorkshopSetPrimitiveRotation(shapeStageDrag.id, shapeStageDrag.startRotation + delta / (Math.PI * 2), false);
+    return;
+  }
   var point = shapeStagePointFromEvent(event);
   if (!point) return;
   shapeWorkshopSetPrimitivePosition(shapeStageDrag.id, point.x, point.y, false);
 }
 function endShapeStageDrag(event) {
   if (shapeStageDrag && event) {
-    var point = shapeStagePointFromEvent(event);
-    if (point) shapeWorkshopSetPrimitivePosition(shapeStageDrag.id, point.x, point.y, false);
+    if (shapeStageDrag.mode === 'rotate') {
+      var delta = normalizeShapeStageAngleDelta(shapeStageAngleFromEvent(event, shapeStageDrag.center) - shapeStageDrag.startAngle);
+      shapeWorkshopSetPrimitiveRotation(shapeStageDrag.id, shapeStageDrag.startRotation + delta / (Math.PI * 2), false);
+    } else {
+      var point = shapeStagePointFromEvent(event);
+      if (point) shapeWorkshopSetPrimitivePosition(shapeStageDrag.id, point.x, point.y, false);
+    }
   }
   var shouldRender = !!shapeStageDrag;
   shapeStageDrag = null;
@@ -22848,17 +23592,22 @@ function endShapeStageDrag(event) {
 }
 function shapePreviewHtml(recipe) {
   recipe = normalizeShapeRecipe(recipe);
-  var items = recipe.primitives.map(function(p, index){
-    var scale = clampRange(0.72 + p.size * 0.28 + p.depth * 0.18, 0.65, 1.45);
-    return '<i class="shape-preview-primitive ' + escHtml(p.type) + '" style="' + shapePositionStyle(p, index, scale, 34, 28) + '"></i>';
-  }).join('');
-  return '<div class="shape-preview-scene">' + items + '</div>' +
-    '<div class="shape-workshop-summary"><span>' + escHtml(recipe.name) + '</span><span>' + escHtml(shapeRecipeSummary(recipe)) + '</span></div>';
+  var material = recipe.materialBinding && recipe.materialBinding.mode === 'cover-color' ? '取色' : '封面';
+  return '<div class="shape-3d-preview-note"><strong>真实 3D 预览</strong><span>左侧舞台实时显示</span></div>' +
+    '<div class="shape-3d-stat-grid">' +
+      '<div class="shape-3d-stat"><b>' + recipe.primitives.length + '</b><span>层级</span></div>' +
+      '<div class="shape-3d-stat"><b>' + shapeRecipeTotalParticles(recipe) + '</b><span>粒子</span></div>' +
+      '<div class="shape-3d-stat"><b>' + material + '</b><span>材质</span></div>' +
+    '</div>';
 }
 function renderShapeWorkshopClosed() {
+  var hasActiveShape = !!(activeUserShapeRecipe && activeUserShapeRecipe.primitives && activeUserShapeRecipe.primitives.length);
   return '<div class="shape-workshop-closed">' +
     '<div><strong>创建形态</strong><span>用点、线、环、面、螺旋等基础例子拼出自己的形态预设；底片只负责填充。</span></div>' +
-    '<button class="fx-mini-btn" type="button" onclick="openShapeWorkshop()">进入</button>' +
+    '<div class="shape-workshop-closed-actions">' +
+      (hasActiveShape ? '<button class="fx-mini-btn ghost" type="button" onclick="openShapeWorkshopFromActiveShape()">编辑当前</button>' : '') +
+      '<button class="fx-mini-btn" type="button" onclick="openShapeWorkshop()">进入</button>' +
+    '</div>' +
   '</div>';
 }
 function renderShapePrimitiveButtons() {
@@ -22877,36 +23626,73 @@ function renderShapeLayerList(recipe) {
   recipe = normalizeShapeRecipe(recipe);
   return recipe.primitives.map(function(p, index){
     var active = p.id === shapeWorkshopState.selectedId;
-    return '<div class="shape-layer-row' + (active ? ' active' : '') + '" onclick="shapeWorkshopSelectPrimitive(\'' + escHtml(p.id) + '\')">' +
+    var solo = p.id === shapeWorkshopState.soloId;
+    var hidden = shapeWorkshopIsPrimitiveHidden(p.id);
+    var rowClass = 'shape-layer-row' + (active ? ' active' : '') + (solo ? ' solo' : '') + (hidden ? ' hidden' : '');
+    var meta = p.count + ' 粒子 · 前后厚度 ' + p.depth.toFixed(2) + ' · 随音乐动 ' + Math.round(p.audioFollow * 100) + '%';
+    if (solo) meta += ' · 单看中';
+    if (hidden && !solo) meta += ' · 已隐藏';
+    return '<div class="' + rowClass + '" onclick="shapeWorkshopSelectPrimitive(\'' + escHtml(p.id) + '\')">' +
       '<div><div class="shape-layer-name">' + (index + 1) + '. ' + escHtml(shapePrimitiveLabel(p)) + '</div>' +
-      '<div class="shape-layer-meta">' + p.count + ' 粒子 · 深度 ' + p.depth.toFixed(2) + ' · 律动 ' + Math.round(p.audioFollow * 100) + '%</div></div>' +
+      '<div class="shape-layer-meta">' + escHtml(meta) + '</div></div>' +
       '<div class="shape-layer-actions">' +
+        '<button type="button" onclick="event.stopPropagation();shapeWorkshopSoloPrimitive(\'' + escHtml(p.id) + '\')">' + (solo ? '全部' : '单看') + '</button>' +
+        '<button type="button" onclick="event.stopPropagation();shapeWorkshopTogglePrimitiveHidden(\'' + escHtml(p.id) + '\')">' + (hidden ? '显示' : '隐藏') + '</button>' +
         '<button type="button" onclick="event.stopPropagation();shapeWorkshopDuplicatePrimitive(\'' + escHtml(p.id) + '\')">复制</button>' +
         '<button type="button" onclick="event.stopPropagation();shapeWorkshopRemovePrimitive(\'' + escHtml(p.id) + '\')">删除</button>' +
       '</div>' +
     '</div>';
   }).join('') || '<div class="shape-layer-row"><div><div class="shape-layer-name">还没有例子</div><div class="shape-layer-meta">从基础例子库添加一个开始</div></div></div>';
 }
+function renderShapeVisibilityControl(recipe, selected) {
+  recipe = shapeWorkshopCleanPreviewFocus(recipe);
+  var hasFocus = !!(shapeWorkshopState.soloId || Object.keys(shapeWorkshopHiddenIds()).length);
+  var selectedSolo = !!(selected && shapeWorkshopState.soloId === selected.id);
+  var disabled = !selected ? ' disabled' : '';
+  return '<div class="shape-layer-visibility" role="group" aria-label="层级预览范围">' +
+    '<button type="button" class="' + (!hasFocus ? 'active' : '') + '" onclick="shapeWorkshopShowAllLayers()">全部预览</button>' +
+    '<button type="button" class="' + (selectedSolo ? 'active' : '') + '"' + disabled + ' onclick="shapeWorkshopSoloSelectedPrimitive()">只看所选</button>' +
+  '</div>' +
+  '<div class="shape-preview-hint">' + escHtml(shapeWorkshopPreviewStatus(recipe)) + '。这只影响工坊预览，不会删除或改写保存的形态。</div>';
+}
+function renderShapeMotionControl() {
+  var motion = !!(shapeWorkshopState && shapeWorkshopState.motionPreview);
+  var recipe = shapeWorkshopState ? normalizeShapeRecipe(shapeWorkshopState.recipe) : defaultShapeRecipe();
+  var driftLocked = shapeRecipeDriftLockEnabled(recipe);
+  return '<div class="shape-motion-seg" role="group" aria-label="形态预览模式">' +
+    '<button type="button" class="' + (!motion ? 'active' : '') + '" onclick="shapeWorkshopSetMotionPreview(false)">静态编辑</button>' +
+    '<button type="button" class="' + (motion ? 'active' : '') + '" onclick="shapeWorkshopSetMotionPreview(true)">律动预览</button>' +
+  '</div>' +
+  '<div class="shape-stability-actions" role="group" aria-label="形态稳定底座">' +
+    '<button type="button" class="' + (driftLocked ? 'active' : '') + '" onclick="shapeWorkshopToggleDriftLock()">' + (driftLocked ? '漂移已锁定' : '锁定层漂移') + '</button>' +
+    '<button type="button" onclick="shapeWorkshopStabilizeRecipe()">一键稳定</button>' +
+  '</div>' +
+  '<div class="shape-motion-hint">' + (motion ? '有歌曲播放时跟随真实音频；未播放时使用演示节拍。' : '静态编辑已开启，粒子不会自动旋转或随音乐抖动。') + (driftLocked ? ' 层级漂移已锁定，多层律动时不会各自慢慢偏走。' : ' 如果多层律动后容易偏走，可以先打开漂移锁定。') + '</div>';
+}
 function renderShapeParamPanel(primitive) {
   if (!primitive) return '<div class="shape-layer-meta">先选择一个基础例子。</div>';
+  var countMax = shapePrimitiveCountMax(primitive);
   var params = [
     ['x', '左右', -0.95, 0.95, 0.01, primitive.x],
     ['y', '上下', -0.95, 0.95, 0.01, primitive.y],
     ['z', '前后', -0.95, 0.95, 0.01, primitive.z],
-    ['count', '数量', 8, 1200, 1, primitive.count],
+    ['count', '数量', 8, countMax, 1, primitive.count],
     ['size', '大小', 0.2, 1.8, 0.01, primitive.size],
-    ['depth', '深度', 0, 1.2, 0.01, primitive.depth],
-    ['rotation', '旋转', 0, 1.2, 0.01, primitive.rotation],
-    ['audioFollow', '律动', 0, 1, 0.01, primitive.audioFollow],
+    ['depth', '前后厚度', 0, 1.2, 0.01, primitive.depth],
+    ['rotation', '层角度', 0, 1.2, 0.01, primitive.rotation],
+    ['audioFollow', '随音乐动', 0, 1, 0.01, primitive.audioFollow],
     ['opacity', '透明', 0.08, 1, 0.01, primitive.opacity]
   ];
   return '<div class="shape-param-grid">' + params.map(function(p){
     var value = p[5];
-    var text = p[0] === 'count' ? String(Math.round(value)) : Number(value).toFixed(2);
+    var text = shapeParamDisplayValue(p[0], value);
     return '<div class="shape-param-row"><label>' + p[1] + '</label>' +
-      '<input type="range" min="' + p[2] + '" max="' + p[3] + '" step="' + p[4] + '" value="' + value + '" oninput="shapeWorkshopUpdatePrimitive(\'' + primitive.id + '\',\'' + p[0] + '\',this.value)">' +
+      '<input type="range" min="' + p[2] + '" max="' + p[3] + '" step="' + p[4] + '" value="' + value + '" oninput="shapeWorkshopUpdatePrimitive(\'' + primitive.id + '\',\'' + p[0] + '\',this.value,this)" onchange="shapeWorkshopFinishParamEdit()">' +
       '<output>' + text + '</output></div>';
   }).join('') + '</div>';
+}
+function shapeParamDisplayValue(key, value) {
+  return key === 'count' ? String(Math.round(Number(value) || 0)) : Number(value || 0).toFixed(2);
 }
 function renderShapeSavedPresets() {
   if (!userShapePresets.length) {
@@ -22949,13 +23735,15 @@ function renderShapeWorkshop() {
         '<div><div class="shape-workshop-title">形态工坊</div><div class="shape-workshop-sub">先创造形态规则，再让歌曲封面、图片、文字作为底片填充。</div></div>' +
         '<button class="fx-mini-btn ghost" type="button" onclick="closeShapeWorkshop()">收起</button>' +
       '</div>' +
-      '<input class="shape-workshop-name" maxlength="28" value="' + escHtml(recipe.name) + '" oninput="shapeWorkshopUpdateName(this.value)" aria-label="形态名称">' +
-      '<div class="shape-workshop-preview">' + shapePreviewHtml(recipe) + '</div>' +
+      '<input class="shape-workshop-name" maxlength="28" value="' + escHtml(recipe.name) + '" oninput="shapeWorkshopUpdateName(this.value)" onchange="shapeWorkshopFinishParamEdit()" aria-label="形态名称">' +
+      '<div class="shape-workshop-preview shape-workshop-preview-summary">' + shapePreviewHtml(recipe) + '</div>' +
+      '<div class="shape-workshop-section shape-workshop-params-section"><div class="shape-workshop-section-title">所选例子参数</div>' + renderShapeMotionControl() + renderShapeVisibilityControl(recipe, selected) + renderShapeParamPanel(selected) + '</div>' +
+      '<div class="shape-workshop-section"><div class="shape-workshop-section-title">当前形态层级</div><div class="shape-layer-list">' + renderShapeLayerList(recipe) + '</div></div>' +
       '<div class="shape-workshop-section"><div class="shape-workshop-section-title">基础例子库</div><div class="shape-chip-grid">' + renderShapePrimitiveButtons() + '</div></div>' +
       '<div class="shape-workshop-section"><div class="shape-workshop-section-title">基础结构包</div><div class="shape-chip-grid">' + renderShapeStructureButtons() + '</div></div>' +
-      '<div class="shape-workshop-section"><div class="shape-workshop-section-title">当前形态层级</div><div class="shape-layer-list">' + renderShapeLayerList(recipe) + '</div></div>' +
-      '<div class="shape-workshop-section"><div class="shape-workshop-section-title">所选例子参数</div>' + renderShapeParamPanel(selected) + '</div>' +
       '<div class="shape-workshop-actions">' +
+        '<button type="button" onclick="shapeWorkshopUndo()">撤销</button>' +
+        '<button type="button" onclick="shapeWorkshopRedo()">重做</button>' +
         '<button type="button" onclick="applyCurrentShapePreset()">应用到播放器</button>' +
         '<button type="button" onclick="saveCurrentShapePreset(false,false)">' + saveText + '</button>' +
         '<button type="button" onclick="saveCurrentShapePreset(true,false)">' + saveApplyText + '</button>' +
@@ -22973,18 +23761,116 @@ function openShapeWorkshop() {
   shapeWorkshopState.recipe = normalizeShapeRecipe(shapeWorkshopState.recipe);
   shapeWorkshopState.selectedId = shapeWorkshopState.selectedId || (shapeWorkshopState.recipe.primitives[0] && shapeWorkshopState.recipe.primitives[0].id) || '';
   shapeWorkshopState.deleteConfirmIndex = -1;
+  shapeWorkshopState.motionPreview = false;
+  shapeWorkshopClearPreviewFocus();
   enterShapeWorkshopRenderMode();
   setFxPanelTab('presets');
   renderShapeWorkshop();
   var root = document.getElementById('shape-workshop');
   if (root && root.scrollIntoView) root.scrollIntoView({ block: 'nearest' });
 }
+function loadRecipeIntoShapeWorkshop(recipe, editingIndex, toastText) {
+  recipe = normalizeShapeRecipe(recipe);
+  shapeWorkshopState.open = true;
+  shapeWorkshopState.recipe = recipe;
+  shapeWorkshopState.selectedId = recipe.primitives[0] ? recipe.primitives[0].id : '';
+  shapeWorkshopState.editingIndex = Math.floor(Number(editingIndex));
+  if (!isFinite(shapeWorkshopState.editingIndex)) shapeWorkshopState.editingIndex = -1;
+  shapeWorkshopState.deleteConfirmIndex = -1;
+  shapeWorkshopState.motionPreview = false;
+  shapeWorkshopResetHistory();
+  shapeWorkshopClearPreviewFocus();
+  enterShapeWorkshopRenderMode();
+  setFxPanelTab('presets');
+  renderShapeWorkshop();
+  var root = document.getElementById('shape-workshop');
+  if (root && root.scrollIntoView) root.scrollIntoView({ block: 'nearest' });
+  if (toastText) showToast(toastText);
+}
+function openShapeWorkshopFromActiveShape() {
+  if (!activeUserShapeRecipe || !activeUserShapeRecipe.primitives || !activeUserShapeRecipe.primitives.length) {
+    openShapeWorkshop();
+    return;
+  }
+  var recipe = cloneShapeRecipe(activeUserShapeRecipe);
+  loadRecipeIntoShapeWorkshop(recipe, -1, '已载入当前形态，可另存为我的形态');
+}
 function closeShapeWorkshop() {
   shapeWorkshopState.open = false;
+  shapeWorkshopState.motionPreview = false;
   exitShapeWorkshopRenderMode();
   renderShapeWorkshop();
 }
+function shapeWorkshopSetMotionPreview(enabled) {
+  shapeWorkshopState.motionPreview = !!enabled;
+  syncCustomShapeLayer(true);
+  renderShapeWorkshopStage();
+  renderShapeWorkshop();
+}
+function shapeWorkshopToggleDriftLock() {
+  var recipe = shapeWorkshopState.recipe = normalizeShapeRecipe(shapeWorkshopState.recipe);
+  shapeWorkshopPushUndo();
+  var next = !shapeRecipeDriftLockEnabled(recipe);
+  recipe.stability = { driftLock: next };
+  shapeWorkshopState.recipe = normalizeShapeRecipe(recipe);
+  shapeWorkshopState.deleteConfirmIndex = -1;
+  syncCustomShapeLayer(true);
+  renderShapeWorkshop();
+  showToast(next ? '已锁定层级漂移' : '已允许层级自由漂移');
+}
+function shapeWorkshopStabilizeRecipe() {
+  var recipe = shapeWorkshopState.recipe = normalizeShapeRecipe(shapeWorkshopState.recipe);
+  if (!recipe.primitives.length) {
+    showToast('先添加基础粒子，再启用稳定底座');
+    return;
+  }
+  shapeWorkshopPushUndo();
+  recipe.stability = { driftLock: true };
+  recipe.primitives = recipe.primitives.map(function(p, index){
+    var next = Object.assign({}, p);
+    next.audioFollow = clampRange(Math.min(Number(next.audioFollow) || 0, 0.55), 0, 1);
+    return normalizeShapePrimitive(next, index);
+  });
+  shapeWorkshopState.recipe = normalizeShapeRecipe(recipe);
+  shapeWorkshopState.deleteConfirmIndex = -1;
+  syncCustomShapeLayer(true);
+  renderShapeWorkshop();
+  showToast('已启用稳定底座：锁定漂移并收敛随音乐动');
+}
+function shapeWorkshopShowAllLayers() {
+  shapeWorkshopClearPreviewFocus();
+  shapeWorkshopState.deleteConfirmIndex = -1;
+  syncCustomShapeLayer(true);
+  renderShapeWorkshop();
+}
+function shapeWorkshopSoloPrimitive(id) {
+  var primitive = shapeWorkshopPrimitiveById(id);
+  if (!primitive) return;
+  shapeWorkshopState.selectedId = primitive.id;
+  shapeWorkshopState.soloId = shapeWorkshopState.soloId === primitive.id ? '' : primitive.id;
+  if (shapeWorkshopState.soloId) delete shapeWorkshopHiddenIds()[primitive.id];
+  shapeWorkshopState.deleteConfirmIndex = -1;
+  syncCustomShapeLayer(true);
+  renderShapeWorkshop();
+}
+function shapeWorkshopSoloSelectedPrimitive() {
+  var selected = shapeWorkshopSelectedPrimitive();
+  if (selected) shapeWorkshopSoloPrimitive(selected.id);
+}
+function shapeWorkshopTogglePrimitiveHidden(id) {
+  var primitive = shapeWorkshopPrimitiveById(id);
+  if (!primitive) return;
+  var hidden = shapeWorkshopHiddenIds();
+  if (hidden[primitive.id]) delete hidden[primitive.id];
+  else hidden[primitive.id] = true;
+  if (shapeWorkshopState.soloId === primitive.id) shapeWorkshopState.soloId = '';
+  shapeWorkshopState.selectedId = primitive.id;
+  shapeWorkshopState.deleteConfirmIndex = -1;
+  syncCustomShapeLayer(true);
+  renderShapeWorkshop();
+}
 function shapeWorkshopUpdateName(value) {
+  shapeWorkshopEnsureParamUndo('recipe', 'name');
   shapeWorkshopState.recipe.name = normalizeShapeRecipeName(value);
   shapeWorkshopState.deleteConfirmIndex = -1;
   syncCustomShapeLayer(false);
@@ -22996,6 +23882,7 @@ function shapeWorkshopAddPrimitive(type) {
     showToast('基础例子最多 ' + SHAPE_PRIMITIVE_LIMIT + ' 层');
     return;
   }
+  shapeWorkshopPushUndo();
   var primitive = createShapePrimitive(type);
   recipe.primitives.push(primitive);
   shapeWorkshopState.selectedId = primitive.id;
@@ -23013,6 +23900,7 @@ function shapeWorkshopApplyStructure(key) {
     showToast('基础例子最多 ' + SHAPE_PRIMITIVE_LIMIT + ' 层');
     return;
   }
+  shapeWorkshopPushUndo();
   var groupCenter = recipe.primitives.length ? shapePrimitiveSpawnPosition(recipe.primitives.length) : { x: 0, y: 0 };
   var added = tpl.primitives.slice(0, available).map(function(p, index){
     return createShapePrimitive(p.type, Object.assign({}, p, {
@@ -23033,22 +23921,34 @@ function shapeWorkshopApplyStructure(key) {
 function shapeWorkshopSelectPrimitive(id) {
   shapeWorkshopState.selectedId = id;
   shapeWorkshopState.deleteConfirmIndex = -1;
+  syncCustomShapeLayer(true);
   renderShapeWorkshop();
 }
-function shapeWorkshopUpdatePrimitive(id, key, value) {
+function shapeWorkshopUpdatePrimitive(id, key, value, inputEl) {
   var recipe = shapeWorkshopState.recipe = normalizeShapeRecipe(shapeWorkshopState.recipe);
+  var updated = null;
+  shapeWorkshopEnsureParamUndo(id, key);
   recipe.primitives = recipe.primitives.map(function(p, index){
     if (p.id !== id) return p;
     p[key] = key === 'count' ? Math.round(Number(value) || p[key]) : Number(value);
-    return normalizeShapePrimitive(p, index);
+    updated = normalizeShapePrimitive(p, index);
+    return updated;
   });
   shapeWorkshopState.recipe = normalizeShapeRecipe(recipe);
   shapeWorkshopState.deleteConfirmIndex = -1;
   syncCustomShapeLayer(false);
+  renderShapeWorkshopStage();
+  if (inputEl && inputEl.parentElement) {
+    var output = inputEl.parentElement.querySelector('output');
+    if (output && updated) output.textContent = shapeParamDisplayValue(key, updated[key]);
+    return;
+  }
   renderShapeWorkshop();
 }
 function shapeWorkshopRemovePrimitive(id) {
   var recipe = shapeWorkshopState.recipe = normalizeShapeRecipe(shapeWorkshopState.recipe);
+  if (!recipe.primitives.some(function(p){ return p.id === id; })) return;
+  shapeWorkshopPushUndo();
   recipe.primitives = recipe.primitives.filter(function(p){ return p.id !== id; });
   shapeWorkshopState.selectedId = recipe.primitives[0] ? recipe.primitives[0].id : '';
   shapeWorkshopState.recipe = normalizeShapeRecipe(recipe);
@@ -23064,6 +23964,7 @@ function shapeWorkshopDuplicatePrimitive(id) {
   }
   var item = recipe.primitives.filter(function(p){ return p.id === id; })[0];
   if (!item) return;
+  shapeWorkshopPushUndo();
   var copy = createShapePrimitive(item.type, Object.assign({}, item, {
     id: '',
     x: clampRange((Number(item.x) || 0) + 0.08, -0.95, 0.95),
@@ -23077,10 +23978,12 @@ function shapeWorkshopDuplicatePrimitive(id) {
   renderShapeWorkshop();
 }
 function resetShapeWorkshopRecipe() {
+  shapeWorkshopPushUndo();
   shapeWorkshopState.recipe = defaultShapeRecipe();
   shapeWorkshopState.selectedId = '';
   shapeWorkshopState.editingIndex = -1;
   shapeWorkshopState.deleteConfirmIndex = -1;
+  shapeWorkshopClearPreviewFocus();
   syncCustomShapeLayer(true);
   renderShapeWorkshop();
   showToast('形态工坊已清空');
@@ -23124,6 +24027,9 @@ function loadUserShapePreset(index) {
   shapeWorkshopState.selectedId = shapeWorkshopState.recipe.primitives[0] ? shapeWorkshopState.recipe.primitives[0].id : '';
   shapeWorkshopState.editingIndex = index;
   shapeWorkshopState.deleteConfirmIndex = -1;
+  shapeWorkshopState.motionPreview = false;
+  shapeWorkshopResetHistory();
+  shapeWorkshopClearPreviewFocus();
   enterShapeWorkshopRenderMode();
   renderShapeWorkshop();
   showToast('已载入形态: ' + shapeWorkshopState.recipe.name);
@@ -23161,6 +24067,7 @@ function deleteUserShapePreset(index) {
   if (shapeWorkshopState.deleteConfirmIndex !== index) {
     shapeWorkshopState.deleteConfirmIndex = index;
     renderShapeWorkshop();
+    buildPresetGrid();
     showToast('再点一次确认删除: ' + slot.name);
     return;
   }
@@ -23181,7 +24088,7 @@ function creativeSandboxPresetName() {
   return preset && preset.name ? preset.name : '当前形态';
 }
 function creativeSandboxMaterialLabel() {
-  return (fx.backgroundMedia || fx.backgroundImage) ? customBackgroundMediaLabel(fx.backgroundMedia || fx.backgroundImage) : '当前歌曲封面';
+  return shapeMaterialMediaLabel(fx.shapeMaterialMedia);
 }
 function renderCreativeSandboxBuilder() {
   var grid = document.getElementById('sandbox-builder-grid');
@@ -23197,10 +24104,10 @@ function renderCreativeSandboxBuilder() {
   var cameraText = fx.cinema ? '电影镜头' : '静态镜头';
   grid.innerHTML =
     '<div class="sandbox-block primary">' +
-      '<div class="sandbox-block-head"><div><div class="sandbox-block-kicker">material</div><div class="sandbox-block-title">素材</div></div><div class="sandbox-status">' + escHtml(material) + '</div></div>' +
-      '<div class="sandbox-block-desc">这里调整作品使用的底片素材，不负责定义形态本身。</div>' +
+      '<div class="sandbox-block-head"><div><div class="sandbox-block-kicker">material</div><div class="sandbox-block-title">形态素材</div></div><div class="sandbox-status">' + escHtml(material) + '</div></div>' +
+      '<div class="sandbox-block-desc">这里只调整形态内部使用的底片素材，不会铺满整屏背景。</div>' +
       '<div class="sandbox-actions">' +
-        '<button type="button" onclick="creativeSandboxUseCover()" class="' + ((fx.backgroundMedia || fx.backgroundImage) ? '' : 'active') + '">当前封面</button>' +
+        '<button type="button" onclick="creativeSandboxUseCover()" class="' + (currentShapeMaterialMedia() ? '' : 'active') + '">当前封面</button>' +
         '<button type="button" onclick="creativeSandboxUploadMaterial()">上传素材</button>' +
       '</div>' +
     '</div>' +
@@ -23253,11 +24160,11 @@ function refreshCreativeSandboxBuilder() {
   renderCreativeSandboxBuilder();
 }
 function creativeSandboxUseCover() {
-  clearCustomBackgroundImage();
+  clearShapeMaterialMedia();
   refreshCreativeSandboxBuilder();
 }
 function creativeSandboxUploadMaterial() {
-  var input = document.getElementById('background-image-input');
+  var input = document.getElementById('shape-material-input');
   if (input) input.click();
 }
 function creativeSandboxSetPreset(p) {
@@ -23893,11 +24800,13 @@ function renderPresetGridUserShapeCards() {
   if (!userShapePresets || !userShapePresets.length) return '';
   return userShapePresets.map(function(slot, index){
     var recipe = normalizeShapeRecipe(slot.recipe);
-    return '<button class="preset-card user-shape-preset" type="button" data-user-shape-index="' + index + '" onclick="applyUserShapePresetFromGrid(' + index + ')" title="' + escHtml(slot.name) + '">' +
+    var deleting = shapeWorkshopState && shapeWorkshopState.deleteConfirmIndex === index;
+    return '<div class="preset-card user-shape-preset" role="button" tabindex="0" data-user-shape-index="' + index + '" onclick="applyUserShapePresetFromGrid(' + index + ')" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();applyUserShapePresetFromGrid(' + index + ')}" title="' + escHtml(slot.name) + '">' +
+      '<button class="user-shape-card-delete' + (deleting ? ' confirm' : '') + '" type="button" onclick="event.stopPropagation();deleteUserShapePreset(' + index + ')">' + (deleting ? '确认' : '删除') + '</button>' +
       '<div class="pc-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 17c2.5-5 5-5 10 0s7.5 5 10 0"/><path d="M6 12c2.1-2.8 4.2-2.8 8.4 0s6.3 2.8 8.4 0"/><circle cx="7" cy="17" r="1.45" fill="currentColor"/><circle cx="14" cy="10" r="1.45" fill="currentColor"/><circle cx="21" cy="17" r="1.45" fill="currentColor"/></svg></div>' +
       '<div class="pc-name">' + escHtml(slot.name) + '</div>' +
       '<div class="pc-desc">我的形态 · ' + escHtml(shapeRecipeSummary(recipe)) + '</div>' +
-    '</button>';
+    '</div>';
   }).join('');
 }
 function refreshPresetGrid() {
@@ -24275,7 +25184,11 @@ function ensureFxSliderResetButton(id, key) {
 var fxPanelTab = 'presets';
 function setFxPanelTab(tab) {
   var allowed = { presets:1, appearance:1, lyrics:1, motion:1, advanced:1 };
-  fxPanelTab = allowed[tab] ? tab : 'presets';
+  var nextTab = allowed[tab] ? tab : 'presets';
+  if (nextTab !== 'presets' && typeof shapeWorkshopState !== 'undefined' && shapeWorkshopState.open && typeof closeShapeWorkshop === 'function') {
+    closeShapeWorkshop();
+  }
+  fxPanelTab = nextTab;
   var panel = document.getElementById('fx-panel');
   if (panel) panel.setAttribute('data-active-tab', fxPanelTab);
   document.querySelectorAll('#fx-panel-tabs [data-fx-tab]').forEach(function(btn){
@@ -24435,13 +25348,13 @@ function applyBackgroundMediaHint() {
   var value = document.getElementById('bg-image-value');
   if (value && !value.dataset.mediaHint) {
     value.dataset.mediaHint = '1';
-    value.title = '支持图片 JPG / PNG / WebP 与视频 MP4 / WebM / MOV 上传';
+    value.title = '只影响整屏背景；形态素材请在作品组合里上传';
   }
   var label = value && value.closest ? value.closest('.fx-color-row-label') : null;
   if (label && !document.getElementById('bg-media-hint')) {
     var hint = document.createElement('small');
     hint.id = 'bg-media-hint';
-    hint.textContent = '支持图片 / 视频上传';
+    hint.textContent = '只影响整屏背景';
     label.appendChild(hint);
   }
 }
@@ -24455,7 +25368,7 @@ function relabelFxPanelControls() {
   setFxSectionBeforeNode(overlayGrid, '镜头与叠加');
   setFxSectionBefore('preset-grid', '形态预设');
   setFxSectionBefore('shape-workshop', '形态工坊');
-  setFxSectionBefore('sandbox-builder-grid', '作品组合台');
+  setFxSectionBefore('sandbox-builder-grid', '作品组合');
   setFxSectionBefore('user-archive-grid', '我的作品');
   setFxSectionBefore('ui-accent-picker', '界面与背景');
   setFxSectionBefore('fx-intensity', '画面基础');
@@ -24970,6 +25883,14 @@ function bindFxPanel() {
     bgImageInput.addEventListener('change', function(e){
       var file = e.target.files && e.target.files[0];
       if (file) readBackgroundMediaFile(file);
+      e.target.value = '';
+    });
+  }
+  var shapeMaterialInput = document.getElementById('shape-material-input');
+  if (shapeMaterialInput) {
+    shapeMaterialInput.addEventListener('change', function(e){
+      var file = e.target.files && e.target.files[0];
+      if (file) readShapeMaterialImageFile(file);
       e.target.value = '';
     });
   }
@@ -27808,6 +28729,10 @@ function resetParticleRotationTarget(syncVisual) {
     if (floatGroup) floatGroup.rotation.set(0, 0, 0);
     if (backCoverGroup) backCoverGroup.rotation.set(0, 0, 0);
   }
+  if (syncVisual && customShapeGroup) {
+    customShapeGroup.rotation.set(0, 0, 0);
+    customShapeGroup.userData.autoSpinY = 0;
+  }
 }
 
 function rebaseParticleRotationAxis(axis) {
@@ -27819,6 +28744,7 @@ function rebaseParticleRotationAxis(axis) {
   if (bloomParticles) bloomParticles.rotation[axis] -= offset;
   if (floatGroup) floatGroup.rotation[axis] -= offset;
   if (backCoverGroup) backCoverGroup.rotation[axis] -= offset;
+  if (customShapeGroup) customShapeGroup.rotation[axis] -= offset;
   if (skullParticleGroup) skullParticleGroup.rotation[axis] -= offset;
   if (stageLyrics.group) stageLyrics.group.rotation[axis] -= offset;
 }
