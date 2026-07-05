@@ -1237,6 +1237,7 @@ body.shape-workshop-mode #canvas-container{opacity:1;filter:brightness(.92) satu
 .shape-stage-item.active{filter:drop-shadow(0 0 20px rgba(244,210,138,.35))}
 .shape-stage-item.active::after{content:'';position:absolute;inset:-10px;border-radius:18px;border:1px solid rgba(244,210,138,.48);box-shadow:0 0 26px rgba(244,210,138,.12);pointer-events:none}
 .shape-stage-item.ring{border:3px solid rgba(244,210,138,.90);border-radius:50%;box-shadow:0 0 42px rgba(244,210,138,.22),inset 0 0 28px rgba(244,210,138,.06)}
+.shape-stage-item.curve{width:156px;height:90px;border-radius:50%;border-top:3px solid rgba(244,210,138,.86);border-bottom:3px solid rgba(var(--fc-accent-rgb),.48);clip-path:polygon(0 50%,10% 18%,28% 5%,50% 50%,72% 95%,90% 82%,100% 50%,90% 18%,72% 5%,50% 50%,28% 95%,10% 82%);filter:drop-shadow(0 0 24px rgba(244,210,138,.18))}
 .shape-stage-item.spiral{border-radius:50%;border:3px dashed rgba(var(--fc-accent-rgb),.88);width:118px;height:118px;box-shadow:inset 0 0 44px rgba(var(--fc-accent-rgb),.13),0 0 30px rgba(var(--fc-accent-rgb),.11)}
 .shape-stage-item.point{width:18px;height:18px;border-radius:50%;background:rgba(255,255,255,.96);box-shadow:-52px -20px 0 rgba(var(--fc-accent-rgb),.58),46px 26px 0 rgba(244,210,138,.68),0 0 30px rgba(255,255,255,.42)}
 .shape-stage-item.line{height:4px;width:168px;background:linear-gradient(90deg,transparent,rgba(var(--fc-accent-rgb),.92),rgba(244,210,138,.72),transparent);border-radius:999px}
@@ -1245,10 +1246,10 @@ body.shape-workshop-mode #canvas-container{opacity:1;filter:brightness(.92) satu
 .shape-stage-item.tunnel{width:116px;height:116px;border-radius:50%;border:1px solid rgba(255,255,255,.22);box-shadow:0 0 0 18px rgba(var(--fc-accent-rgb),.060),0 0 0 36px rgba(244,210,138,.050),0 0 42px rgba(var(--fc-accent-rgb),.14)}
 .shape-stage-item.sphere{width:112px;height:112px;border-radius:50%;background:radial-gradient(circle at 35% 30%,rgba(255,255,255,.34),rgba(var(--fc-accent-rgb),.11) 42%,rgba(244,210,138,.035) 70%,transparent 72%);border:1px solid rgba(255,255,255,.20);box-shadow:inset -16px -18px 42px rgba(0,0,0,.32),0 0 34px rgba(var(--fc-accent-rgb),.16)}
 .shape-stage-item.dust{width:16px;height:16px;border-radius:50%;background:rgba(255,255,255,.85);box-shadow:-86px -42px 0 rgba(255,255,255,.32),74px -18px 0 rgba(var(--fc-accent-rgb),.46),42px 56px 0 rgba(244,210,138,.38),-38px 64px 0 rgba(255,255,255,.24),0 0 34px rgba(var(--fc-accent-rgb),.32)}
-.shape-stage-item.mobius{width:152px;height:82px;border-radius:50%;border:0;background:radial-gradient(ellipse at 30% 50%,transparent 29%,rgba(244,210,138,.88) 31%,rgba(var(--fc-accent-rgb),.58) 38%,transparent 42%),radial-gradient(ellipse at 70% 50%,transparent 29%,rgba(var(--fc-accent-rgb),.68) 31%,rgba(244,210,138,.74) 38%,transparent 42%);box-shadow:0 0 42px rgba(var(--fc-accent-rgb),.18)}
 .shape-stage-item.card{width:112px;height:74px;border-radius:13px;border:1px solid rgba(255,255,255,.22);background:linear-gradient(135deg,rgba(255,255,255,.18),rgba(var(--fc-accent-rgb),.09));box-shadow:0 22px 48px rgba(0,0,0,.30)}
 @media (max-width:960px){.shape-workshop-stage{left:16px;right:16px;top:86px;bottom:210px;border-radius:22px}body.shape-workshop-mode #shape-workshop-stage{left:16px;right:16px;top:86px;bottom:210px}body.shape-workshop-mode #fx-panel{left:16px;right:16px;top:auto;bottom:18px;width:auto;max-height:42vh}.shape-stage-head{left:14px;right:14px}.shape-stage-title{font-size:12px}.shape-stage-sub{font-size:10.5px}.shape-stage-count{display:none}}
 .shape-preview-primitive.ring{border:2px solid rgba(244,210,138,.82);border-radius:50%;box-shadow:0 0 28px rgba(244,210,138,.18)}
+.shape-preview-primitive.curve{width:120px;height:70px;border-radius:50%;border-top:2px solid rgba(244,210,138,.78);border-bottom:2px solid rgba(var(--fc-accent-rgb),.44);clip-path:polygon(0 50%,10% 18%,28% 5%,50% 50%,72% 95%,90% 82%,100% 50%,90% 18%,72% 5%,50% 50%,28% 95%,10% 82%)}
 .shape-preview-primitive.spiral{border-radius:50%;border:2px dashed rgba(var(--fc-accent-rgb),.78);width:94px;height:94px;box-shadow:inset 0 0 32px rgba(var(--fc-accent-rgb),.10)}
 .shape-preview-primitive.point{width:12px;height:12px;border-radius:50%;background:rgba(255,255,255,.9);box-shadow:-42px -16px 0 rgba(var(--fc-accent-rgb),.55),36px 20px 0 rgba(244,210,138,.62),0 0 24px rgba(255,255,255,.3)}
 .shape-preview-primitive.line{height:2px;width:128px;background:linear-gradient(90deg,transparent,rgba(var(--fc-accent-rgb),.86),transparent)}
@@ -1257,7 +1258,6 @@ body.shape-workshop-mode #canvas-container{opacity:1;filter:brightness(.92) satu
 .shape-preview-primitive.tunnel{width:92px;height:92px;border-radius:50%;border:1px solid rgba(255,255,255,.18);box-shadow:0 0 0 14px rgba(var(--fc-accent-rgb),.055),0 0 0 28px rgba(244,210,138,.045),0 0 34px rgba(var(--fc-accent-rgb),.12)}
 .shape-preview-primitive.sphere{width:88px;height:88px;border-radius:50%;background:radial-gradient(circle at 35% 30%,rgba(255,255,255,.30),rgba(var(--fc-accent-rgb),.10) 42%,rgba(244,210,138,.030) 70%,transparent 72%);border:1px solid rgba(255,255,255,.18);box-shadow:inset -12px -14px 32px rgba(0,0,0,.28),0 0 28px rgba(var(--fc-accent-rgb),.13)}
 .shape-preview-primitive.dust{width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,.82);box-shadow:-62px -28px 0 rgba(255,255,255,.28),54px -12px 0 rgba(var(--fc-accent-rgb),.42),34px 42px 0 rgba(244,210,138,.34),-30px 48px 0 rgba(255,255,255,.22),0 0 26px rgba(var(--fc-accent-rgb),.26)}
-.shape-preview-primitive.mobius{width:112px;height:60px;border-radius:50%;background:radial-gradient(ellipse at 30% 50%,transparent 29%,rgba(244,210,138,.82) 31%,rgba(var(--fc-accent-rgb),.52) 38%,transparent 42%),radial-gradient(ellipse at 70% 50%,transparent 29%,rgba(var(--fc-accent-rgb),.62) 31%,rgba(244,210,138,.68) 38%,transparent 42%);box-shadow:0 0 32px rgba(var(--fc-accent-rgb),.15)}
 .shape-preview-primitive.card{width:86px;height:58px;border-radius:10px;border:1px solid rgba(255,255,255,.18);background:linear-gradient(135deg,rgba(255,255,255,.16),rgba(var(--fc-accent-rgb),.08));box-shadow:0 18px 38px rgba(0,0,0,.24)}
 .shape-workshop-summary{position:absolute;left:12px;right:12px;bottom:10px;display:flex;justify-content:space-between;gap:8px;font-size:10px;color:rgba(255,255,255,.48)}
 .shape-workshop-section{margin-top:10px}
@@ -9443,15 +9443,6 @@ function updateStageLyrics3D(dt) {
       layoutZ = clampRange(layoutZ + 0.18, -1.6, 1.6);
     }
   }
-  var mobiusGalaxyLyrics = !skullMouthLyrics && !fx.lyricCameraLock && !wallpaperLyricLock && typeof isMobiusGalaxyShapeActive === 'function' && isMobiusGalaxyShapeActive() && customShapeGroup;
-  if (mobiusGalaxyLyrics) {
-    layoutScale *= 0.74;
-    layoutX = clampRange(layoutX + 1.08, -2.0, 2.0);
-    layoutY = clampRange(layoutY + 0.02, -1.2, 1.35);
-    layoutZ = clampRange(layoutZ + 0.58, -1.6, 1.6);
-    layoutTiltX = 0;
-    layoutTiltY = 0;
-  }
   var lockBaseDistance = wallpaperShelfLyrics ? 5.58 : 4.85;
   var lockDistance = lockBaseDistance + layoutZ;
   var cameraLockedLyrics = (fx.lyricCameraLock || wallpaperLyricLock) && camera;
@@ -9502,17 +9493,7 @@ function updateStageLyrics3D(dt) {
   } else {
     if (stageLyrics.group.userData) stageLyrics.group.userData.skullMouthLocked = false;
     stageLyrics.snapCameraLockFrames = 0;
-    if (mobiusGalaxyLyrics) {
-      customShapeGroup.updateMatrixWorld(true);
-      customShapeGroup.getWorldPosition(lyricCoverWorldPos);
-      if (camera) {
-        setStageLyricViewBasisFromCameraOrQuaternion(null);
-        lyricCoverWorldQuat.copy(camera.quaternion);
-      } else {
-        customShapeGroup.getWorldQuaternion(lyricCoverWorldQuat);
-        setStageLyricViewBasisFromCameraOrQuaternion(lyricCoverWorldQuat);
-      }
-    } else if (particles) {
+    if (particles) {
       particles.updateMatrixWorld(true);
       particles.getWorldPosition(lyricCoverWorldPos);
       particles.getWorldQuaternion(lyricCoverWorldQuat);
@@ -21676,16 +21657,16 @@ var shapePrimitiveDefs = {
   point: { name: '点', desc: '粒子簇', count: 180, size: 0.90, depth: 0.22, rotation: 0.12, audioFollow: 0.42, opacity: 0.96, material: 'cover' },
   line: { name: '线', desc: '直线排布', count: 240, size: 0.86, depth: 0.12, rotation: 0.20, audioFollow: 0.30, opacity: 0.90, material: 'cover' },
   ring: { name: '环', desc: '圆形轨道', count: 280, size: 1.05, depth: 0.18, rotation: 0.26, audioFollow: 0.42, opacity: 0.94, material: 'cover' },
+  curve: { name: '曲线环', desc: '参数曲线轨迹', count: 420, size: 1.08, depth: 0.42, rotation: 0.28, audioFollow: 0.46, opacity: 0.90, material: 'cover' },
   plane: { name: '面', desc: '平面网格', count: 400, size: 1.02, depth: 0.20, rotation: 0.10, audioFollow: 0.30, opacity: 0.88, material: 'cover' },
   spiral: { name: '螺旋', desc: '旋转排布', count: 460, size: 1.10, depth: 0.46, rotation: 0.36, audioFollow: 0.58, opacity: 0.90, material: 'cover' },
   wave: { name: '波', desc: '曲面起伏', count: 400, size: 1.02, depth: 0.34, rotation: 0.18, audioFollow: 0.64, opacity: 0.86, material: 'cover' },
   tunnel: { name: '隧道', desc: '深度环阵', count: 520, size: 1.14, depth: 0.66, rotation: 0.32, audioFollow: 0.48, opacity: 0.82, material: 'cover' },
   sphere: { name: '球面', desc: '球形粒子', count: 460, size: 1.08, depth: 0.46, rotation: 0.26, audioFollow: 0.40, opacity: 0.88, material: 'cover' },
   dust: { name: '星尘', desc: '深度星点', count: 560, size: 1.24, depth: 0.78, rotation: 0.20, audioFollow: 0.46, opacity: 0.84, material: 'cover' },
-  mobius: { name: '莫比乌斯', desc: '无限环轨道', count: 720, size: 1.04, depth: 0.48, rotation: 0.12, audioFollow: 0.48, opacity: 0.92, material: 'accent' },
   card: { name: '卡片', desc: '底片平面', count: 120, size: 0.96, depth: 0.28, rotation: 0.14, audioFollow: 0.22, opacity: 0.90, material: 'cover' }
 };
-var shapePrimitiveOrder = ['point','line','ring','plane','spiral','wave','tunnel','sphere','dust','mobius','card'];
+var shapePrimitiveOrder = ['point','line','ring','curve','plane','spiral','wave','tunnel','sphere','dust','card'];
 var shapeStructureTemplates = {
   disc: {
     name: '唱片结构',
@@ -21770,7 +21751,7 @@ function shapeRecipeNumber(raw, key, fallback, min, max) {
   return clampRange(value, min, max);
 }
 function shapePrimitiveCountMax(raw) {
-  return raw && raw.id === 'mobius-cover-nebula' ? 2600 : 1200;
+  return 1200;
 }
 function normalizeShapePrimitive(raw, index) {
   raw = raw && typeof raw === 'object' ? raw : {};
@@ -21849,20 +21830,15 @@ function shapeRecipeSummary(recipe) {
   recipe = normalizeShapeRecipe(recipe);
   return recipe.primitives.length + ' 层 · ' + shapeRecipeTotalParticles(recipe) + ' 粒子';
 }
-var MOBIUS_GALAXY_USER_PRESET_SEED_KEY = 'mineradio-user-shape-mobius-galaxy-seeded-v1';
-var MOBIUS_GALAXY_USER_PRESET_VERSION_KEY = 'mineradio-user-shape-mobius-galaxy-version-v2';
-function mobiusGalaxyUserShapeRecipe() {
-  return normalizeShapeRecipe({
-    name: '星河莫比乌斯',
-    primitives: [
-      { id: 'mobius-galaxy-spiral', type: 'spiral', x: 0, y: 0.01, z: -0.78, count: 460, size: 1.04, depth: 0.58, rotation: 0.18, audioFollow: 0.24, opacity: 0.14, material: 'accent' },
-      { id: 'mobius-galaxy-dust', type: 'dust', x: 0.02, y: -0.02, z: -0.70, count: 420, size: 1.12, depth: 0.78, rotation: 0.12, audioFollow: 0.20, opacity: 0.12, material: 'accent' },
-      { id: 'mobius-cover-nebula', type: 'plane', x: 0, y: 0.02, z: -0.14, count: 2200, size: 0.80, depth: 0.08, rotation: 0.00, audioFollow: 0.20, opacity: 0.98, material: 'cover' },
-      { id: 'mobius-infinity-ring', type: 'mobius', x: 0, y: 0, z: 0.18, count: 1180, size: 1.10, depth: 0.56, rotation: 0.08, audioFollow: 0.42, opacity: 0.96, material: 'accent' }
-    ],
-    materialBinding: { mode: 'cover-texture', colorSource: 'cover' },
-    camera: { mode: 'slow-orbit', distance: 3.2 },
-    stability: { driftLock: true }
+function isExcludedGeneratedShapePreset(slot) {
+  slot = slot && typeof slot === 'object' ? slot : {};
+  var recipe = normalizeShapeRecipe(slot.recipe || slot);
+  var blockedName = '\u661f\u6cb3' + '\u83ab\u6bd4' + '\u4e4c\u65af';
+  if (normalizeShapeRecipeName(slot.name || recipe.name) === blockedName) return true;
+  var blockedIdParts = ['mo' + 'bius-cover-nebula', 'mo' + 'bius-infinity-ring', 'mo' + 'bius-galaxy'];
+  return recipe.primitives.some(function(p){
+    var id = String(p && p.id || '');
+    return blockedIdParts.some(function(part){ return id.indexOf(part) >= 0; });
   });
 }
 function readUserShapePresets() {
@@ -21881,7 +21857,7 @@ function readUserShapePresets() {
       savedAt: Number(slot.savedAt) || Date.now(),
       recipe: recipe
     };
-  }).filter(function(slot){ return !!slot.recipe; });
+  }).filter(function(slot){ return !!slot.recipe && !isExcludedGeneratedShapePreset(slot); });
 }
 function saveUserShapePresets() {
   try {
@@ -22025,6 +22001,10 @@ function readActiveUserShapeRecipe() {
   }
   var recipe = raw && raw.recipe ? raw.recipe : raw;
   recipe = recipe ? normalizeShapeRecipe(recipe) : null;
+  if (recipe && isExcludedGeneratedShapePreset(recipe)) {
+    try { localStorage.removeItem(ACTIVE_SHAPE_PRESET_STORE_KEY); } catch (e) {}
+    return null;
+  }
   return recipe && recipe.primitives && recipe.primitives.length ? recipe : null;
 }
 function saveActiveUserShapeRecipe(recipe) {
@@ -22052,75 +22032,13 @@ function shapeRecipeRenderKey(recipe) {
     stability: recipe.stability
   });
 }
-function isMobiusGalaxyRecipe(recipe) {
-  recipe = recipe ? normalizeShapeRecipe(recipe) : null;
-  if (!recipe || !recipe.primitives || recipe.primitives.length < 4) return false;
-  var hasCoverDisc = recipe.primitives.some(function(p){ return p.id === 'mobius-cover-nebula' && p.type === 'plane'; });
-  var hasInfinityRing = recipe.primitives.some(function(p){ return p.id === 'mobius-infinity-ring' && p.type === 'mobius'; });
-  return hasCoverDisc && hasInfinityRing;
-}
 function shapeRecipeDriftLockEnabled(recipe) {
   recipe = recipe ? normalizeShapeRecipe(recipe) : null;
   return !!(recipe && recipe.stability && recipe.stability.driftLock);
 }
 function isCustomShapeLayerDriftLocked(recipe) {
-  return shapeRecipeDriftLockEnabled(recipe) || isMobiusGalaxyRecipe(recipe);
+  return shapeRecipeDriftLockEnabled(recipe);
 }
-function isMobiusGalaxyShapeActive() {
-  return !!(activeUserShapeRecipe && fx && Number(fx.preset) === 3 && isMobiusGalaxyRecipe(activeUserShapeRecipe));
-}
-function mobiusGalaxyPresetNeedsRefresh(slot, targetRecipe) {
-  var recipe = normalizeShapeRecipe(slot && slot.recipe);
-  var target = normalizeShapeRecipe(targetRecipe);
-  if (!isMobiusGalaxyRecipe(recipe)) return true;
-  var cover = recipe.primitives.filter(function(p){ return p.id === 'mobius-cover-nebula'; })[0];
-  var targetCover = target.primitives.filter(function(p){ return p.id === 'mobius-cover-nebula'; })[0];
-  if (!cover || !targetCover) return true;
-  return Number(cover.size) < Number(targetCover.size) ||
-    Number(cover.count) < Number(targetCover.count) ||
-    Number(cover.z) > Number(targetCover.z);
-}
-function seedMobiusGalaxyUserShapePreset() {
-  var recipe = mobiusGalaxyUserShapeRecipe();
-  var seeded = false;
-  var currentVersion = '';
-  try {
-    seeded = localStorage.getItem(MOBIUS_GALAXY_USER_PRESET_SEED_KEY) === '1';
-    currentVersion = localStorage.getItem(MOBIUS_GALAXY_USER_PRESET_VERSION_KEY) || '';
-  } catch (e) {
-    seeded = false;
-  }
-  var existingIndex = userShapePresets.findIndex(function(slot){
-    return normalizeShapeRecipeName(slot && slot.name) === recipe.name && isMobiusGalaxyRecipe(slot && slot.recipe);
-  });
-  if (existingIndex >= 0) {
-    var needsRecipeRefresh = currentVersion !== '2' || mobiusGalaxyPresetNeedsRefresh(userShapePresets[existingIndex], recipe);
-    if (needsRecipeRefresh) {
-      userShapePresets[existingIndex] = {
-        name: recipe.name,
-        savedAt: Number(userShapePresets[existingIndex].savedAt) || Date.now(),
-        recipe: cloneShapeRecipe(recipe)
-      };
-      saveUserShapePresets();
-    }
-  } else if (!seeded) {
-    userShapePresets.push({
-      name: recipe.name,
-      savedAt: Date.now(),
-      recipe: cloneShapeRecipe(recipe)
-    });
-    saveUserShapePresets();
-  }
-  try {
-    localStorage.setItem(MOBIUS_GALAXY_USER_PRESET_SEED_KEY, '1');
-    if (existingIndex >= 0 || !seeded) localStorage.setItem(MOBIUS_GALAXY_USER_PRESET_VERSION_KEY, '2');
-  } catch (e) {}
-  if (activeUserShapeRecipe && normalizeShapeRecipeName(activeUserShapeRecipe.name) === recipe.name && isMobiusGalaxyRecipe(activeUserShapeRecipe)) {
-    activeUserShapeRecipe = cloneShapeRecipe(recipe);
-    saveActiveUserShapeRecipe(activeUserShapeRecipe);
-  }
-}
-seedMobiusGalaxyUserShapePreset();
 function shapeWorkshopHiddenIds() {
   if (!shapeWorkshopState.hiddenIds || typeof shapeWorkshopState.hiddenIds !== 'object') shapeWorkshopState.hiddenIds = {};
   return shapeWorkshopState.hiddenIds;
@@ -22315,8 +22233,7 @@ function customShapeColorForPoint(primitive, sample, u, v, seed, palette) {
   if (primitive.material === 'mono') return [palette.mono.r, palette.mono.g, palette.mono.b];
   if (primitive.material === 'cover' && sample) {
     var c = sample(u, v);
-    var detailCover = primitive && primitive.id === 'mobius-cover-nebula';
-    var lift = detailCover ? (0.055 + customShapeRand(seed + 21) * 0.090) : (0.22 + customShapeRand(seed + 21) * 0.22);
+    var lift = 0.22 + customShapeRand(seed + 21) * 0.22;
     return [
       clampRange(c[0] + lift, 0, 1),
       clampRange(c[1] + lift, 0, 1),
@@ -22354,8 +22271,7 @@ function applyCustomShapePrimitiveTransform(obj, primitive) {
 }
 function buildCustomShapeCoverParticlePoints(opts) {
   opts = opts || {};
-  var detailCover = String(opts.id || '').indexOf('mobius-cover-nebula') >= 0;
-  var count = Math.max(48, Math.min(detailCover ? 2600 : 1400, Math.round(Number(opts.count) || 420)));
+  var count = Math.max(48, Math.min(1400, Math.round(Number(opts.count) || 420)));
   var cols = Math.max(8, Math.round(Math.sqrt(count * (opts.aspect || 1))));
   var rows = Math.max(8, Math.ceil(count / cols));
   count = cols * rows;
@@ -22375,23 +22291,9 @@ function buildCustomShapeCoverParticlePoints(opts) {
     var u = cols > 1 ? gx / (cols - 1) : 0.5;
     var v = rows > 1 ? gy / (rows - 1) : 0.5;
     var r = customShapeRand(seedBase + i * 11 + 3);
-    var px, py, pz;
-    if (detailCover) {
-      var discN = count > 1 ? i / (count - 1) : 0;
-      var discAngle = i * 2.399963229728653 + r * 0.030;
-      var discRadius = Math.sqrt(discN) * (0.94 + customShapeRand(seedBase + i * 13 + 9) * 0.045);
-      var discX = Math.cos(discAngle) * discRadius;
-      var discY = Math.sin(discAngle) * discRadius;
-      u = clampRange(0.5 + discX * 0.5, 0, 1);
-      v = clampRange(0.5 + discY * 0.5, 0, 1);
-      px = discX * width * 0.5;
-      py = discY * height * 0.5;
-      pz = (r - 0.5) * depth + Math.sin(discRadius * Math.PI * 8.0) * depth * 0.035;
-    } else {
-      px = (u - 0.5) * width;
-      py = (v - 0.5) * height;
-      pz = (r - 0.5) * depth;
-    }
+    var px = (u - 0.5) * width;
+    var py = (v - 0.5) * height;
+    var pz = (r - 0.5) * depth;
     base[i * 3] = px;
     base[i * 3 + 1] = py;
     base[i * 3 + 2] = pz;
@@ -22401,7 +22303,7 @@ function buildCustomShapeCoverParticlePoints(opts) {
     rand[i] = r;
     var c = sample ? sample(u, v) : null;
     if (!c) c = [palette.a.r, palette.a.g, palette.a.b];
-    var lift = detailCover ? (0.055 + customShapeRand(seedBase + i * 7 + 17) * 0.085) : (0.08 + customShapeRand(seedBase + i * 7 + 17) * 0.13);
+    var lift = 0.08 + customShapeRand(seedBase + i * 7 + 17) * 0.13;
     colors[i * 3] = clampRange(c[0] + lift, 0, 1);
     colors[i * 3 + 1] = clampRange(c[1] + lift, 0, 1);
     colors[i * 3 + 2] = clampRange(c[2] + lift, 0, 1);
@@ -22437,6 +22339,16 @@ function customShapeLocalPoint(primitive, i, count, seedBase) {
     z = Math.sin(angle * 2 + r2 * 2.0) * depth * 0.30;
     u = 0.5 + Math.cos(angle) * 0.48;
     v = 0.5 + Math.sin(angle) * 0.48;
+  } else if (primitive.type === 'curve') {
+    var curveT = n * Math.PI * 2;
+    var curveBand = (r1 - 0.5) * 0.18;
+    var curveX = Math.sin(curveT);
+    var curveY = Math.sin(curveT) * Math.cos(curveT);
+    x = (curveX * 1.46 + Math.cos(curveT) * curveBand) * size;
+    y = (curveY * 1.08 + Math.sin(curveT * 2) * curveBand * 0.50) * size;
+    z = (Math.cos(curveT * 2) * 0.34 + (r2 - 0.5) * 0.42) * depth * size;
+    u = clampRange(0.5 + curveX * 0.46, 0, 1);
+    v = clampRange(0.5 + curveY * 0.46, 0, 1);
   } else if (primitive.type === 'plane' || primitive.type === 'card') {
     var cols = Math.max(2, Math.round(Math.sqrt(count * (primitive.type === 'card' ? 1.55 : 1))));
     var gx = i % cols;
@@ -22488,17 +22400,6 @@ function customShapeLocalPoint(primitive, i, count, seedBase) {
     z = Math.sin(theta) * Math.sin(phi) * pr;
     u = 0.5 + Math.atan2(z, x) / (Math.PI * 2);
     v = 0.5 - Math.asin(y / Math.max(0.001, pr)) / Math.PI;
-  } else if (primitive.type === 'mobius') {
-    var ma = n * Math.PI * 2;
-    var band = (r2 - 0.5) * 0.34 * size;
-    var loop = Math.sin(ma);
-    var cross = Math.cos(ma);
-    var twist = Math.cos(ma * 0.5 + band * 0.9);
-    x = loop * 1.58 * size + band * cross * 0.34;
-    y = loop * cross * 0.94 * size + band * Math.sin(ma * 2.0) * 0.42;
-    z = band * twist * (0.62 + depth * 1.55) + Math.sin(ma * 2.0 + r1 * 1.4) * depth * 0.22;
-    u = 0.5 + x / Math.max(0.001, 3.7 * size);
-    v = 0.5 + y / Math.max(0.001, 2.2 * size);
   } else if (primitive.type === 'dust') {
     var da = r1 * Math.PI * 2;
     var dr = Math.pow(r2, 0.42) * (1.25 + depth * 1.5) * size;
@@ -22524,17 +22425,16 @@ function buildCustomShapePrimitiveCoverObject(primitive, index, recipe) {
   if (!customShapeTextureReady() || !customShapeUsesCoverTexture(recipe) || primitive.material !== 'cover') return null;
   if (primitive.type !== 'plane' && primitive.type !== 'card') return null;
   var aspect = primitive.type === 'card' ? 1.42 : 1;
-  var detailCover = primitive.id === 'mobius-cover-nebula';
   var points = buildCustomShapeCoverParticlePoints({
     id: primitive.id + '-cover-particles',
     index: index,
-    count: Math.max(180, Math.round(primitive.count * (detailCover ? 1.60 : 1.25))),
+    count: Math.max(180, Math.round(primitive.count * 1.25)),
     width: 2.1 * primitive.size * aspect,
     height: 2.1 * primitive.size,
-    depth: detailCover ? Math.max(0.035, primitive.depth * 0.22) : Math.max(0.08, primitive.depth * 0.32),
+    depth: Math.max(0.08, primitive.depth * 0.32),
     aspect: aspect,
-    opacity: primitive.opacity * (detailCover ? 0.96 : (primitive.type === 'card' ? 0.58 : 0.52)),
-    sizeBoost: primitive.size * 0.010 + (detailCover ? 0.012 : 0)
+    opacity: primitive.opacity * (primitive.type === 'card' ? 0.58 : 0.52),
+    sizeBoost: primitive.size * 0.010
   });
   points.name = 'MineradioCustomShapeCoverParticlePrimitive';
   points.renderOrder = 23 + index;
@@ -22625,7 +22525,7 @@ function buildCustomShapePrimitiveObject(primitive, index) {
     opacity: clampRange(primitive.opacity * (selected ? 1.16 : 1), 0.12, 1),
     depthWrite: false,
     sizeAttenuation: true,
-    blending: selected || primitive.type === 'dust' || primitive.type === 'spiral' || primitive.type === 'mobius' ? THREE.AdditiveBlending : THREE.NormalBlending
+    blending: selected || primitive.type === 'dust' || primitive.type === 'spiral' ? THREE.AdditiveBlending : THREE.NormalBlending
   });
   var points = new THREE.Points(geometry, material);
   points.frustumCulled = false;
@@ -22658,7 +22558,6 @@ function syncCustomShapeLayer(force) {
   customShapeRenderRecipe.primitives.forEach(function(primitive, index){
     var coverMesh = buildCustomShapePrimitiveCoverObject(primitive, index, customShapeRenderRecipe);
     if (coverMesh) group.add(coverMesh);
-    if (coverMesh && primitive.id === 'mobius-cover-nebula') return;
     group.add(buildCustomShapePrimitiveObject(primitive, index));
   });
   customShapeRecipeKey = key;

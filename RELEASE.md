@@ -1,64 +1,82 @@
 # 发布流程
 
-## v1.1.0 发布边界
+## 当前发布边界
 
-- `v1.1.0` 是纯净安装发布版，从当前 `resources/app` 可信源码重新构建。
-- 不复用旧 `dist/`、旧安装包、旧 `node_modules`、旧备份包或任何历史 packaged build。
-- 不生成 `v1.0.10 -> v1.1.0` 快速补丁。
-- 不把 `v1.1.0` 设置为旧版软件内更新通道的 latest；`v1.0.10` 用户需要手动下载新版安装包并纯净安装。
-- GitHub Release 需要明确提示：`v1.0.10` 及更早安装包有风险，请隔离旧 `.exe` 安装包，不要继续安装或转发。
-- 安装包样式继续沿用 `docs/INSTALLER_STYLE.md` 的中文极简黑白蓝格式。
+当前公开版本是 `v1.1.1` 扩展版预览。
+
+本仓库是非官方二创 Fork，Release 文案必须同时说明：
+
+- 原项目来自 [XxHuberrr/Mineradio](https://github.com/XxHuberrr/Mineradio)。
+- 本仓库不是原作者官方版本。
+- 扩展版新增酷狗概念版、普通酷狗音乐、汽水歌单导入、Home 个性化和 DIY 视觉能力。
+- 项目不会绕过付费、绕过会员、破解音质或重新分发音乐内容。
+- 公开版不内置二创作者个人实验形态；DIY 形态由用户自己创建、保存或导入。
 
 ## 发布前检查
 
-- 确认 `package.json` 和 `package-lock.json` 版本号正确。
-- 确认 `mineradio.update.owner/repo` 指向正式仓库。
-- 确认 `.cookie`、`.qq-cookie`、`updates/`、`node_modules/`、旧 `dist/` 没有进入 git。
-- 确认 README/SECURITY/CHANGELOG/Release 正文包含 `v1.0.10` 旧安装包隔离说明。
-- 运行语法检查：`git diff --check`、`node --check server.js`、前端内联脚本解析。
-- 运行 Git 跟踪风险残留检查，确认没有跟踪 `.exe/.dll/.scr/.bat/.cmd/.ps1/.vbs/.jse/.wsf/.hta/.xlsm` 等可执行/脚本残留。
-- 从当前源码执行 `npm run build:win` 生成 Windows 安装包。
-- 对新生成的安装包和当前源码执行安全扫描。
-- 生成并记录新安装包 SHA256。
+提交或打包前至少确认：
 
-## GitHub Release
+- `package.json` 和 `package-lock.json` 版本号一致。
+- `mineradio.update.owner/repo` 指向 `daaimengermengzhu/Mineradio-Extended`。
+- `.cookie`、`.qq-cookie`、`.kugou-cookie`、`.kugou-music-cookie`、汽水本地凭证、`node_modules/`、旧 `dist/` 没有进入 Git。
+- README、CHANGELOG、使用教程和 Release 正文没有把个人实验形态写成公开功能。
+- README 中普通用户下载入口指向 GitHub latest release。
+- 支持渠道清楚区分“原作者支持渠道”和“二创作者支持渠道”。
+- 文档没有承诺尚未实现的酷狗官方音效、汽水完整账号登录或汽水会员直连播放。
 
-Release tag：
+## 必跑验证
 
-```text
-v1.1.0
+```powershell
+node scripts\verify-shape-preset-wiring.js
+node --check server.js
+git diff --check
 ```
 
-Release 标题：
+如果修改了安装包或桌面主进程，还需要运行：
+
+```powershell
+npm run build:win
+```
+
+构建产物位于 `dist/`。正式给普通用户分发时，以 `Mineradio-1.1.1-Setup.exe` 这类完整安装包为准，不要让普通用户下载 `Source code`、`.blockmap`、`latest.yml` 或 `win-unpacked`。
+
+## GitHub Release 建议文案
+
+Release 标题可以使用：
 
 ```text
-Mineradio v1.1.0 纯净安装版
+Mineradio v1.1.1 扩展版预览
 ```
+
+Release 正文建议包含：
+
+- 本版本是非官方二创扩展版。
+- 酷狗概念版和普通酷狗音乐新增登录、播放、歌单、红心、收藏、歌词、评论等能力。
+- 汽水音乐当前支持分享歌单导入；直接播放仍受平台返回音频格式影响，不承诺完整会员直连播放。
+- DIY 视觉增加“我的作品”和“形态工坊”，支持用户用点、线、环、曲线环、螺旋等基础粒子自己创建、导入、导出形态。
+- 本版本不包含二创作者个人实验形态。
+- 下载时请只下载 `Mineradio-1.1.1-Setup.exe`。
 
 建议上传资产：
 
-- `dist/Mineradio-1.1.0-Setup.exe`
-- `dist/Mineradio-1.1.0-Setup.exe.blockmap`（可选；本次不作为旧版软件内更新使用）
-- `dist/Mineradio-1.1.0-SHA256SUMS.txt`
+- `dist/Mineradio-1.1.1-Setup.exe`
+- `dist/Mineradio-1.1.1-Setup.exe.blockmap`
+- `dist/latest.yml`
 
-本次不要上传：
+不要上传：
 
-- `latest.yml`
-- `v1.0.10 -> v1.1.0` 快速补丁
+- 本地 cookie、登录凭证、个人配置。
+- 未验证来源的旧安装包。
+- 包含个人实验内容的测试包。
 
-## 更新检测
+## 本地安装包同步
 
-应用会请求 GitHub Releases latest。为了避免 `v1.0.10` 旧客户端通过软件内更新直接拉到 `v1.1.0`，本次 GitHub Release 不应设为旧更新通道的 latest。
+如果只是在本机验证当前代码，可以先构建本地 EXE 包：
 
-本地验证更新链路时，可以用临时 manifest：
-
-```json
-{
-  "latestVersion": "1.1.0-test",
-  "release": {
-    "name": "Mineradio v1.1.0-test",
-    "downloadUrl": "http://127.0.0.1:3144/Mineradio-1.1.0-Setup.exe",
-    "notes": ["本地在线更新链路测试"]
-  }
-}
+```powershell
+npm run build:win
 ```
+
+然后使用 `dist/Mineradio-1.1.1-Setup.exe` 安装，或直接运行 `dist/win-unpacked/Mineradio.exe` 做本地验证。
+
+如果要替换本机正在用的安装版，建议通过安装包覆盖安装，而不是手动复制零散文件，避免 `resources/app`、桌面快捷方式和卸载信息不一致。
