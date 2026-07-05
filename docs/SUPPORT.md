@@ -19,3 +19,13 @@
 ![Mineradio 扩展版二创作者支持渠道](./assets/support/extended-author-wechat-pay.png)
 
 扫码前请确认收款人信息。二创作者支持渠道不是原作者官方收款入口。
+
+## 交流群
+
+欢迎对 Mineradio 扩展版感兴趣的朋友加入交流群，讨论使用体验、问题反馈和二创想法。
+
+二维码会定期过期，如果图片失效，请以仓库后续更新为准。
+
+| 微信群聊 | 抖音群聊 |
+| --- | --- |
+| <img src="./assets/community/wechat-group-2026-07-12.jpg" alt="Mineradio 二创交流群 微信群聊" width="300"> | <img src="./assets/community/douyin-group-2026-07-12.jpg" alt="Mineradio 二创版本交流群 抖音群聊" width="300"> |
