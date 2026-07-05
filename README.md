@@ -2,7 +2,7 @@
 
 ![Mineradio 暗场启动页](./docs/assets/readme/cinema-beat-smoke.png)
 
-> 非官方二创 Fork，基于 [XxHuberrr/Mineradio](https://github.com/XxHuberrr/Mineradio)。
+> 非官方二创版本，基于 [XxHuberrr/Mineradio](https://github.com/XxHuberrr/Mineradio)。
 > 本仓库用于在尊重原作者和 GPL-3.0 授权的前提下，维护更多音源、歌单导入和个性化体验扩展。
 
 Mineradio 扩展版是一款 Windows 桌面沉浸式音乐播放器。原版 Mineradio 已经提供天气电台、搜索播放、歌词舞台、粒子视觉和 3D 歌单架；本扩展版在此基础上补充酷狗概念版、普通酷狗音乐、汽水音乐歌单导入、个性化 Home 面板和更自由的 DIY 视觉工坊。
@@ -12,8 +12,8 @@ Mineradio 扩展版是一款 Windows 桌面沉浸式音乐播放器。原版 Min
 - 原项目：[`XxHuberrr/Mineradio`](https://github.com/XxHuberrr/Mineradio)
 - 本仓库不是 Mineradio 官方版本，也不代表原作者发布。
 - 原作者与原项目贡献必须保留署名。
-- 酷狗概念版接入已经通过 PR 回馈上游：[`XxHuberrr/Mineradio#204`](https://github.com/XxHuberrr/Mineradio/pull/204)
-- `daaimengermengzhu/Mineradio-kugou` 只作为上游 PR 来源仓库；本仓库 `Mineradio-Extended` 是后续二创扩展主仓库。
+- 酷狗概念版接入已向原项目提交反馈：[`XxHuberrr/Mineradio#204`](https://github.com/XxHuberrr/Mineradio/pull/204)
+- 本仓库是 Austin 后续维护二创扩展功能的主要仓库。
 
 ## 下载
 
@@ -51,7 +51,7 @@ Mineradio-1.1.1-Setup.exe
 
 更完整的普通用户教程见：[使用教程](./docs/USAGE_GUIDE.md)
 
-## 重要边界
+## 使用说明与限制
 
 - 本扩展版不会绕过付费、绕过会员、破解音质或重新分发音乐内容。
 - 第三方平台接入只用于个人学习、本地客户端体验和用户自有账号的播放辅助。
@@ -79,7 +79,7 @@ Mineradio-1.1.1-Setup.exe
 
 ## 支持渠道
 
-本仓库是非官方二创 Fork。原作者支持渠道和二创作者支持渠道分开展示，扫码前请确认收款人信息。
+本仓库是非官方二创版本。原作者支持渠道和二创作者支持渠道分开展示，扫码前请确认收款人信息。
 
 [查看完整支持页](./docs/SUPPORT.md)
 
@@ -95,7 +95,7 @@ Mineradio-1.1.1-Setup.exe
 
 <img src="./docs/assets/support/extended-author-wechat-pay.png" alt="Mineradio 扩展版二创作者支持渠道" width="360">
 
-## 开发运行
+## 开发者说明
 
 ```bash
 npm install
@@ -103,13 +103,11 @@ npm start
 npm run build:win
 ```
 
-桌面版入口由 Electron 主进程加载本地服务。`npm run build:win` 会生成 Windows NSIS 安装包，产物位于 `dist/`。
+普通用户不需要运行这些命令，直接下载安装包即可。开发者如需本地调试或重新打包，可以使用上面的命令。
 
 ## 致谢
 
 Mineradio 由 XxHuberrr 主要设计与打造。emily 作为早期视觉底层想法与 `emily` 视觉预设改进方向的共创者和灵感来源之一，特此感谢。
-
-同时感谢小天才e宝、应春日、锋将军、軌跡、林中、骊、风痕、花椰菜🥦在早期体验、测试反馈和发布准备中的帮助。
 
 ## 版权与授权
 

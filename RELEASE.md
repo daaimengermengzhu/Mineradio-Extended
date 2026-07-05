@@ -1,10 +1,12 @@
-# 发布流程
+# 维护者发布备忘
+
+这份文档面向仓库维护者，用于记录打包和发布前检查。普通用户下载安装包时，只需要阅读 README 和 GitHub Release 页面。
 
 ## 当前发布边界
 
 当前公开版本是 `v1.1.1` 扩展版预览。
 
-本仓库是非官方二创 Fork，Release 文案必须同时说明：
+本仓库是非官方二创版本，Release 文案必须同时说明：
 
 - 原项目来自 [XxHuberrr/Mineradio](https://github.com/XxHuberrr/Mineradio)。
 - 本仓库不是原作者官方版本。
