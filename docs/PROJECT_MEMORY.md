@@ -7,6 +7,13 @@
 - 关键参数/实现：新增 `/api/qq/login/qr/key` 与 `/api/qq/login/qr/check`；QQ 扫码必须先跑 `xui.ptlogin2.qq.com/cgi-bin/xlogin` 拿 `pt_login_sig`，再用 `ptqrshow` 的 `qrsig` 计算 `ptqrtoken` 去轮询 `ptqrlogin`。缺少 `xlogin`/`pt_login_sig` 会触发 HTTP 403。手机确认后还要跑 `graph.qq.com/oauth2.0/authorize` 和 `QQConnectLogin.LoginServer/QQLogin`，否则只会显示已确认但播放器拿不到有效 QQ 音乐会话。
 - 禁止回退或改坏的点：不要把普通浏览器环境重新退回“只能手动导入 QQ cookie”；不要把 `p_skey` 当作完整播放授权，完整播放授权仍以 `qm_keyst`、`qqmusic_key`、`music_key` 或 `wxskey` 为准。
 
+### 2026-07-06 - DIY 形态封面落点提示
+
+- 用户认可/要求保留：DIY 形态工坊需要让用户看清“当前歌曲封面/上传图片最终作用在哪一层”，避免以为所有粒子都会承载完整图片。
+- 涉及文件：`public/index.html`、`CHANGELOG.md`。
+- 关键参数/实现：`plane`/`card` 且 `material: 'cover'` 是真正承载封面粒子化的表面；其它 `material: 'cover'` 粒子层主要取封面色；如果形态没有封面承载层，系统会自动后置封面粒子底板。工坊右侧新增“底片落点”摘要，层级列表新增“承载封面/取封面色/主题色/单色粒子”标签。
+- 禁止回退或改坏的点：不要把底片落点隐藏回纯内部逻辑；不要让用户无法判断封面会落到哪一层；不要把环、线、星河等取色层误标为完整封面承载面。
+
 ### 2026-06-25 - P0 Installer In-Place Repair Rule
 
 - User requirement: all users must receive the installer/uninstaller safety fix with zero risk to unrelated files.

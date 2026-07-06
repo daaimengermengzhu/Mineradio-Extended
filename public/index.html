@@ -1273,7 +1273,17 @@ body.shape-workshop-mode #canvas-container{opacity:1;filter:brightness(.92) satu
 .shape-layer-row.solo{border-color:rgba(var(--fc-accent-rgb),.42);box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 0 24px rgba(var(--fc-accent-rgb),.09)}
 .shape-layer-name{font-size:11px;font-weight:760;color:rgba(255,255,255,.84)}
 .shape-layer-meta{font-size:9.5px;color:rgba(255,255,255,.40);margin-top:3px}
+.shape-layer-tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}
+.shape-layer-tag{display:inline-flex;align-items:center;height:18px;border-radius:999px;border:1px solid rgba(255,255,255,.075);background:rgba(255,255,255,.035);padding:0 6px;font-size:9px;font-weight:760;color:rgba(255,255,255,.54)}
+.shape-layer-tag.cover-surface{border-color:rgba(244,210,138,.34);background:rgba(244,210,138,.105);color:rgba(255,236,184,.92)}
+.shape-layer-tag.cover-color{border-color:rgba(var(--fc-accent-rgb),.28);background:rgba(var(--fc-accent-rgb),.075);color:rgba(220,246,255,.82)}
+.shape-layer-tag.neutral{color:rgba(255,255,255,.46)}
 .shape-layer-actions{display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end;max-width:152px}
+.shape-material-map{border:1px solid rgba(255,255,255,.075);border-radius:12px;background:linear-gradient(135deg,rgba(255,255,255,.035),rgba(255,255,255,.014));padding:10px;display:grid;gap:7px}
+.shape-material-map-row{display:flex;justify-content:space-between;gap:10px;font-size:10px;line-height:1.45}
+.shape-material-map-row b{color:rgba(255,255,255,.82);font-weight:800}
+.shape-material-map-row span{color:rgba(255,255,255,.48);text-align:right}
+.shape-material-map-note{font-size:9.5px;line-height:1.45;color:rgba(255,255,255,.40)}
 .shape-workshop-params-section{position:relative;z-index:2;margin-top:10px;padding:10px;border-radius:13px;border:1px solid rgba(244,210,138,.18);background:linear-gradient(145deg,rgba(14,14,18,.88),rgba(10,11,14,.76));box-shadow:0 16px 42px rgba(0,0,0,.22),inset 0 1px 0 rgba(255,255,255,.06);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
 .shape-workshop-params-section .shape-workshop-section-title{margin-bottom:9px;color:rgba(244,210,138,.86)}
 .shape-motion-seg{display:flex;border-radius:10px;border:1px solid rgba(255,255,255,.08);overflow:hidden;background:rgba(255,255,255,.028);margin-bottom:9px}
@@ -21830,6 +21840,65 @@ function shapeRecipeSummary(recipe) {
   recipe = normalizeShapeRecipe(recipe);
   return recipe.primitives.length + ' 层 · ' + shapeRecipeTotalParticles(recipe) + ' 粒子';
 }
+function shapePrimitiveIsCoverSurface(primitive) {
+  primitive = normalizeShapePrimitive(primitive || {}, 0);
+  return primitive.material === 'cover' && (primitive.type === 'plane' || primitive.type === 'card');
+}
+function shapePrimitiveMaterialLabel(primitive) {
+  primitive = normalizeShapePrimitive(primitive || {}, 0);
+  if (shapePrimitiveIsCoverSurface(primitive)) return '承载封面';
+  if (primitive.material === 'cover') return '取封面色';
+  if (primitive.material === 'accent') return '主题色';
+  return '单色粒子';
+}
+function shapePrimitiveMaterialTagClass(primitive) {
+  primitive = normalizeShapePrimitive(primitive || {}, 0);
+  if (shapePrimitiveIsCoverSurface(primitive)) return 'cover-surface';
+  if (primitive.material === 'cover') return 'cover-color';
+  return 'neutral';
+}
+function shapeRecipeCoverSurfaceLayers(recipe) {
+  recipe = normalizeShapeRecipe(recipe);
+  return recipe.primitives.map(function(p, index){
+    return { primitive: p, index: index };
+  }).filter(function(entry){
+    return shapePrimitiveIsCoverSurface(entry.primitive);
+  });
+}
+function shapeRecipeCoverColorLayerCount(recipe) {
+  recipe = normalizeShapeRecipe(recipe);
+  return recipe.primitives.filter(function(p){ return p.material === 'cover'; }).length;
+}
+function shapeRecipeCoverLandingLabel(recipe) {
+  recipe = normalizeShapeRecipe(recipe);
+  if (!recipe.primitives.length) return '尚未添加层级';
+  if (!customShapeUsesCoverTexture(recipe)) return '当前形态未使用封面底片';
+  var surfaceLayers = shapeRecipeCoverSurfaceLayers(recipe);
+  if (surfaceLayers.length) {
+    return surfaceLayers.map(function(entry){
+      return '第' + (entry.index + 1) + '层 ' + shapePrimitiveLabel(entry.primitive);
+    }).join(' / ');
+  }
+  return '自动后置封面粒子底板';
+}
+function shapeRecipeMaterialSourceLabel() {
+  return shapeMaterialMediaLabel(currentShapeMaterialMedia());
+}
+function renderShapeMaterialMap(recipe) {
+  recipe = normalizeShapeRecipe(recipe);
+  var coverLayers = shapeRecipeCoverColorLayerCount(recipe);
+  var modeLabel = recipe.materialBinding.mode === 'cover-texture' ? '封面粒子 + 封面取色' : (recipe.materialBinding.mode === 'cover-color' ? '仅封面取色' : '文字/底片填充');
+  var note = shapeRecipeCoverSurfaceLayers(recipe).length
+    ? '面/卡片层会生成额外封面粒子，让封面或上传图片更容易被看出来。'
+    : '没有面/卡片层时，系统会在形态后方自动补一个封面粒子底板；环、线、星河等层主要负责取色。';
+  return '<div class="shape-material-map">' +
+    '<div class="shape-material-map-row"><b>底片来源</b><span>' + escHtml(shapeRecipeMaterialSourceLabel()) + '</span></div>' +
+    '<div class="shape-material-map-row"><b>封面落点</b><span>' + escHtml(shapeRecipeCoverLandingLabel(recipe)) + '</span></div>' +
+    '<div class="shape-material-map-row"><b>绑定方式</b><span>' + escHtml(modeLabel) + '</span></div>' +
+    '<div class="shape-material-map-row"><b>取色层数</b><span>' + coverLayers + ' 层</span></div>' +
+    '<div class="shape-material-map-note">' + escHtml(note) + '</div>' +
+  '</div>';
+}
 function isExcludedGeneratedShapePreset(slot) {
   slot = slot && typeof slot === 'object' ? slot : {};
   var recipe = normalizeShapeRecipe(slot.recipe || slot);
@@ -23531,9 +23600,12 @@ function renderShapeLayerList(recipe) {
     var meta = p.count + ' 粒子 · 前后厚度 ' + p.depth.toFixed(2) + ' · 随音乐动 ' + Math.round(p.audioFollow * 100) + '%';
     if (solo) meta += ' · 单看中';
     if (hidden && !solo) meta += ' · 已隐藏';
+    var materialLabel = shapePrimitiveMaterialLabel(p);
+    var materialClass = shapePrimitiveMaterialTagClass(p);
     return '<div class="' + rowClass + '" onclick="shapeWorkshopSelectPrimitive(\'' + escHtml(p.id) + '\')">' +
       '<div><div class="shape-layer-name">' + (index + 1) + '. ' + escHtml(shapePrimitiveLabel(p)) + '</div>' +
-      '<div class="shape-layer-meta">' + escHtml(meta) + '</div></div>' +
+      '<div class="shape-layer-meta">' + escHtml(meta) + '</div>' +
+      '<div class="shape-layer-tags"><span class="shape-layer-tag ' + materialClass + '">' + escHtml(materialLabel) + '</span></div></div>' +
       '<div class="shape-layer-actions">' +
         '<button type="button" onclick="event.stopPropagation();shapeWorkshopSoloPrimitive(\'' + escHtml(p.id) + '\')">' + (solo ? '全部' : '单看') + '</button>' +
         '<button type="button" onclick="event.stopPropagation();shapeWorkshopTogglePrimitiveHidden(\'' + escHtml(p.id) + '\')">' + (hidden ? '显示' : '隐藏') + '</button>' +
@@ -23636,6 +23708,7 @@ function renderShapeWorkshop() {
       '</div>' +
       '<input class="shape-workshop-name" maxlength="28" value="' + escHtml(recipe.name) + '" oninput="shapeWorkshopUpdateName(this.value)" onchange="shapeWorkshopFinishParamEdit()" aria-label="形态名称">' +
       '<div class="shape-workshop-preview shape-workshop-preview-summary">' + shapePreviewHtml(recipe) + '</div>' +
+      '<div class="shape-workshop-section"><div class="shape-workshop-section-title">底片落点</div>' + renderShapeMaterialMap(recipe) + '</div>' +
       '<div class="shape-workshop-section shape-workshop-params-section"><div class="shape-workshop-section-title">所选例子参数</div>' + renderShapeMotionControl() + renderShapeVisibilityControl(recipe, selected) + renderShapeParamPanel(selected) + '</div>' +
       '<div class="shape-workshop-section"><div class="shape-workshop-section-title">当前形态层级</div><div class="shape-layer-list">' + renderShapeLayerList(recipe) + '</div></div>' +
       '<div class="shape-workshop-section"><div class="shape-workshop-section-title">基础例子库</div><div class="shape-chip-grid">' + renderShapePrimitiveButtons() + '</div></div>' +
