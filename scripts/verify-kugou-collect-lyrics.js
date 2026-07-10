@@ -10,7 +10,7 @@ const checks = [
   ['server KuGou playlist add route', serverSource, "pn === '/api/kugou/playlist/add-song'"],
   ['server KuGou KRC decode helper', serverSource, 'function decodeKugouKrcLyrics'],
   ['UI requests KuGou lyric route', uiSource, "/api/kugou/lyric?hash="],
-  ['UI allows KuGou collection modal', uiSource, "provider === 'kugou' ? hasPlatformLogin('kugou')"],
+  ['UI allows both KuGou collection providers', uiSource, "var isKugouProvider = provider === 'kugou' || provider === 'kugouMusic'"],
   ['UI posts KuGou collection route', uiSource, "/api/kugou/playlist/add-song"],
   ['UI filters writable playlists by provider', uiSource, 'collectTargetProvider'],
   ['UI verifies KuGou playlist add', uiSource, "verifySongInPlaylist(pid, songId, provider)"],

@@ -21,6 +21,13 @@ https://github.com/XxHuberrr/Mineradio
 - NeteaseCloudMusicApi
 - mpg123-decoder
 
+## Custom Source Compatibility References
+
+- [LX Music Desktop](https://github.com/lyswhut/lx-music-desktop)：落雪自定义音源 API 2.0.0 协议与公开运行方式参考。
+- [Mineradio-LX](https://github.com/lidonghaofirst/Mineradio-LX)：Mineradio 与落雪自定义音源的模块化适配思路参考。
+
+上述项目均采用 GPL-3.0 授权。本仓库只实现兼容层，不附带、不推荐，也不自动下载任何真实第三方音源脚本。
+
 ## Third-party Services
 
 Mineradio 可能与网易云音乐、QQ 音乐等第三方音乐服务进行用户自有账号相关的本地客户端交互。

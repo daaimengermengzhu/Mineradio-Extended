@@ -12,7 +12,7 @@ const checks = [
   ['UI uses provider like key', uiSource, 'function songLikeKey'],
   ['UI syncs KuGou like status', uiSource, "/api/kugou/song/like/check?ids="],
   ['UI posts KuGou like route', uiSource, "/api/kugou/song/like"],
-  ['UI allows KuGou like toggle', uiSource, "provider === 'kugou' ? hasPlatformLogin('kugou')"],
+  ['UI allows both KuGou like providers', uiSource, "var isKugouProvider = provider === 'kugou' || provider === 'kugouMusic'"],
 ];
 
 const missing = checks.filter(([, source, marker]) => !source.includes(marker));

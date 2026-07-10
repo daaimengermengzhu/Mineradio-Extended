@@ -3,10 +3,15 @@ const net = require('net');
 const path = require('path');
 const fs = require('fs');
 const { execFile, spawn } = require('child_process');
+const { CustomSourceManager } = require('./custom-source/manager');
+const { CustomSourceAudioProxy } = require('./custom-source/audio-proxy');
+const { MAX_SCRIPT_BYTES } = require('./custom-source/store');
 
 let mainWindow = null;
 let localServer = null;
 let mainServerPort = 0;
+let customSourceManager = null;
+let customSourceAudioProxy = null;
 let desktopLyricsWindow = null;
 let desktopLyricsState = {};
 let desktopLyricsUserBounds = null;
@@ -1160,6 +1165,80 @@ ipcMain.handle('mineradio-import-json-file', async (event) => {
   }
 });
 
+function customSourceSnapshot(extra = {}) {
+  if (!customSourceManager) return { items: [], active: false, activeId: '', sources: {}, ...extra };
+  return { items: customSourceManager.list(), ...customSourceManager.getStatus(), ...extra };
+}
+
+function requireCustomSourceManager(event) {
+  if (!customSourceManager) throw new Error('CUSTOM_SOURCE_UNAVAILABLE');
+  if (!mainWindow || mainWindow.isDestroyed() || event.sender !== mainWindow.webContents) {
+    throw new Error('CUSTOM_SOURCE_UNAUTHORIZED');
+  }
+  return customSourceManager;
+}
+
+function sendCustomSourceStatus(extra = {}) {
+  if (!mainWindow || mainWindow.isDestroyed()) return;
+  mainWindow.webContents.send('mineradio-custom-source-status', customSourceSnapshot(extra));
+}
+
+async function chooseCustomSourceScript(event, title) {
+  const result = await dialog.showOpenDialog(getSenderWindow(event), {
+    title,
+    properties: ['openFile'],
+    filters: [{ name: '落雪自定义音源脚本', extensions: ['js'] }],
+  });
+  if (result.canceled || !result.filePaths?.[0]) return null;
+  const filePath = result.filePaths[0];
+  if (path.extname(filePath).toLowerCase() !== '.js') throw new Error('IMPORT_INVALID: 请选择 .js 音源脚本');
+  const stat = fs.statSync(filePath);
+  if (!stat.isFile()) throw new Error('IMPORT_INVALID: 请选择有效的音源脚本文件');
+  if (stat.size > MAX_SCRIPT_BYTES) throw new Error('IMPORT_INVALID: 音源脚本不能超过 1 MB');
+  return { sourceFileName: path.basename(filePath), script: fs.readFileSync(filePath, 'utf8') };
+}
+
+ipcMain.handle('mineradio-custom-source-list', event => {
+  requireCustomSourceManager(event);
+  return customSourceSnapshot();
+});
+
+ipcMain.handle('mineradio-custom-source-import', async event => {
+  const manager = requireCustomSourceManager(event);
+  const selected = await chooseCustomSourceScript(event, '导入落雪自定义音源');
+  if (!selected) return customSourceSnapshot({ canceled: true });
+  await manager.importScript(selected.script, selected.sourceFileName);
+  return customSourceSnapshot();
+});
+
+ipcMain.handle('mineradio-custom-source-replace', async (event, id) => {
+  const manager = requireCustomSourceManager(event);
+  const selected = await chooseCustomSourceScript(event, '替换落雪自定义音源');
+  if (!selected) return customSourceSnapshot({ canceled: true });
+  await manager.replaceScript(String(id || ''), selected.script, selected.sourceFileName);
+  return customSourceSnapshot();
+});
+
+ipcMain.handle('mineradio-custom-source-activate', async (event, id) => {
+  await requireCustomSourceManager(event).activate(String(id || ''));
+  return customSourceSnapshot();
+});
+
+ipcMain.handle('mineradio-custom-source-deactivate', async event => {
+  await requireCustomSourceManager(event).deactivate();
+  return customSourceSnapshot();
+});
+
+ipcMain.handle('mineradio-custom-source-remove', async (event, id) => {
+  await requireCustomSourceManager(event).remove(String(id || ''));
+  return customSourceSnapshot();
+});
+
+ipcMain.handle('mineradio-custom-source-set-update-alert', (event, id, enabled) => {
+  requireCustomSourceManager(event).setAllowUpdateAlert(String(id || ''), !!enabled);
+  return customSourceSnapshot();
+});
+
 ipcMain.handle('netease-music-open-login', async (event) => {
   return openNeteaseMusicLoginWindow(getSenderWindow(event));
 });
@@ -1341,6 +1420,24 @@ async function createWindow() {
   }
 
   localServer = require(path.join(__dirname, '..', 'server.js'));
+  if (!customSourceManager) {
+    customSourceAudioProxy = new CustomSourceAudioProxy();
+    customSourceManager = new CustomSourceManager({
+      userDataPath: app.getPath('userData'),
+      app,
+      BrowserWindow,
+      ipcMain,
+    });
+    customSourceManager.on('status', status => sendCustomSourceStatus(status));
+    customSourceManager.on('updateAlert', updateAlert => sendCustomSourceStatus({ updateAlert }));
+    customSourceManager.on('runtimeError', error => sendCustomSourceStatus({ error: error.message || 'RUNTIME_STOP_FAILED' }));
+    await customSourceManager.startActive();
+  }
+  localServer.setCustomSourceBridge({
+    resolve: payload => customSourceManager.resolveFallback(payload),
+    issue: remoteUrl => customSourceAudioProxy.issue(remoteUrl),
+    pipe: (ticket, req, res) => customSourceAudioProxy.pipe(ticket, req, res),
+  });
   await waitForServer(localServer);
 
   const initialBounds = getWindowedBounds();
@@ -1461,6 +1558,9 @@ if (!gotSingleInstanceLock) {
   app.on('before-quit', () => {
     unregisterMineradioGlobalHotkeys();
     closeOverlayWindows();
+    if (localServer?.setCustomSourceBridge) localServer.setCustomSourceBridge(null);
+    customSourceAudioProxy?.clear();
+    if (customSourceManager) void customSourceManager.dispose();
     if (localServer && localServer.close) localServer.close();
   });
 }

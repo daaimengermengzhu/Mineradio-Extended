@@ -26,11 +26,11 @@ if (!handlerSection) {
 if (!routeSection) {
   errors.push('Missing KuGou playlist track route.');
 }
-if (handlerSection && !handlerSection.includes("parseInt(limit || '500', 10) || 500")) {
-  errors.push('KuGou playlist track handler should default to 500 tracks.');
+if (handlerSection && !handlerSection.includes('const requestedLimit = normalizePlaylistTrackLimit(limit)')) {
+  errors.push('KuGou playlist track handler should use the shared playlist hard limit.');
 }
-if (routeSection && !routeSection.includes("url.searchParams.get('limit') || '500'")) {
-  errors.push('KuGou playlist track route should default to 500 tracks.');
+if (routeSection && !routeSection.includes("normalizePlaylistTrackLimit(url.searchParams.get('limit'))")) {
+  errors.push('KuGou playlist track route should use the shared playlist hard limit.');
 }
 
 if (errors.length) {
@@ -39,4 +39,4 @@ if (errors.length) {
   process.exit(1);
 }
 
-console.log('KuGou playlist track limit defaults to 500.');
+console.log('KuGou playlist track limit uses the shared 5000-track hard limit.');

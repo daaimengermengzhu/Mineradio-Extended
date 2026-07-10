@@ -90,6 +90,7 @@ const WEATHER_DEFAULT_LOCATION = {
 };
 
 const updateDownloadJobs = new Map();
+let customSourceBridge = null;
 
 function normalizePlaylistTrackLimit(value) {
   const parsed = parseInt(value, 10);
@@ -6243,6 +6244,61 @@ const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, 'http://localhost:' + PORT);
   const pn = url.pathname;
 
+  if (pn === '/api/custom-source/resolve') {
+    if (req.method !== 'POST') {
+      sendJSON(res, { error: 'METHOD_NOT_ALLOWED' }, 405);
+      return;
+    }
+    const declaredLength = Number(req.headers['content-length']) || 0;
+    if (declaredLength > 256 * 1024) {
+      sendJSON(res, { error: 'REQUEST_TOO_LARGE' }, 413);
+      return;
+    }
+    try {
+      const body = await readRequestBody(req);
+      if (Buffer.byteLength(JSON.stringify(body || {})) > 256 * 1024) {
+        sendJSON(res, { error: 'REQUEST_TOO_LARGE' }, 413);
+        return;
+      }
+      if (!customSourceBridge || typeof customSourceBridge.resolve !== 'function') {
+        sendJSON(res, { attempted: false, reason: 'inactive' });
+        return;
+      }
+      const controller = new AbortController();
+      req.once('aborted', () => controller.abort(new Error('CLIENT_ABORTED')));
+      const result = await customSourceBridge.resolve({
+        song: body && body.song && typeof body.song === 'object' ? body.song : {},
+        quality: String(body && body.quality || 'hires'),
+        officialResult: body && body.officialResult && typeof body.officialResult === 'object' ? body.officialResult : {},
+        signal: controller.signal,
+      });
+      if (result && result.url) {
+        if (typeof customSourceBridge.issue !== 'function') throw new Error('CUSTOM_SOURCE_AUDIO_PROXY_UNAVAILABLE');
+        const ticket = customSourceBridge.issue(result.url);
+        sendJSON(res, {
+          ...result,
+          url: '/api/custom-source/audio?ticket=' + encodeURIComponent(ticket),
+        });
+        return;
+      }
+      sendJSON(res, result && typeof result === 'object' ? result : { attempted: true, url: '', reason: 'resolve_failed' });
+    } catch (err) {
+      console.warn('[CustomSourceResolve]', err.message || err);
+      sendJSON(res, { attempted: true, url: '', reason: 'resolve_failed', error: err.message || 'CUSTOM_SOURCE_FAILED' }, 502);
+    }
+    return;
+  }
+
+  if (pn === '/api/custom-source/audio') {
+    if (!customSourceBridge || typeof customSourceBridge.pipe !== 'function') {
+      res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
+      res.end('Custom source audio proxy is inactive');
+      return;
+    }
+    await customSourceBridge.pipe(url.searchParams.get('ticket') || '', req, res);
+    return;
+  }
+
   if (pn === '/api/app/version') {
     sendJSON(res, {
       name: APP_PACKAGE.name || 'mineradio',
@@ -7724,5 +7780,9 @@ server.listen(PORT, HOST, () => {
   console.log(' 登录态: ' + (userCookie ? '已登录(cookie已加载)' : '未登录'));
   console.log('======================================================');
 });
+
+server.setCustomSourceBridge = bridge => {
+  customSourceBridge = bridge && typeof bridge === 'object' ? bridge : null;
+};
 
 module.exports = server;

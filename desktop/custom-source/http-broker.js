@@ -85,7 +85,10 @@ function defaultTransport({ target, method, headers, body, timeout, signal }) {
       method,
       headers: { ...headers, host: target.url.host },
       servername: target.hostname,
-      lookup: (_hostname, _options, callback) => callback(null, target.address, target.family),
+      lookup: (_hostname, lookupOptions, callback) => {
+        if (lookupOptions && lookupOptions.all) callback(null, [{ address: target.address, family: target.family }]);
+        else callback(null, target.address, target.family);
+      },
       timeout,
     }, response => {
       const chunks = [];

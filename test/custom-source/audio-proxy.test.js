@@ -1,5 +1,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
+const { EventEmitter, once } = require('node:events');
+const { PassThrough } = require('node:stream');
 const { CustomSourceAudioProxy } = require('../../desktop/custom-source/audio-proxy');
 
 test('issues short-lived bounded tickets without exposing the remote URL', () => {
@@ -29,4 +31,25 @@ test('refuses invalid ticket ids before opening the network', async () => {
   await proxy.pipe('../bad', { headers: {} }, response);
   assert.equal(response.statusCode, 404);
   assert.equal(opens, 0);
+});
+
+test('does not abort an audio stream when the completed incoming request emits close', async () => {
+  const incoming = new EventEmitter();
+  incoming.headers = {};
+  const outgoing = new PassThrough();
+  outgoing.writeHead = function writeHead(code) { this.statusCode = code; this.headersSent = true; };
+  const remoteStream = new PassThrough();
+  let remoteSignal;
+  const proxy = new CustomSourceAudioProxy({
+    openRemote: async (_url, options) => {
+      remoteSignal = options.signal;
+      return { statusCode: 200, headers: { 'content-type': 'audio/mpeg' }, stream: remoteStream };
+    },
+  });
+  const ticket = proxy.issue('https://audio.example.com/song.mp3');
+  await proxy.pipe(ticket, incoming, outgoing);
+  incoming.emit('close');
+  assert.equal(remoteSignal.aborted, false);
+  remoteStream.end('audio');
+  await once(outgoing, 'finish');
 });

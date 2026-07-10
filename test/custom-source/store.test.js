@@ -37,8 +37,9 @@ test('activates, replaces and removes a source atomically from the public state'
   store.setActive(item.id);
   assert.equal(store.getActive().id, item.id);
 
-  const replaced = store.replaceScript(item.id, '/**\n * @name Source A\n * @version 2\n */\nvoid 0');
+  const replaced = store.replaceScript(item.id, '/**\n * @name Source A\n * @version 2\n */\nvoid 0', 'source-a-v2.js');
   assert.equal(replaced.version, '2');
+  assert.equal(replaced.sourceFileName, 'source-a-v2.js');
   assert.match(store.getScript(item.id), /@version 2/);
 
   store.remove(item.id);
@@ -53,4 +54,16 @@ test('backs up a malformed index and does not accept traversal ids', () => {
   assert.deepEqual(store.list(), []);
   assert.equal(fs.readdirSync(root).some(name => name.startsWith('sources.json.corrupt.')), true);
   assert.throws(() => store.remove('../escape'), /SOURCE_NOT_FOUND/);
+});
+
+test('persists isolated status capabilities and update-alert preferences', () => {
+  const { store } = tempStore();
+  const item = store.importScript(SCRIPT_A, 'a.js');
+  const sources = { wy: { actions: ['musicUrl'], qualitys: ['128k'] } };
+  store.setStatus(item.id, 'ready', '', sources);
+  sources.wy.actions.length = 0;
+  assert.deepEqual(store.get(item.id).sources.wy.actions, ['musicUrl']);
+  store.setAllowUpdateAlert(item.id, false);
+  assert.equal(store.get(item.id).allowUpdateAlert, false);
+  assert.throws(() => store.setAllowUpdateAlert('missing', true), /SOURCE_NOT_FOUND/);
 });

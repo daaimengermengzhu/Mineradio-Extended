@@ -1,6 +1,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { SafeHttpBroker } = require('../../desktop/custom-source/http-broker');
+const http = require('node:http');
+const { SafeHttpBroker, normalizeRequestOptions, defaultTransport } = require('../../desktop/custom-source/http-broker');
 
 const publicLookup = async hostname => [{
   address: hostname === 'cdn.example.com' ? '1.1.1.1' : '8.8.8.8',
@@ -72,4 +73,36 @@ test('limits concurrent requests per broker instance', async () => {
   await assert.rejects(broker.request('https://api.example.com/two'), /Too many concurrent requests/);
   release();
   await first;
+});
+
+test('normalizes form and multipart request bodies within limits', () => {
+  const form = normalizeRequestOptions({ method: 'post', form: { a: 'b c' }, timeout: 90_000 });
+  assert.equal(form.method, 'POST');
+  assert.equal(form.timeout, 60_000);
+  assert.equal(form.body.toString(), 'a=b+c');
+  assert.equal(form.headers['content-type'], 'application/x-www-form-urlencoded');
+
+  const multipart = normalizeRequestOptions({ formData: { file: 'hello' } });
+  assert.match(multipart.headers['content-type'], /^multipart\/form-data; boundary=/);
+  assert.match(multipart.body.toString(), /hello/);
+  assert.throws(() => normalizeRequestOptions({ method: 'GET BAD' }), /Invalid method/);
+});
+
+test('default transport pins the supplied address and streams a bounded response', async t => {
+  const server = http.createServer((req, res) => {
+    assert.equal(req.headers.host, `localhost:${server.address().port}`);
+    res.end('transport-ok');
+  });
+  await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
+  t.after(() => new Promise(resolve => server.close(resolve)));
+  const target = {
+    url: new URL(`http://localhost:${server.address().port}/test`),
+    hostname: 'localhost',
+    address: '127.0.0.1',
+    family: 4,
+    maxResponseBytes: 1024,
+  };
+  const response = await defaultTransport({ target, method: 'GET', headers: {}, timeout: 1000 });
+  assert.equal(response.statusCode, 200);
+  assert.equal(response.body.toString(), 'transport-ok');
 });

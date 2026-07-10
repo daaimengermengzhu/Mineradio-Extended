@@ -882,6 +882,35 @@ body.login-guide-active #login-guide-canvas{opacity:1}
 .modal-btn:hover{background:rgba(255,255,255,0.12);border-color:rgba(255,255,255,0.3)}
 .modal-btn.primary{background:rgba(244,210,138,0.14);border-color:rgba(244,210,138,0.50);color:var(--champagne)}
 .modal-btn.primary:hover{background:rgba(244,210,138,0.24)}
+.custom-source-dialog{width:min(680px,calc(100vw - 36px));max-width:min(680px,calc(100vw - 36px));max-height:min(700px,calc(100vh - 54px));padding:22px;text-align:left;overflow:auto;border-radius:8px;background:linear-gradient(155deg,rgba(25,27,31,.97),rgba(8,10,13,.98));border-color:rgba(255,255,255,.12)}
+.custom-source-head{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;padding-bottom:14px;border-bottom:1px solid rgba(255,255,255,.08)}
+.custom-source-title{font-size:17px;font-weight:780;color:rgba(255,255,255,.94)}
+.custom-source-sub{margin-top:5px;font-size:11px;line-height:1.45;color:rgba(255,255,255,.46)}
+.custom-source-close{width:30px;height:30px;flex:0 0 30px;border:1px solid rgba(255,255,255,.10);border-radius:8px;background:rgba(255,255,255,.04);color:rgba(255,255,255,.70);display:grid;place-items:center;cursor:pointer}
+.custom-source-close:hover{background:rgba(255,255,255,.10);color:#fff}
+.custom-source-warning{margin:14px 0;padding:10px 12px;border:1px solid rgba(244,210,138,.22);border-radius:8px;background:rgba(244,210,138,.075);font-size:11.5px;line-height:1.55;color:rgba(255,238,201,.80)}
+.custom-source-list{display:grid;gap:8px;min-height:92px}
+.custom-source-empty{min-height:116px;display:grid;place-items:center;border:1px dashed rgba(255,255,255,.10);border-radius:8px;color:rgba(255,255,255,.38);font-size:12px;text-align:center;padding:18px}
+.custom-source-item{padding:12px;border:1px solid rgba(255,255,255,.08);border-radius:8px;background:rgba(255,255,255,.03)}
+.custom-source-item.active{border-color:rgba(0,245,212,.30);background:rgba(0,245,212,.055)}
+.custom-source-item-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.custom-source-name{font-size:13px;font-weight:760;color:rgba(255,255,255,.92)}
+.custom-source-meta,.custom-source-capabilities,.custom-source-message{margin-top:4px;font-size:10.8px;line-height:1.5;color:rgba(255,255,255,.45);overflow-wrap:anywhere}
+.custom-source-message{color:rgba(255,170,170,.82)}
+.custom-source-status{flex:0 0 auto;height:22px;padding:0 8px;border-radius:999px;background:rgba(255,255,255,.06);display:flex;align-items:center;font-size:10px;color:rgba(255,255,255,.56)}
+.custom-source-item.active .custom-source-status{background:rgba(0,245,212,.12);color:#bafff2}
+.custom-source-actions{display:flex;align-items:center;flex-wrap:wrap;gap:7px;margin-top:11px}
+.custom-source-actions button,.custom-source-footer button{height:30px;padding:0 11px;border:1px solid rgba(255,255,255,.10);border-radius:8px;background:rgba(255,255,255,.04);color:rgba(255,255,255,.72);font:700 11px/1 var(--font-sans);cursor:pointer}
+.custom-source-actions button:hover,.custom-source-footer button:hover{background:rgba(255,255,255,.10);color:#fff}
+.custom-source-actions button.primary,.custom-source-footer button.primary{border-color:rgba(0,245,212,.26);background:rgba(0,245,212,.09);color:#d8fff8}
+.custom-source-actions button.danger{color:rgba(255,157,157,.84)}
+.custom-source-alert-toggle{display:flex;align-items:center;gap:6px;margin-left:auto;font-size:10.5px;color:rgba(255,255,255,.46)}
+.custom-source-alert-toggle input{accent-color:#00f5d4}
+.custom-source-footer{display:flex;justify-content:flex-end;gap:8px;margin-top:14px;padding-top:14px;border-top:1px solid rgba(255,255,255,.08)}
+#custom-source-btn{width:30px;height:30px;min-width:30px;padding:0;border-radius:10px}
+#custom-source-btn svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+#custom-source-btn.active{color:#bafff2;border-color:rgba(0,245,212,.32);background:rgba(0,245,212,.09)}
+@media (max-width:620px){.custom-source-dialog{width:calc(100vw - 20px);max-width:calc(100vw - 20px);padding:16px}.custom-source-alert-toggle{width:100%;margin-left:0}.custom-source-footer{flex-wrap:wrap}.custom-source-footer button{flex:1}}
 .cover-crop-modal{width:min(720px,92vw);max-width:min(720px,92vw);padding:28px;text-align:left}
 .cover-crop-modal h2{text-align:center;margin-bottom:22px}
 .cover-crop-layout{display:grid;grid-template-columns:minmax(260px,312px) 1fr;gap:24px;align-items:center}
@@ -2070,6 +2099,9 @@ html.control-glass-svg-ok #visual-guide-btn:hover{
         <path class="update-arrow" d="M8.7 10.7 12 7.4l3.3 3.3"></path>
       </svg>
     </button>
+    <button id="custom-source-btn" class="icon-btn" type="button" onclick="openCustomSourceModal()" title="第三方音源" aria-label="第三方音源">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22v-5"/><path d="M9 8V2"/><path d="M15 8V2"/><path d="M18 8v5a6 6 0 0 1-12 0V8Z"/></svg>
+    </button>
     <button id="diy-mode-btn" class="desktop-mode-btn" type="button" onclick="toggleDiyMode()" title="开启 DIY 玩家模式" aria-label="开启 DIY 玩家模式" aria-pressed="false">DIY</button>
     <button class="desktop-window-btn" data-window-action="minimize" title="最小化" aria-label="最小化">
       <svg viewBox="0 0 16 16"><path d="M3 8h10"/></svg>
@@ -2705,6 +2737,27 @@ html.control-glass-svg-ok #visual-guide-btn:hover{
 <div id="loading-overlay"><div class="spinner"></div></div>
 
 <canvas id="login-guide-canvas" aria-hidden="true"></canvas>
+
+<!-- 第三方音源管理 -->
+<div id="custom-source-modal" class="modal-mask" aria-hidden="true">
+  <section class="modal custom-source-dialog" role="dialog" aria-modal="true" aria-labelledby="custom-source-title">
+    <header class="custom-source-head">
+      <div>
+        <div id="custom-source-title" class="custom-source-title">第三方音源</div>
+        <div class="custom-source-sub">兼容落雪自定义音源 API 2.0.0 · 官方播放链路优先</div>
+      </div>
+      <button class="custom-source-close" type="button" onclick="closeCustomSourceModal()" title="关闭" aria-label="关闭">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+      </button>
+    </header>
+    <div class="custom-source-warning">第三方脚本可以向网络发送歌曲信息。仅导入来源可信、内容可审查的脚本；会员、付费和版权限制不会触发第三方解析。</div>
+    <div id="custom-source-list" class="custom-source-list" aria-live="polite"></div>
+    <footer class="custom-source-footer">
+      <button type="button" onclick="deactivateCustomSource()">停用当前音源</button>
+      <button class="primary" type="button" onclick="importCustomSource()">导入 .js 脚本</button>
+    </footer>
+  </section>
+</div>
 
 <!-- 登录模态 -->
 <div id="login-modal" class="modal-mask">
@@ -19251,6 +19304,7 @@ function playSearchResult(i) {
 var firstPlayDone = false;
 
 function playbackProviderLabel(song) {
+  if (song && (song.provider === 'lx-custom-source' || song.source === 'lx-custom-source')) return '第三方音源';
   var provider = songProviderKey(song);
   if (provider === 'qq') return 'QQ 音乐';
   if (provider === 'kugou') return '酷狗概念版';
@@ -19265,6 +19319,54 @@ function playbackLoginProvider(song) {
   if (provider === 'kugouMusic') return 'kugouMusic';
   if (provider === 'qishui') return 'qishui';
   return 'netease';
+}
+async function resolveOfficialPlaybackData(song, requestedQuality) {
+  var playbackProvider = songProviderKey(song);
+  var isQQ = playbackProvider === 'qq';
+  var isKugou = playbackProvider === 'kugou' || playbackProvider === 'kugouMusic';
+  var isQishui = playbackProvider === 'qishui';
+  requestedQuality = providerPlaybackQualityValue(playbackProvider, normalizePlaybackQuality(requestedQuality || playbackQuality));
+  if (!isQQ && !isKugou && !isQishui && requestedQuality === 'jymaster' && !hasProviderSvip('netease', loginStatus)) requestedQuality = 'hires';
+  if (isQQ && qqPlaybackQualityCeiling && (requestedQuality === 'jymaster' || requestedQuality === 'hires' || requestedQuality === 'lossless')) requestedQuality = qqPlaybackQualityCeiling;
+  var qualityParam = '&quality=' + encodeURIComponent(requestedQuality);
+  var result = isQQ
+    ? await apiJson('/api/qq/song/url?mid=' + encodeURIComponent(song.mid || song.songmid || song.id || '') + '&mediaMid=' + encodeURIComponent(song.mediaMid || song.media_mid || '') + qualityParam)
+    : (isQishui
+      ? await apiJson('/api/qishui/song/url?id=' + encodeURIComponent(song.qishuiTrackId || song.id || '') + '&mediaType=' + encodeURIComponent(song.qishuiMediaType || song.mediaType || 'track'))
+      : (isKugou
+        ? await apiJson(playbackProvider === 'kugouMusic' ? kugouMusicSongUrlApiPath(song, qualityParam) : kugouSongUrlApiPath(song, qualityParam))
+        : await apiJson('/api/song/url?id=' + encodeURIComponent(song.id) + qualityParam)));
+  if (!result || typeof result !== 'object') result = { url: '', reason: 'url_unavailable' };
+  result.requestedQuality = requestedQuality;
+  return result;
+}
+async function resolveOnlinePlaybackData(song, requestedQuality) {
+  var officialResult;
+  try { officialResult = await resolveOfficialPlaybackData(song, requestedQuality); }
+  catch (error) { officialResult = { url: '', reason: 'request_failed', error: error && error.message ? error.message : String(error), requestedQuality: normalizePlaybackQuality(requestedQuality) }; }
+  if (officialResult.url) return officialResult;
+  try {
+    var custom = await apiJson('/api/custom-source/resolve', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        song: song || {},
+        quality: officialResult.requestedQuality || requestedQuality || 'hires',
+        officialResult: {
+          url: '',
+          reason: officialResult.reason || '',
+          error: officialResult.error || '',
+          restriction: officialResult.restriction || null
+        }
+      })
+    });
+    if (custom && custom.url && custom.thirdParty === true) {
+      custom.requestedQuality = officialResult.requestedQuality || requestedQuality;
+      custom.officialFailure = officialResult;
+      return custom;
+    }
+  } catch (error) { console.warn('[CustomSourceResolve]', error); }
+  return officialResult;
 }
 function playbackRestrictionMessage(song, data) {
   data = data || {};
@@ -19648,15 +19750,8 @@ async function playQueueAt(idx, opts) {
     var isKugouPlayback = playbackProvider === 'kugou' || playbackProvider === 'kugouMusic';
     var isQishuiPlayback = playbackProvider === 'qishui';
     var requestedQuality = normalizePlaybackQuality(opts.qualityOverride || playbackQuality);
-    requestedQuality = providerPlaybackQualityValue(playbackProvider, requestedQuality);
-    if (!isQQPlayback && !isKugouPlayback && !isQishuiPlayback && requestedQuality === 'jymaster' && !hasProviderSvip('netease', loginStatus)) requestedQuality = 'hires';
-    if (isQQPlayback && qqPlaybackQualityCeiling && (requestedQuality === 'jymaster' || requestedQuality === 'hires' || requestedQuality === 'lossless')) {
-      requestedQuality = qqPlaybackQualityCeiling;
-    }
-    var qualityParam = '&quality=' + encodeURIComponent(requestedQuality);
-    var data = isQQPlayback
-      ? await apiJson('/api/qq/song/url?mid=' + encodeURIComponent(song.mid || song.songmid || song.id || '') + '&mediaMid=' + encodeURIComponent(song.mediaMid || song.media_mid || '') + qualityParam)
-      : (isQishuiPlayback ? await apiJson('/api/qishui/song/url?id=' + encodeURIComponent(song.qishuiTrackId || song.id || '') + '&mediaType=' + encodeURIComponent(song.qishuiMediaType || song.mediaType || 'track')) : (isKugouPlayback ? await apiJson(playbackProvider === 'kugouMusic' ? kugouMusicSongUrlApiPath(song, qualityParam) : kugouSongUrlApiPath(song, qualityParam)) : await apiJson('/api/song/url?id=' + song.id + qualityParam)));
+    var data = await resolveOnlinePlaybackData(song, requestedQuality);
+    requestedQuality = normalizePlaybackQuality(data.requestedQuality || requestedQuality);
     if (token !== trackSwitchToken) return;
     if (!data.url) {
       if (isQQPlayback && await retryQQPlaybackWithCompatibleQuality(song, idx, token, opts, data, requestedQuality)) return;
@@ -19665,10 +19760,13 @@ async function playQueueAt(idx, opts) {
       return;
     }
     var resolvedPlaybackProvider = data.playbackProvider || data.fallbackProvider || data.provider || playbackProvider;
-    currentPlaybackProvider = normalizeAccountProvider(resolvedPlaybackProvider);
+    if (data.thirdParty) currentPlaybackProvider = 'lx-custom-source';
+    else currentPlaybackProvider = normalizeAccountProvider(resolvedPlaybackProvider);
     safePlaybackStep('quality-ui-resolved', updatePlaybackQualityUi);
-    var resolvedQualityText = playbackResolvedQualityText(data, currentPlaybackProvider);
-    if (!isQQPlayback && !isKugouPlayback && !isQishuiPlayback && playbackQualityWasDowngraded(requestedQuality, data.level)) {
+    var resolvedQualityText = playbackResolvedQualityText(data, data.thirdParty ? playbackProvider : currentPlaybackProvider);
+    if (data.thirdParty) {
+      showSourceFallbackNotice('已使用第三方音源', '官方地址因技术原因不可用，当前由已启用脚本解析 · ' + resolvedQualityText + '。');
+    } else if (!isQQPlayback && !isKugouPlayback && !isQishuiPlayback && playbackQualityWasDowngraded(requestedQuality, data.level)) {
       showSourceFallbackNotice('网易云音质自动降级', '请求 ' + playbackQualityLabelForProvider('netease', requestedQuality) + '，实际播放 ' + resolvedQualityText + '。');
     } else if (opts.qualitySwitch) {
       showSourceFallbackNotice('音质已切换', '实际播放: ' + resolvedQualityText + '。');
@@ -19697,7 +19795,7 @@ async function playQueueAt(idx, opts) {
     bindPlaybackProgressEvents(audio);
     releaseManualAudioPlaybackPrime();
     applyVolumeToAudio();
-    var proxyAudioUrl = '/api/audio?url=' + encodeURIComponent(data.url);
+    var proxyAudioUrl = data.thirdParty ? data.url : '/api/audio?url=' + encodeURIComponent(data.url);
     audio.src = proxyAudioUrl;
     updatePlaybackProgressUi();
     audio.onended = function(){
@@ -19770,8 +19868,9 @@ async function playQueueAt(idx, opts) {
       safePlaybackStep('visual-prep-hide-chip', hideBeatChip);
     }
     markPlayPhase('audio-start');
-    var playbackStarted = await playAudio({ manual: !!opts.manual, silent: isQQPlayback });
+    var playbackStarted = await playAudio({ manual: !!opts.manual, silent: isQQPlayback || data.thirdParty });
     if (!playbackStarted) {
+      if (data.thirdParty && await tryAutoPlaybackFallback(song, data.officialFailure || { reason: 'url_unavailable' }, idx, token, opts)) return;
       if (isQQPlayback && await retryQQPlaybackWithCompatibleQuality(song, idx, token, opts, data, requestedQuality)) return;
       forcePlaybackControlsInteractive();
       if (opts.manual) {
@@ -30419,10 +30518,207 @@ function toggleFullscreen() {
   });
 })();
 
+var customSourceState = { items: [], activeId: '', loading: false };
+var customSourceStatusUnsubscribe = null;
+
+function customSourceStatusText(item, active) {
+  if (active) return '使用中';
+  if (item && item.status === 'failed') return '初始化失败';
+  if (item && item.status === 'warning') return '需要检查';
+  return '未启用';
+}
+
+function customSourceCapabilityText(item) {
+  var sources = item && item.sources && typeof item.sources === 'object' ? item.sources : {};
+  var platformLabels = { wy: '网易云', tx: 'QQ 音乐', kg: '酷狗', kw: '酷我', mg: '咪咕', local: '本地' };
+  var platforms = Object.keys(sources).filter(function(key){
+    return sources[key] && Array.isArray(sources[key].actions) && sources[key].actions.indexOf('musicUrl') >= 0;
+  }).map(function(key){ return platformLabels[key] || key; });
+  var qualities = [];
+  Object.keys(sources).forEach(function(key){
+    var list = sources[key] && Array.isArray(sources[key].qualitys) ? sources[key].qualitys : [];
+    list.forEach(function(quality){ if (qualities.indexOf(quality) < 0) qualities.push(quality); });
+  });
+  if (!platforms.length) return '脚本尚未声明可用的歌曲地址解析能力';
+  return '平台: ' + platforms.join(' / ') + (qualities.length ? ' · 音质: ' + qualities.join(' / ') : '');
+}
+
+function makeCustomSourceElement(tag, className, text) {
+  var element = document.createElement(tag);
+  if (className) element.className = className;
+  if (text != null) element.textContent = text;
+  return element;
+}
+
+function setCustomSourceState(result) {
+  result = result || {};
+  if (Array.isArray(result.items)) customSourceState.items = result.items;
+  customSourceState.activeId = String(result.activeId || '');
+  var entry = document.getElementById('custom-source-btn');
+  if (entry) entry.classList.toggle('active', !!customSourceState.activeId);
+  renderCustomSourceList();
+  if (result.updateAlert && result.updateAlert.log) showToast('第三方音源提示: ' + result.updateAlert.log);
+  if (result.error) showToast('第三方音源: ' + result.error);
+}
+
+function renderCustomSourceList() {
+  var list = document.getElementById('custom-source-list');
+  if (!list) return;
+  list.textContent = '';
+  if (!customSourceState.items.length) {
+    list.appendChild(makeCustomSourceElement('div', 'custom-source-empty', '尚未导入脚本。导入后仍需手动启用。'));
+    return;
+  }
+  customSourceState.items.forEach(function(item){
+    var active = item.id === customSourceState.activeId || item.active === true;
+    var row = makeCustomSourceElement('article', 'custom-source-item' + (active ? ' active' : ''));
+    var head = makeCustomSourceElement('div', 'custom-source-item-head');
+    var identity = makeCustomSourceElement('div');
+    identity.appendChild(makeCustomSourceElement('div', 'custom-source-name', item.name || '未命名音源'));
+    identity.appendChild(makeCustomSourceElement('div', 'custom-source-meta', [
+      item.version ? 'v' + item.version : '',
+      item.author || '',
+      item.sourceFileName || '',
+      item.description || ''
+    ].filter(Boolean).join(' · ')));
+    head.appendChild(identity);
+    head.appendChild(makeCustomSourceElement('div', 'custom-source-status', customSourceStatusText(item, active)));
+    row.appendChild(head);
+    row.appendChild(makeCustomSourceElement('div', 'custom-source-capabilities', customSourceCapabilityText(item)));
+    if (item.message) row.appendChild(makeCustomSourceElement('div', 'custom-source-message', item.message));
+
+    var actions = makeCustomSourceElement('div', 'custom-source-actions');
+    if (!active) {
+      var activateButton = makeCustomSourceElement('button', 'primary', '启用');
+      activateButton.type = 'button';
+      activateButton.addEventListener('click', function(){ activateCustomSource(item.id); });
+      actions.appendChild(activateButton);
+    }
+    var replaceButton = makeCustomSourceElement('button', '', '替换');
+    replaceButton.type = 'button';
+    replaceButton.addEventListener('click', function(){ replaceCustomSource(item.id); });
+    actions.appendChild(replaceButton);
+    var removeButton = makeCustomSourceElement('button', 'danger', '删除');
+    removeButton.type = 'button';
+    removeButton.addEventListener('click', function(){ removeCustomSource(item.id, item.name); });
+    actions.appendChild(removeButton);
+
+    var toggle = makeCustomSourceElement('label', 'custom-source-alert-toggle');
+    var checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.checked = item.allowUpdateAlert !== false;
+    checkbox.addEventListener('change', function(){ setCustomSourceUpdateAlert(item.id, checkbox.checked); });
+    toggle.appendChild(checkbox);
+    toggle.appendChild(document.createTextNode('允许脚本更新提示'));
+    actions.appendChild(toggle);
+    row.appendChild(actions);
+    list.appendChild(row);
+  });
+}
+
+async function refreshCustomSources() {
+  var api = getDesktopWindowApi();
+  if (!api || typeof api.listCustomSources !== 'function') {
+    customSourceState.items = [];
+    customSourceState.activeId = '';
+    var list = document.getElementById('custom-source-list');
+    if (list) {
+      list.textContent = '';
+      list.appendChild(makeCustomSourceElement('div', 'custom-source-empty', '第三方音源管理仅在桌面应用中可用。'));
+    }
+    return;
+  }
+  setCustomSourceState(await api.listCustomSources());
+}
+
+async function runCustomSourceAction(action, successText) {
+  if (customSourceState.loading) return;
+  customSourceState.loading = true;
+  try {
+    var result = await action();
+    if (result && result.canceled) return;
+    setCustomSourceState(result);
+    if (successText) showToast(successText);
+  } catch (error) {
+    showToast('第三方音源操作失败: ' + (error && error.message ? error.message : error));
+  } finally {
+    customSourceState.loading = false;
+  }
+}
+
+function openCustomSourceModal() {
+  var modal = document.getElementById('custom-source-modal');
+  if (!modal) return;
+  if (typeof openGsapModal === 'function') openGsapModal(modal);
+  else modal.classList.add('show');
+  modal.setAttribute('aria-hidden', 'false');
+  refreshCustomSources().catch(function(error){ showToast('第三方音源列表读取失败: ' + error.message); });
+}
+
+function closeCustomSourceModal() {
+  var modal = document.getElementById('custom-source-modal');
+  if (!modal) return;
+  modal.setAttribute('aria-hidden', 'true');
+  if (typeof closeGsapModal === 'function') closeGsapModal(modal);
+  else modal.classList.remove('show');
+}
+
+function importCustomSource() {
+  var api = getDesktopWindowApi();
+  if (!api || typeof api.importCustomSource !== 'function') return;
+  runCustomSourceAction(function(){ return api.importCustomSource(); }, '脚本已验证并导入，启用后才会参与播放');
+}
+
+function replaceCustomSource(id) {
+  var api = getDesktopWindowApi();
+  if (!api || typeof api.replaceCustomSource !== 'function') return;
+  runCustomSourceAction(function(){ return api.replaceCustomSource(id); }, '脚本已验证并替换');
+}
+
+function activateCustomSource(id) {
+  var api = getDesktopWindowApi();
+  if (!api || typeof api.activateCustomSource !== 'function') return;
+  runCustomSourceAction(function(){ return api.activateCustomSource(id); }, '第三方音源已启用，官方播放仍然优先');
+}
+
+function deactivateCustomSource() {
+  var api = getDesktopWindowApi();
+  if (!api || typeof api.deactivateCustomSource !== 'function') return;
+  runCustomSourceAction(function(){ return api.deactivateCustomSource(); }, '第三方音源已停用');
+}
+
+function removeCustomSource(id, name) {
+  var api = getDesktopWindowApi();
+  if (!api || typeof api.removeCustomSource !== 'function') return;
+  if (!window.confirm('删除“' + (name || '这个脚本') + '”？此操作只删除本机导入副本。')) return;
+  runCustomSourceAction(function(){ return api.removeCustomSource(id); }, '脚本已删除');
+}
+
+function setCustomSourceUpdateAlert(id, enabled) {
+  var api = getDesktopWindowApi();
+  if (!api || typeof api.setCustomSourceUpdateAlert !== 'function') return;
+  runCustomSourceAction(function(){ return api.setCustomSourceUpdateAlert(id, enabled); });
+}
+
+function bindCustomSourceManager() {
+  var modal = document.getElementById('custom-source-modal');
+  if (modal) modal.addEventListener('click', function(event){ if (event.target === modal) closeCustomSourceModal(); });
+  var api = getDesktopWindowApi();
+  if (!api || typeof api.listCustomSources !== 'function') return;
+  if (!customSourceStatusUnsubscribe && typeof api.onCustomSourceStatus === 'function') {
+    customSourceStatusUnsubscribe = api.onCustomSourceStatus(function(status){
+      if (status && Array.isArray(status.items)) setCustomSourceState(status);
+      else refreshCustomSources().catch(function(){});
+    });
+  }
+  refreshCustomSources().catch(function(){});
+}
+
 // ============================================================
 //  启动
 // ============================================================
 applyDiyMode(diyPlayerMode, { save: false });
+bindCustomSourceManager();
 bindFxPanel();
 applySavedLyricPaletteState();
 bindQualityControl();

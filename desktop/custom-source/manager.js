@@ -150,28 +150,39 @@ class CustomSourceManager extends EventEmitter {
     const scriptInfo = parseScriptInfo(script);
     const placeholder = { id: `import_${Date.now()}`, ...scriptInfo, allowUpdateAlert: true };
     const candidate = await this.#startCandidate(placeholder, script, scriptInfo);
+    let imported;
     try {
-      return this.store.importScript(script, sourceFileName);
+      imported = this.store.importScript(script, sourceFileName);
+      this.store.setStatus(imported.id, 'ready', '', candidate.sources);
+      return this.#item(imported.id) || imported;
+    } catch (error) {
+      if (imported) {
+        try { this.store.remove(imported.id); } catch {}
+      }
+      throw error;
     } finally {
       await this.#stopQuietly(candidate.runtime);
       this.#emitStatus();
     }
   }
 
-  async replaceScript(id, script) {
+  async replaceScript(id, script, sourceFileName = '') {
     const item = this.#item(id);
     if (!item) throw new Error('SOURCE_NOT_FOUND');
     const scriptInfo = { ...item, ...parseScriptInfo(script) };
     const candidate = await this.#startCandidate(item, script, scriptInfo);
     let replaced;
-    try { replaced = this.store.replaceScript(id, script); }
+    try {
+      replaced = this.store.replaceScript(id, script, sourceFileName);
+      this.store.setStatus(id, 'ready', '', candidate.sources);
+      replaced = this.#item(id) || replaced;
+    }
     catch (error) { await this.#stopQuietly(candidate.runtime); throw error; }
     if (this.activeId === id) {
       const previous = this.runtime;
       this.runtime = candidate.runtime;
       this.sources = candidate.sources;
       this.consecutiveFailures = 0;
-      this.store.setStatus(id, 'ready', '', candidate.sources);
       await this.#stopQuietly(previous);
     } else {
       await this.#stopQuietly(candidate.runtime);

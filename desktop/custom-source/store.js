@@ -204,7 +204,7 @@ class CustomSourceStore {
     }
   }
 
-  replaceScript(id, script) {
+  replaceScript(id, script, fileName = '') {
     validateScript(script);
     const index = this.state.items.findIndex(item => item.id === id);
     if (index < 0) throw new Error('SOURCE_NOT_FOUND');
@@ -228,6 +228,7 @@ class CustomSourceStore {
     const previousItem = clone(this.state.items[index]);
     Object.assign(this.state.items[index], parseScriptInfo(script), {
       hash,
+      sourceFileName: fileName ? sourceFileName(fileName) : previousItem.sourceFileName,
       status: 'idle',
       message: '',
       sources: {},

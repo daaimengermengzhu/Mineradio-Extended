@@ -8,8 +8,8 @@ const checks = [
   ['server KuGou playlist create route', serverSource, "pn === '/api/kugou/playlist/create'"],
   ['server KuGou add_list endpoint', serverSource, "'/cloudlist.service/v5/add_list'"],
   ['UI posts KuGou playlist create route', uiSource, "/api/kugou/playlist/create"],
-  ['UI shows create row for KuGou collect modal', uiSource, "provider === 'netease' || provider === 'kugou'"],
-  ['UI handles KuGou create branch', uiSource, "collectTargetProvider === 'kugou'"],
+  ['UI shows create row for both KuGou providers', uiSource, "provider === 'netease' || provider === 'kugou' || provider === 'kugouMusic'"],
+  ['UI handles both KuGou create branches', uiSource, "var isKugouProvider = provider === 'kugou' || provider === 'kugouMusic'"],
 ];
 
 const missing = checks.filter(([, source, marker]) => !source.includes(marker));
