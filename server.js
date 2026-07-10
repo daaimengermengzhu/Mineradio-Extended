@@ -58,6 +58,7 @@ const { analyzePodcastDjStream, analyzePodcastDjIntro } = require('./dj-analyzer
 const PORT = process.env.PORT || 3000;
 const HOST = process.env.HOST || '0.0.0.0';
 const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
+const PLAYLIST_TRACK_HARD_LIMIT = 5000;
 const COOKIE_FILE = process.env.COOKIE_FILE || path.join(__dirname, '.cookie');
 const QQ_COOKIE_FILE = process.env.QQ_COOKIE_FILE || path.join(__dirname, '.qq-cookie');
 const KUGOU_COOKIE_FILE = process.env.KUGOU_COOKIE_FILE || path.join(__dirname, '.kugou-cookie');
@@ -89,6 +90,12 @@ const WEATHER_DEFAULT_LOCATION = {
 };
 
 const updateDownloadJobs = new Map();
+
+function normalizePlaylistTrackLimit(value) {
+  const parsed = parseInt(value, 10);
+  const requested = Number.isFinite(parsed) ? parsed : PLAYLIST_TRACK_HARD_LIMIT;
+  return Math.max(30, Math.min(PLAYLIST_TRACK_HARD_LIMIT, requested));
+}
 
 function applySystemCertificateAuthorities() {
   try {
@@ -2244,7 +2251,7 @@ const QISHUI_APP_VERSION = '3.5.1';
 const QISHUI_APP_VERSION_CODE = '30050000';
 const QISHUI_TRON_BUILD_ID = '408871041';
 const QISHUI_USER_AGENT = `LunaPC/${QISHUI_APP_VERSION}(${QISHUI_TRON_BUILD_ID})`;
-const QISHUI_SHARE_IMPORT_LIMIT = 200;
+const QISHUI_SHARE_IMPORT_LIMIT = PLAYLIST_TRACK_HARD_LIMIT;
 let qishuiSqlJsPromise = null;
 let qishuiBdms = null;
 let qishuiBdmsDeviceId = '';
@@ -3726,7 +3733,7 @@ async function handleKugouPlaylistTracks(id, limit, session) {
   if (!userid || !token) {
     return { loggedIn: false, provider: session.provider, platform: session.platform, tracks: [] };
   }
-  const requestedLimit = Math.max(30, Math.min(600, parseInt(limit || '500', 10) || 500));
+  const requestedLimit = normalizePlaylistTrackLimit(limit);
   const pageSize = Math.min(200, requestedLimit);
   let body = null;
   let rawTracks = [];
@@ -4156,7 +4163,7 @@ async function handleKugouSongLikeCheck(ids, session) {
   if (!likedPlaylist || !likedPlaylist.id) {
     return { provider: session.provider, platform: session.platform, loggedIn: true, liked, likedPlaylistId: '' };
   }
-  const detail = await handleKugouPlaylistTracks(likedPlaylist.id, 500, session);
+  const detail = await handleKugouPlaylistTracks(likedPlaylist.id, PLAYLIST_TRACK_HARD_LIMIT, session);
   const likedSet = new Set();
   (detail.tracks || []).forEach(track => {
     kugouTrackLikeIds(track).forEach(id => likedSet.add(id));
@@ -4392,7 +4399,7 @@ async function handleKugouSongLike(params, session) {
       error: added.success ? undefined : (added.error || 'KUGOU_LIKE_ADD_FAILED'),
     };
   }
-  const detail = await handleKugouPlaylistTracks(likedPlaylist.id, 500, session);
+  const detail = await handleKugouPlaylistTracks(likedPlaylist.id, PLAYLIST_TRACK_HARD_LIMIT, session);
   const match = (detail.tracks || []).find(track => kugouTrackLikeIds(track).indexOf(songId) >= 0);
   const fileid = match && (match.fileid || match.fileId);
   if (!fileid) {
@@ -6726,7 +6733,7 @@ const server = http.createServer(async (req, res) => {
   if (pn === '/api/kugou-music/playlist/tracks') {
     try {
       const id = url.searchParams.get('id') || url.searchParams.get('listid') || '';
-      const limit = Math.max(30, Math.min(500, parseInt(url.searchParams.get('limit') || '500', 10) || 500));
+      const limit = normalizePlaylistTrackLimit(url.searchParams.get('limit'));
       const data = await handleKugouPlaylistTracks(id, limit, KUGOU_MUSIC_SESSION);
       sendJSON(res, data);
     } catch (err) {
@@ -6908,7 +6915,7 @@ const server = http.createServer(async (req, res) => {
   if (pn === '/api/kugou/playlist/tracks') {
     try {
       const id = url.searchParams.get('id') || url.searchParams.get('listid') || '';
-      const limit = Math.max(30, Math.min(500, parseInt(url.searchParams.get('limit') || '500', 10) || 500));
+      const limit = normalizePlaylistTrackLimit(url.searchParams.get('limit'));
       const data = await handleKugouPlaylistTracks(id, limit);
       sendJSON(res, data);
     } catch (err) {
@@ -7623,7 +7630,8 @@ const server = http.createServer(async (req, res) => {
       // 新版本 NeteaseCloudMusicApi 通常提供 playlist_track_all；旧版本退回 playlist_detail。
       if (typeof playlist_track_all === 'function') {
         try {
-          const all = await playlist_track_all({ id, limit: 500, offset: 0, cookie: userCookie, timestamp: Date.now() });
+          const limit = normalizePlaylistTrackLimit(url.searchParams.get('limit'));
+          const all = await playlist_track_all({ id, limit, offset: 0, cookie: userCookie, timestamp: Date.now() });
           rawTracks = (all.body && (all.body.songs || all.body.tracks)) || [];
         } catch (err) {
           console.warn('[PlaylistTracks] playlist_track_all failed, fallback to detail:', err.message);

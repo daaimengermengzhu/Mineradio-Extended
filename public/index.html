@@ -14867,7 +14867,10 @@ function makeContentListManager() {
           syncRenderedRows(true);
           return;
         }
-        allTracks = tracks;
+        var detailProvider = qqPlaylistId ? 'qq' : (kugouMusicPlaylistId ? 'kugouMusic' : (kugouPlaylistId ? 'kugou' : 'netease'));
+        allTracks = podcastCollectionKey
+          ? tracks
+          : sortPlaylistTracksForDisplay(tracks.map(normalizePlaylistPanelTrack), detailProvider);
         centerTarget = 0; centerSmooth = 0;
         panelDirty = true;
         rowsDirty = true;
@@ -16243,6 +16246,17 @@ function renderHomeTiles() {
   row._homeTiles = tiles;
   renderHomeMosaic(tiles);
 }
+function pickHomeLibraryPlaylist(playlists) {
+  var rows = (Array.isArray(playlists) ? playlists : []).filter(function(pl){ return pl && pl.name; });
+  if (!rows.length) return null;
+  var nonEmptyRows = rows.filter(function(pl){ return Math.max(0, Number(pl.trackCount) || 0) > 0; });
+  var candidates = nonEmptyRows.length ? nonEmptyRows : rows;
+  var likedRows = candidates.filter(function(pl){ return /我喜欢|我的喜欢|喜欢的音乐|默认收藏/i.test(String(pl.name || '')); });
+  var pool = likedRows.length ? likedRows : candidates;
+  return pool.slice().sort(function(a, b){
+    return (Math.max(0, Number(b.trackCount) || 0) - Math.max(0, Number(a.trackCount) || 0));
+  })[0] || null;
+}
 function renderHomeDiscover() {
   var sub = document.getElementById('home-subtitle');
   var loggedOutHome = !homeDiscoverState.loggedIn && !hasAnyPlatformLogin();
@@ -16275,6 +16289,7 @@ function renderHomeDiscover() {
   var cardSongB = homeDiscoverState.songs[1] || null;
   var cardSongC = homeDiscoverState.songs[2] || null;
   var playlistItem = homeDiscoverState.playlists[0] || null;
+  var libraryPlaylist = pickHomeLibraryPlaylist(userPlaylists);
   var podcastItem = homeDiscoverState.podcasts[0] || null;
   var summary = homeListenSummary();
   var weatherCardTitle = document.getElementById('home-weather-card-title');
@@ -16291,7 +16306,9 @@ function renderHomeDiscover() {
   var libSub = document.getElementById('home-library-sub');
   if (weatherCardTitle) weatherCardTitle.textContent = '我的歌单';
   if (weatherCardSub) {
-    weatherCardSub.textContent = playlistItem ? (((playlistItem.trackCount || 0) ? playlistItem.trackCount + ' 首 · ' : '') + (playlistItem.creator || '打开左侧歌单库')) : '打开左侧歌单库';
+    weatherCardSub.textContent = libraryPlaylist
+      ? (((Math.max(0, Number(libraryPlaylist.trackCount) || 0)) ? Math.max(0, Number(libraryPlaylist.trackCount) || 0) + ' 首 · ' : '') + (libraryPlaylist.name || '打开左侧歌单库'))
+      : '打开左侧歌单库';
   }
   if (continueTitle) continueTitle.textContent = summary.recent ? summary.recent.name : '继续听';
   if (continueSub) continueSub.textContent = summary.recent ? (summary.recent.artist || summary.recent.source || '最近播放') : '最近播放会出现在这里';
@@ -16317,7 +16334,7 @@ function renderHomeDiscover() {
     if (privateSub) privateSub.textContent = cardSongB ? (cardSongB.artist || songSourceLabel(cardSongB) || '推荐歌曲') : (homeDiscoverState.songs.length + ' 首 · 根据今日推荐与常听偏好');
     if (libTitle) libTitle.textContent = cardSongC ? cardSongC.name : (summary.topArtist ? summary.topArtist.name : '更多歌曲');
     if (libSub) libSub.textContent = cardSongC ? (cardSongC.artist || songSourceLabel(cardSongC) || '推荐歌曲') : (summary.topArtist ? ('歌手偏好 · ' + summary.topArtist.plays + ' 次') : '播放几首后生成你的偏好');
-    setHomeArt('home-weather-art', (userPlaylists[0] && userPlaylists[0].cover) || (playlistItem && playlistItem.cover) || daily && daily.cover, 280);
+    setHomeArt('home-weather-art', (libraryPlaylist && libraryPlaylist.cover) || (playlistItem && playlistItem.cover) || daily && daily.cover, 280);
     setHomeArt('home-daily-art', daily && daily.cover, 280);
     setHomeArt('home-private-art', cardSongB && cardSongB.cover || daily && daily.cover || summary.recent && summary.recent.cover || playlistItem && playlistItem.cover, 280);
     setHomeArt('home-continue-art', summary.recent && summary.recent.cover || playlistItem && playlistItem.cover, 280);
@@ -20866,9 +20883,9 @@ function playlistDetailSongPlatformPlayCountLabel(song, provider) {
   var count = playlistDetailSongPlatformPlayCount(song, provider);
   return count == null ? '暂无' : (count + ' 次');
 }
-function getPlaylistPanelSortedTracks() {
-  var tracks = playlistPanelDetailState && playlistPanelDetailState.tracks ? playlistPanelDetailState.tracks : [];
-  var provider = playlistDetailCurrentProvider();
+function sortPlaylistTracksForDisplay(tracks, provider) {
+  tracks = Array.isArray(tracks) ? tracks : [];
+  provider = normalizePlaylistProvider(provider);
   var sortMode = effectivePlaylistDetailSortMode(provider);
   if (sortMode === 'saved') return tracks.slice().reverse();
   var rows = tracks.map(function(song, index){
@@ -20907,6 +20924,10 @@ function getPlaylistPanelSortedTracks() {
     });
   }
   return rows.map(function(row){ return row.song; });
+}
+function getPlaylistPanelSortedTracks() {
+  var tracks = playlistPanelDetailState && playlistPanelDetailState.tracks ? playlistPanelDetailState.tracks : [];
+  return sortPlaylistTracksForDisplay(tracks, playlistDetailCurrentProvider());
 }
 function playlistDetailSortButtonsHtml(provider) {
   provider = normalizePlaylistProvider(provider || playlistDetailCurrentProvider());
