@@ -1,5 +1,12 @@
 # Mineradio Project Memory
 
+### 2026-07-17 - 下一句歌词默认预览
+
+- 用户认可/要求保留：主 3D 歌词和桌面歌词默认提前显示下一句，便于跟唱；下一句保持小号、低透明度，不参与当前句的逐字高亮、光晕和粒子特效，并提供“显示下一句”开关。
+- 涉及文件：`public/lyric-timeline.js`、`public/index.html`、`public/desktop-lyrics.html`、`public/default-user-fx-archive.json`、`test/lyrics/*`。
+- 关键参数/实现：主舞台和桌面歌词统一调用 `MineradioLyricTimeline.selectLyricWindow()`；暂停时保留当前句和下一句，前奏期用歌曲信息作为当前内容并预览第一句，末句或无有效下一句时隐藏预览；默认 `lyricNextLine: true`，下一句约为当前句的 58% 大小、44% 透明度。
+- 禁止回退或改坏的点：不要恢复主舞台与桌面歌词各算一套时间轴；不要让下一句抢占当前句高亮、光效或粒子；不要在应用空闲未选歌时凭空显示歌词，也不要在暂停时清空已显示内容。
+
 ### 2026-07-03 - QQ 音乐浏览器扫码登录修复
 
 - 用户认可/要求保留：QQ 音乐登录不能只依赖安装版 Electron 官方窗口；在本地浏览器调试环境也要能直接显示可扫码二维码，方便用户直观看到登录效果。
