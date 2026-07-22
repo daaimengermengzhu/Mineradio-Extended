@@ -331,3 +331,357 @@ test('does not create or connect audio nodes again after initAudio succeeds', ()
   assert.equal(sandbox.volumeApplyCount, 1);
   assert.equal(sandbox.beatResetCount, 1);
 });
+
+test('renders and binds an independent equalizer control', () => {
+  assert.match(indexHtml, /id="equalizer-control"/);
+  assert.match(indexHtml, /id="equalizer-btn"/);
+  assert.match(indexHtml, /id="equalizer-panel"/);
+  assert.match(indexHtml, /id="equalizer-band-list"/);
+  assert.match(indexHtml, /function bindEqualizerControl\(/);
+  assert.match(indexHtml, /bindEqualizerControl\(\)/);
+  assert.match(indexHtml, /function closeEqualizerPanel\(/);
+  assert.match(indexHtml, /function isEqualizerPanelOpen\(/);
+});
+
+test('persists a versioned default-off equalizer state', () => {
+  assert.match(indexHtml, /mineradio-equalizer-state-v1/);
+  assert.match(indexHtml, /MineradioEqualizer\.normalizeState/);
+  assert.match(indexHtml, /localStorage\.setItem\(EQUALIZER_STORE_KEY/);
+  assert.match(indexHtml, /equalizerState\.enabled/);
+});
+
+test('uses the corrected equalizer labels and responsive overflow contract', () => {
+  [
+    '均衡器',
+    '十段均衡器',
+    '关闭',
+    '原声',
+    '低音增强',
+    '人声清晰',
+    '流行',
+    '摇滚',
+    '古典',
+    '自定义',
+    '自动保护',
+    '重置为原声',
+    '当前环境不支持均衡器',
+  ].forEach((label) => assert.ok(indexHtml.includes(label), 'missing corrected label: ' + label));
+  assert.match(indexHtml, /formatEqualizerFrequency\(frequency\) \+ ' Hz 增益'/);
+  assert.match(indexHtml, /\.equalizer-band-scroll\{[^}]*overflow-x:auto/);
+  assert.match(indexHtml, /grid-template-columns:repeat\(10,48px\)/);
+  assert.match(indexHtml, /body\.immersive-mode #equalizer-control\{display:none!important\}/);
+});
+
+function extractSource(startMarker, endMarker) {
+  const start = indexHtml.indexOf(startMarker);
+  const end = indexHtml.indexOf(endMarker, start + startMarker.length);
+  assert.notEqual(start, -1, 'missing source marker: ' + startMarker);
+  assert.notEqual(end, -1, 'missing source boundary: ' + endMarker);
+  return indexHtml.slice(start, end);
+}
+
+class FakeClassList {
+  constructor() {
+    this.values = new Set();
+  }
+
+  add(...names) {
+    names.forEach((name) => this.values.add(name));
+  }
+
+  remove(...names) {
+    names.forEach((name) => this.values.delete(name));
+  }
+
+  contains(name) {
+    return this.values.has(name);
+  }
+
+  toggle(name, force) {
+    const enabled = force === undefined ? !this.contains(name) : Boolean(force);
+    if (enabled) this.add(name);
+    else this.remove(name);
+    return enabled;
+  }
+}
+
+class FakeElement {
+  constructor(tagName, id = '') {
+    this.tagName = String(tagName || 'div').toUpperCase();
+    this.id = id;
+    this.children = [];
+    this.parentElement = null;
+    this.classList = new FakeClassList();
+    this.dataset = {};
+    this.attributes = {};
+    this.listeners = {};
+    this.textContent = '';
+    this.value = '';
+    this.disabled = false;
+    this.title = '';
+  }
+
+  append(...children) {
+    children.forEach((child) => this.appendChild(child));
+  }
+
+  appendChild(child) {
+    child.parentElement = this;
+    this.children.push(child);
+    return child;
+  }
+
+  setAttribute(name, value) {
+    this.attributes[name] = String(value);
+  }
+
+  getAttribute(name) {
+    return this.attributes[name];
+  }
+
+  addEventListener(type, listener) {
+    if (!this.listeners[type]) this.listeners[type] = [];
+    this.listeners[type].push(listener);
+  }
+
+  dispatch(type, event = {}) {
+    const nextEvent = Object.assign({ target: this }, event);
+    (this.listeners[type] || []).forEach((listener) => listener(nextEvent));
+  }
+
+  matches(selector) {
+    return selector === '[data-eq-band]' && this.dataset.eqBand !== undefined;
+  }
+
+  closest(selector) {
+    if (selector === '[data-eq-preset]' && this.dataset.eqPreset !== undefined) return this;
+    return this.parentElement ? this.parentElement.closest(selector) : null;
+  }
+
+  contains(target) {
+    for (let node = target; node; node = node.parentElement) {
+      if (node === this) return true;
+    }
+    return false;
+  }
+}
+
+function createFakeDocument() {
+  const elements = [];
+  const listeners = {};
+  const document = {
+    body: new FakeElement('body', 'body'),
+    createElement(tagName) {
+      const element = new FakeElement(tagName);
+      elements.push(element);
+      return element;
+    },
+    getElementById(id) {
+      return elements.find((element) => element.id === id) || null;
+    },
+    querySelectorAll(selector) {
+      if (selector === '[data-eq-preset]') {
+        return elements.filter((element) => element.dataset.eqPreset !== undefined);
+      }
+      return [];
+    },
+    addEventListener(type, listener) {
+      if (!listeners[type]) listeners[type] = [];
+      listeners[type].push(listener);
+    },
+    dispatch(type, event) {
+      (listeners[type] || []).forEach((listener) => listener(event));
+    },
+  };
+  elements.push(document.body);
+
+  function add(tagName, id, parent = document.body) {
+    const element = new FakeElement(tagName, id);
+    elements.push(element);
+    parent.appendChild(element);
+    return element;
+  }
+
+  const wrap = add('div', 'equalizer-control');
+  const button = add('button', 'equalizer-btn', wrap);
+  const toggle = add('button', 'equalizer-switch', wrap);
+  const presets = add('div', 'equalizer-presets', wrap);
+  ['flat', 'bass', 'vocal', 'pop', 'rock', 'classical', 'custom'].forEach((presetId) => {
+    const preset = add('button', '', presets);
+    preset.dataset.eqPreset = presetId;
+  });
+  const list = add('div', 'equalizer-band-list', wrap);
+  const protection = add('span', 'equalizer-protection-state', wrap);
+  const reset = add('button', 'equalizer-reset', wrap);
+  const outside = add('div', 'outside');
+
+  return { document, elements, wrap, button, toggle, presets, list, protection, reset, outside };
+}
+
+function createEqualizerUiHarness(options = {}) {
+  const key = 'mineradio-equalizer-state-v1';
+  const stored = new Map();
+  if (Object.hasOwn(options, 'storedValue')) stored.set(key, options.storedValue);
+  const writes = [];
+  const timers = new Map();
+  const clearedTimers = [];
+  const dom = createFakeDocument();
+  const toasts = [];
+  let nextTimerId = 1;
+  const sandbox = {
+    console,
+    document: dom.document,
+    localStorage: {
+      getItem(storageKey) {
+        return stored.has(storageKey) ? stored.get(storageKey) : null;
+      },
+      setItem(storageKey, value) {
+        stored.set(storageKey, value);
+        writes.push([storageKey, value]);
+      },
+    },
+    setTimeout(callback) {
+      const id = nextTimerId;
+      nextTimerId += 1;
+      timers.set(id, callback);
+      return id;
+    },
+    clearTimeout(id) {
+      clearedTimers.push(id);
+      timers.delete(id);
+    },
+    window: { MineradioEqualizer: equalizer },
+  };
+  vm.createContext(sandbox);
+  const stateSource = extractSource('var EQUALIZER_STORE_KEY', 'function readDiyModePreference(');
+  const uiSource = extractSource('function formatEqualizerFrequency(', 'function isTypingTarget(');
+  vm.runInContext(`
+    var equalizerAudioSupported = ${options.supported === false ? 'false' : 'true'};
+    var controlsHideTimer = 77;
+    var controlsAutoHide = true;
+    var audioApplyCount = 0;
+    var revealCount = 0;
+    var scheduledHideDelays = [];
+    function applyEqualizerAudioState() { audioApplyCount += 1; }
+    function revealBottomControls() { revealCount += 1; }
+    function scheduleControlsHide(delay) { scheduledHideDelays.push(delay); }
+    function showToast(message) { toasts.push(message); }
+    ${stateSource}
+    ${uiSource}
+  `, Object.assign(sandbox, { toasts }));
+  return { sandbox, stored, writes, timers, clearedTimers, dom, toasts };
+}
+
+test('loads invalid equalizer JSON as a disabled version-one state and saves normalized state', () => {
+  const harness = createEqualizerUiHarness({ storedValue: '{invalid' });
+
+  assert.deepEqual(
+    JSON.parse(JSON.stringify(harness.sandbox.equalizerState)),
+    equalizer.defaultState(),
+  );
+  harness.sandbox.setEqualizerEnabled(true);
+
+  assert.equal(harness.writes.length, 1);
+  assert.deepEqual(JSON.parse(harness.writes[0][1]), {
+    version: 1,
+    enabled: true,
+    selectedPreset: 'flat',
+    customGains: Array(10).fill(0),
+  });
+});
+
+test('applies slider input live, debounces storage, and flushes on change', () => {
+  const harness = createEqualizerUiHarness();
+  harness.sandbox.bindEqualizerControl();
+  const input = harness.dom.document.getElementById('equalizer-band-2');
+  assert.ok(input);
+
+  input.value = '3.5';
+  harness.dom.list.dispatch('input', { target: input });
+  input.value = '4';
+  harness.dom.list.dispatch('input', { target: input });
+
+  assert.equal(harness.sandbox.audioApplyCount, 2);
+  assert.equal(harness.writes.length, 0);
+  assert.equal(harness.timers.size, 1);
+  assert.equal(harness.clearedTimers.length, 1);
+
+  harness.dom.list.dispatch('change', { target: input });
+
+  assert.equal(harness.sandbox.audioApplyCount, 3);
+  assert.equal(harness.timers.size, 0);
+  assert.equal(harness.writes.length, 1);
+  const persisted = JSON.parse(harness.writes[0][1]);
+  assert.equal(persisted.selectedPreset, 'custom');
+  assert.equal(persisted.customGains[2], 4);
+});
+
+test('reset selects original without changing the enabled toggle', () => {
+  const harness = createEqualizerUiHarness();
+
+  harness.sandbox.setEqualizerEnabled(true);
+  harness.sandbox.selectEqualizerPreset('rock');
+  harness.sandbox.resetEqualizer();
+
+  assert.equal(harness.sandbox.equalizerState.enabled, true);
+  assert.equal(harness.sandbox.equalizerState.selectedPreset, 'flat');
+  assert.equal(harness.dom.toggle.getAttribute('aria-checked'), 'true');
+  assert.equal(harness.dom.toggle.textContent, '开启');
+});
+
+test('opens independently and closes on outside click or Escape with synchronized aria state', () => {
+  const harness = createEqualizerUiHarness();
+  harness.sandbox.bindEqualizerControl();
+  let stopped = 0;
+
+  harness.sandbox.toggleEqualizerPanel({ stopPropagation() { stopped += 1; } });
+  assert.equal(stopped, 1);
+  assert.equal(harness.dom.wrap.classList.contains('open'), true);
+  assert.equal(harness.dom.button.getAttribute('aria-expanded'), 'true');
+  assert.equal(harness.sandbox.revealCount, 1);
+  assert.ok(harness.clearedTimers.includes(77));
+
+  harness.dom.document.dispatch('click', { target: harness.dom.outside });
+  assert.equal(harness.dom.wrap.classList.contains('open'), false);
+  assert.equal(harness.dom.button.getAttribute('aria-expanded'), 'false');
+
+  harness.sandbox.toggleEqualizerPanel({ stopPropagation() {} });
+  harness.dom.document.dispatch('keydown', { code: 'Escape' });
+  assert.equal(harness.dom.wrap.classList.contains('open'), false);
+  assert.equal(harness.dom.button.getAttribute('aria-expanded'), 'false');
+});
+
+test('shows a safe disabled state when Web Audio equalizer support is unavailable', () => {
+  const harness = createEqualizerUiHarness({ supported: false });
+  harness.sandbox.bindEqualizerControl();
+
+  assert.equal(harness.dom.button.disabled, true);
+  assert.equal(harness.dom.button.title, '当前环境不支持均衡器');
+  harness.sandbox.toggleEqualizerPanel({ stopPropagation() {} });
+  assert.equal(harness.dom.wrap.classList.contains('open'), false);
+  assert.deepEqual(harness.toasts, ['当前环境不支持均衡器']);
+});
+
+test('does not auto-hide bottom controls while the equalizer panel is open', () => {
+  const source = extractSource('function scheduleControlsHide(', 'function revealBottomControls(');
+  let timerCallback = null;
+  const hiddenStates = [];
+  const sandbox = {
+    controlsHideTimer: null,
+    controlsAutoHide: true,
+    controlsHovering: false,
+    clearTimeout() {},
+    setTimeout(callback) {
+      timerCallback = callback;
+      return 1;
+    },
+    isEqualizerPanelOpen() { return true; },
+    setControlsHidden(value) { hiddenStates.push(value); },
+  };
+  vm.runInNewContext(source, sandbox);
+
+  sandbox.scheduleControlsHide(10);
+  timerCallback();
+
+  assert.deepEqual(hiddenStates, []);
+});
