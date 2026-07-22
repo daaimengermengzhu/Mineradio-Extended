@@ -418,6 +418,7 @@ class FakeElement {
     this.textContent = '';
     this.value = '';
     this.disabled = false;
+    this.inert = false;
     this.title = '';
   }
 
@@ -483,6 +484,14 @@ function createFakeDocument() {
       if (selector === '[data-eq-preset]') {
         return elements.filter((element) => element.dataset.eqPreset !== undefined);
       }
+      if (selector === '#equalizer-panel button, #equalizer-panel input') {
+        const panel = this.getElementById('equalizer-panel');
+        return elements.filter((element) => (
+          (element.tagName === 'BUTTON' || element.tagName === 'INPUT')
+          && panel
+          && panel.contains(element)
+        ));
+      }
       return [];
     },
     addEventListener(type, listener) {
@@ -504,18 +513,19 @@ function createFakeDocument() {
 
   const wrap = add('div', 'equalizer-control');
   const button = add('button', 'equalizer-btn', wrap);
-  const toggle = add('button', 'equalizer-switch', wrap);
-  const presets = add('div', 'equalizer-presets', wrap);
+  const panel = add('div', 'equalizer-panel', wrap);
+  const toggle = add('button', 'equalizer-switch', panel);
+  const presets = add('div', 'equalizer-presets', panel);
   ['flat', 'bass', 'vocal', 'pop', 'rock', 'classical', 'custom'].forEach((presetId) => {
     const preset = add('button', '', presets);
     preset.dataset.eqPreset = presetId;
   });
-  const list = add('div', 'equalizer-band-list', wrap);
-  const protection = add('span', 'equalizer-protection-state', wrap);
-  const reset = add('button', 'equalizer-reset', wrap);
+  const list = add('div', 'equalizer-band-list', panel);
+  const protection = add('span', 'equalizer-protection-state', panel);
+  const reset = add('button', 'equalizer-reset', panel);
   const outside = add('div', 'outside');
 
-  return { document, elements, wrap, button, toggle, presets, list, protection, reset, outside };
+  return { document, elements, wrap, button, panel, toggle, presets, list, protection, reset, outside };
 }
 
 function createEqualizerUiHarness(options = {}) {
@@ -660,6 +670,43 @@ test('shows a safe disabled state when Web Audio equalizer support is unavailabl
   harness.sandbox.toggleEqualizerPanel({ stopPropagation() {} });
   assert.equal(harness.dom.wrap.classList.contains('open'), false);
   assert.deepEqual(harness.toasts, ['当前环境不支持均衡器']);
+});
+
+test('closes and disables the open panel when equalizer audio support fails at runtime', () => {
+  const harness = createEqualizerUiHarness();
+  harness.sandbox.bindEqualizerControl();
+  harness.sandbox.toggleEqualizerPanel({ stopPropagation() {} });
+  assert.equal(harness.dom.wrap.classList.contains('open'), true);
+
+  harness.sandbox.equalizerAudioSupported = false;
+  harness.sandbox.updateEqualizerUi();
+
+  assert.equal(harness.dom.wrap.classList.contains('open'), false);
+  assert.equal(harness.dom.button.getAttribute('aria-expanded'), 'false');
+  assert.equal(harness.dom.panel.getAttribute('aria-hidden'), 'true');
+  assert.equal(harness.dom.panel.getAttribute('aria-disabled'), 'true');
+  assert.equal(harness.dom.panel.inert, true);
+  const panelControls = harness.dom.document.querySelectorAll('#equalizer-panel button, #equalizer-panel input');
+  assert.equal(panelControls.length, 19);
+  panelControls.forEach((control) => assert.equal(control.disabled, true));
+
+  const writesBeforeDisabledEvents = harness.writes.length;
+  const audioUpdatesBeforeDisabledEvents = harness.sandbox.audioApplyCount;
+  const firstPreset = harness.dom.document.querySelectorAll('[data-eq-preset]')[0];
+  const firstBand = harness.dom.document.getElementById('equalizer-band-0');
+  harness.dom.toggle.dispatch('click');
+  harness.dom.presets.dispatch('click', { target: firstPreset });
+  harness.dom.list.dispatch('input', { target: firstBand });
+  harness.dom.list.dispatch('change', { target: firstBand });
+  harness.dom.reset.dispatch('click');
+  assert.equal(harness.writes.length, writesBeforeDisabledEvents);
+  assert.equal(harness.sandbox.audioApplyCount, audioUpdatesBeforeDisabledEvents);
+
+  harness.sandbox.equalizerAudioSupported = true;
+  harness.sandbox.updateEqualizerUi();
+  assert.equal(harness.dom.panel.getAttribute('aria-disabled'), 'false');
+  assert.equal(harness.dom.panel.inert, false);
+  panelControls.forEach((control) => assert.equal(control.disabled, false));
 });
 
 test('does not auto-hide bottom controls while the equalizer panel is open', () => {

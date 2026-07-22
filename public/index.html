@@ -15989,12 +15989,22 @@ function updateEqualizerUi() {
   var button = document.getElementById('equalizer-btn');
   var panel = document.getElementById('equalizer-panel');
   var toggle = document.getElementById('equalizer-switch');
+  var unavailable = !equalizerAudioSupported;
+  if (unavailable && isEqualizerPanelOpen()) closeEqualizerPanel();
   if (button) {
     button.classList.toggle('active', equalizerState.enabled);
-    button.disabled = !equalizerAudioSupported;
+    button.disabled = unavailable;
     button.title = equalizerAudioSupported ? '均衡器' : '当前环境不支持均衡器';
+    if (unavailable) button.setAttribute('aria-expanded', 'false');
   }
-  if (panel) panel.setAttribute('aria-hidden', isEqualizerPanelOpen() ? 'false' : 'true');
+  if (panel) {
+    panel.inert = unavailable;
+    panel.setAttribute('aria-disabled', unavailable ? 'true' : 'false');
+    panel.setAttribute('aria-hidden', isEqualizerPanelOpen() ? 'false' : 'true');
+  }
+  document.querySelectorAll('#equalizer-panel button, #equalizer-panel input').forEach(function syncAvailability(control) {
+    control.disabled = unavailable;
+  });
   if (toggle) {
     toggle.setAttribute('aria-checked', equalizerState.enabled ? 'true' : 'false');
     toggle.textContent = equalizerState.enabled ? '开启' : '关闭';
@@ -16011,6 +16021,7 @@ function updateEqualizerUi() {
 }
 
 function setEqualizerEnabled(enabled) {
+  if (!equalizerAudioSupported) return;
   equalizerState = window.MineradioEqualizer.setEnabled(equalizerState, enabled);
   saveEqualizerState();
   applyEqualizerAudioState(false);
@@ -16018,6 +16029,7 @@ function setEqualizerEnabled(enabled) {
 }
 
 function selectEqualizerPreset(presetId) {
+  if (!equalizerAudioSupported) return;
   equalizerState = window.MineradioEqualizer.applyPreset(equalizerState, presetId);
   saveEqualizerState();
   applyEqualizerAudioState(false);
@@ -16025,6 +16037,7 @@ function selectEqualizerPreset(presetId) {
 }
 
 function setEqualizerBand(index, value, finalChange) {
+  if (!equalizerAudioSupported) return;
   equalizerState = window.MineradioEqualizer.updateBand(equalizerState, index, value);
   if (finalChange) saveEqualizerState();
   else scheduleEqualizerSave();
@@ -16033,6 +16046,7 @@ function setEqualizerBand(index, value, finalChange) {
 }
 
 function resetEqualizer() {
+  if (!equalizerAudioSupported) return;
   equalizerState = window.MineradioEqualizer.reset(equalizerState);
   saveEqualizerState();
   applyEqualizerAudioState(false);
