@@ -16,18 +16,46 @@ test('uses ten octave-spaced bands and starts disabled', () => {
   });
 });
 
-test('normalizes damaged state without enabling processing', () => {
-  assert.deepEqual(eq.normalizeState({ version: 99, enabled: true }), eq.defaultState());
-  assert.deepEqual(eq.normalizeState({
+test('preserves a fully valid persisted state', () => {
+  const state = {
     version: 1,
-    enabled: 'yes',
-    selectedPreset: 'missing',
-    customGains: [99, -99, 1, 2, 3, 4, 5, 6, 7, 8],
-  }), {
-    version: 1,
-    enabled: false,
-    selectedPreset: 'flat',
-    customGains: [12, -12, 1, 2, 3, 4, 5, 6, 7, 8],
+    enabled: true,
+    selectedPreset: 'custom',
+    customGains: [-12, -8.5, -4, -0.5, 0, 1.5, 3, 6, 9.5, 12],
+  };
+
+  assert.deepEqual(eq.normalizeState(state), state);
+});
+
+test('falls back atomically when any persisted state field is invalid', () => {
+  const validGains = Array(10).fill(0);
+  const invalidStates = [
+    null,
+    [],
+    'state',
+    { version: '1', enabled: true, selectedPreset: 'custom', customGains: validGains },
+    { version: 1, enabled: 1, selectedPreset: 'custom', customGains: validGains },
+    { version: 1, enabled: true, selectedPreset: 'missing', customGains: validGains },
+    { version: 1, enabled: true, selectedPreset: 'custom', customGains: Array(9).fill(0) },
+    { version: 1, enabled: true, selectedPreset: 'custom', customGains: Array(11).fill(0) },
+  ];
+
+  invalidStates.forEach((state) => {
+    assert.deepEqual(eq.normalizeState(state), eq.defaultState());
+  });
+});
+
+test('does not coerce, clamp, or partially preserve invalid persisted gains', () => {
+  ['3', null, Number.NaN, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY, 12.5, -12.5].forEach((gain) => {
+    const customGains = Array(10).fill(0);
+    customGains[4] = gain;
+
+    assert.deepEqual(eq.normalizeState({
+      version: 1,
+      enabled: true,
+      selectedPreset: 'custom',
+      customGains,
+    }), eq.defaultState());
   });
 });
 
@@ -99,15 +127,15 @@ test('returns isolated state and gain arrays', () => {
   assert.equal(eq.gainsForState(rockState)[0], 3);
 });
 
-test('replaces malformed custom gain shapes with a flat ten-band curve', () => {
+test('replaces malformed custom gain shapes with the complete default state', () => {
   [null, {}, [1, 2, 3], Array(11).fill(1)].forEach((customGains) => {
     const state = eq.normalizeState({
       version: 1,
-      enabled: false,
+      enabled: true,
       selectedPreset: 'custom',
       customGains: customGains,
     });
-    assert.deepEqual(state.customGains, eq.PRESETS.flat);
+    assert.deepEqual(state, eq.defaultState());
   });
 });
 

@@ -44,14 +44,29 @@
   }
 
   function normalizeState(raw) {
-    if (!raw || raw.version !== 1) return defaultState();
-    var preset = PRESET_IDS.indexOf(raw.selectedPreset) >= 0 || raw.selectedPreset === 'custom'
-      ? raw.selectedPreset
-      : 'flat';
+    var validPreset = raw
+      && (PRESET_IDS.indexOf(raw.selectedPreset) >= 0 || raw.selectedPreset === 'custom');
+    var validGains = raw
+      && Array.isArray(raw.customGains)
+      && raw.customGains.length === BAND_FREQUENCIES.length
+      && raw.customGains.every(function isValidGain(value) {
+        return typeof value === 'number'
+          && Number.isFinite(value)
+          && value >= -12
+          && value <= 12;
+      });
+    if (typeof raw !== 'object'
+      || raw === null
+      || Array.isArray(raw)
+      || raw.version !== 1
+      || typeof raw.enabled !== 'boolean'
+      || !validPreset
+      || !validGains) return defaultState();
+
     return {
       version: 1,
-      enabled: raw.enabled === true,
-      selectedPreset: preset,
+      enabled: raw.enabled,
+      selectedPreset: raw.selectedPreset,
       customGains: copyGains(raw.customGains),
     };
   }
