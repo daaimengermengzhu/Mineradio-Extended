@@ -77,10 +77,13 @@
 
   function updateBand(raw, index, value) {
     var state = normalizeState(raw);
+    if (!Number.isInteger(index)
+      || index < 0
+      || index >= BAND_FREQUENCIES.length
+      || !Number.isFinite(value)) return state;
+
     var gains = gainsForState(state);
-    if (Number.isInteger(index) && index >= 0 && index < gains.length) {
-      gains[index] = clamp(Number(value) || 0, -12, 12);
-    }
+    gains[index] = clamp(value, -12, 12);
     state.selectedPreset = 'custom';
     state.customGains = gains;
     return state;
@@ -105,12 +108,14 @@
     return normalizeGains(values).some(function hasBoost(value) { return value > 0; });
   }
 
+  var exportedPresets = Object.keys(PRESETS).reduce(function clonePresets(result, key) {
+    result[key] = Object.freeze(copyGains(PRESETS[key]));
+    return result;
+  }, {});
+
   return {
-    BAND_FREQUENCIES: BAND_FREQUENCIES.slice(),
-    PRESETS: Object.keys(PRESETS).reduce(function clonePresets(result, key) {
-      result[key] = copyGains(PRESETS[key]);
-      return result;
-    }, {}),
+    BAND_FREQUENCIES: Object.freeze(BAND_FREQUENCIES.slice()),
+    PRESETS: Object.freeze(exportedPresets),
     defaultState: defaultState,
     normalizeState: normalizeState,
     gainsForState: gainsForState,
