@@ -18942,54 +18942,81 @@ function setEqualizerAudioParam(param, value, immediate) {
   else param.setTargetAtTime(value, now, 0.020);
 }
 
-function createEqualizerAudioGraph() {
-  var frequencies = window.MineradioEqualizer.BAND_FREQUENCIES;
-  var filters = frequencies.map(function createBand(frequency) {
-    var filter = audioCtx.createBiquadFilter();
-    filter.type = 'peaking';
-    filter.frequency.value = frequency;
-    filter.Q.value = 1.4;
-    filter.gain.value = 0;
-    return filter;
-  });
-  var headroom = audioCtx.createGain();
-  var limiter = audioCtx.createDynamicsCompressor();
-  limiter.threshold.value = -1;
-  limiter.knee.value = 0;
-  limiter.ratio.value = 1;
-  limiter.attack.value = 0.003;
-  limiter.release.value = 0.15;
-
-  for (var i = 0; i < filters.length - 1; i += 1) filters[i].connect(filters[i + 1]);
-  filters[filters.length - 1].connect(headroom);
-  headroom.connect(limiter);
-
-  equalizerFilters = filters;
-  equalizerHeadroom = headroom;
-  equalizerLimiter = limiter;
-}
-
-function applyEqualizerAudioState(immediate) {
-  if (!equalizerFilters.length || !equalizerHeadroom || !equalizerLimiter) return;
+function applyEqualizerAudioStateToGraph(graph, immediate) {
+  if (!graph || !graph.filters.length || !graph.headroom || !graph.limiter) return;
   var state = typeof equalizerState === 'undefined'
     ? window.MineradioEqualizer.defaultState()
     : window.MineradioEqualizer.normalizeState(equalizerState);
   var active = state.enabled;
   var savedGains = window.MineradioEqualizer.gainsForState(state);
   var gains = active ? savedGains : savedGains.map(function zeroGain() { return 0; });
-  equalizerFilters.forEach(function applyBand(filter, index) {
+  graph.filters.forEach(function applyBand(filter, index) {
     setEqualizerAudioParam(filter.gain, gains[index], immediate);
   });
   setEqualizerAudioParam(
-    equalizerHeadroom.gain,
+    graph.headroom.gain,
     Math.pow(10, (active ? window.MineradioEqualizer.calculateHeadroomDb(gains) : 0) / 20),
     immediate,
   );
   setEqualizerAudioParam(
-    equalizerLimiter.ratio,
+    graph.limiter.ratio,
     active && window.MineradioEqualizer.shouldEnableLimiter(gains) ? 20 : 1,
     immediate,
   );
+}
+
+function disconnectEqualizerAudioGraph(graph) {
+  if (!graph) return;
+  if (analyser && graph.filters && graph.filters.length) {
+    try { analyser.disconnect(graph.filters[0]); } catch (disconnectInputError) {}
+  }
+  var nodes = graph.filters ? graph.filters.slice() : [];
+  if (graph.headroom) nodes.push(graph.headroom);
+  if (graph.limiter) nodes.push(graph.limiter);
+  nodes.forEach(function disconnectCandidate(node) {
+    try { node.disconnect(); } catch (disconnectNodeError) {}
+  });
+}
+
+function createEqualizerAudioGraph() {
+  var graph = { filters: [], headroom: null, limiter: null };
+  try {
+    var frequencies = window.MineradioEqualizer.BAND_FREQUENCIES;
+    for (var i = 0; i < frequencies.length; i += 1) {
+      var filter = audioCtx.createBiquadFilter();
+      graph.filters.push(filter);
+      filter.type = 'peaking';
+      filter.frequency.value = frequencies[i];
+      filter.Q.value = 1.4;
+      filter.gain.value = 0;
+    }
+    graph.headroom = audioCtx.createGain();
+    graph.limiter = audioCtx.createDynamicsCompressor();
+    graph.limiter.threshold.value = -1;
+    graph.limiter.knee.value = 0;
+    graph.limiter.ratio.value = 1;
+    graph.limiter.attack.value = 0.003;
+    graph.limiter.release.value = 0.15;
+
+    applyEqualizerAudioStateToGraph(graph, true);
+    for (var j = 0; j < graph.filters.length - 1; j += 1) {
+      graph.filters[j].connect(graph.filters[j + 1]);
+    }
+    graph.filters[graph.filters.length - 1].connect(graph.headroom);
+    graph.headroom.connect(graph.limiter);
+    return graph;
+  } catch (equalizerGraphError) {
+    disconnectEqualizerAudioGraph(graph);
+    throw equalizerGraphError;
+  }
+}
+
+function applyEqualizerAudioState(immediate) {
+  applyEqualizerAudioStateToGraph({
+    filters: equalizerFilters,
+    headroom: equalizerHeadroom,
+    limiter: equalizerLimiter,
+  }, immediate);
 }
 
 function initAudio() {
@@ -19005,13 +19032,17 @@ function initAudio() {
   beatAnalyser.smoothingTimeConstant = 0.10;
   source.connect(analyser);
   source.connect(beatAnalyser);
+  var candidateGraph = null;
   try {
-    createEqualizerAudioGraph();
-    analyser.connect(equalizerFilters[0]);
-    equalizerLimiter.connect(gainNode);
+    candidateGraph = createEqualizerAudioGraph();
+    analyser.connect(candidateGraph.filters[0]);
+    candidateGraph.limiter.connect(gainNode);
+    equalizerFilters = candidateGraph.filters;
+    equalizerHeadroom = candidateGraph.headroom;
+    equalizerLimiter = candidateGraph.limiter;
     equalizerAudioSupported = true;
-    applyEqualizerAudioState(true);
   } catch (equalizerError) {
+    disconnectEqualizerAudioGraph(candidateGraph);
     console.warn('equalizer audio graph unavailable:', equalizerError);
     equalizerFilters = [];
     equalizerHeadroom = null;
