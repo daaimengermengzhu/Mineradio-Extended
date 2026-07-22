@@ -31,6 +31,7 @@ backups/
 # Local development noise
 agent_memory/
 .superpowers/
+.worktrees/
 .DS_Store
 Thumbs.db
 desktop.ini
