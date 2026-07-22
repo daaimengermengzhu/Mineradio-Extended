@@ -12,6 +12,7 @@
   },
   "scripts": {
     "start": "electron .",
+    "test:equalizer": "node --test test/equalizer/*.test.js",
     "test:lyrics": "node --test test/lyrics/*.test.js",
     "test:custom-source": "node --test test/custom-source/*.test.js",
     "test:custom-source:electron": "electron test/custom-source/electron-smoke.js",
