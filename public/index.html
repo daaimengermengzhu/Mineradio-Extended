@@ -10,6 +10,7 @@
 <script src="vendor/music-tempo.min.js"></script>
 <script src="vendor/gsap.min.js"></script>
 <script src="lyric-timeline.js"></script>
+<script src="equalizer-core.js"></script>
 <script>
 try {
   document.documentElement.classList.add(localStorage.getItem('mineradio-diy-player-mode-v1') === '1' ? 'diy-mode-preload' : 'simple-mode-preload');
@@ -2980,6 +2981,10 @@ html.control-glass-svg-ok #visual-guide-btn:hover{
 //  Global State
 // ============================================================
 var audio = null, audioCtx = null, source = null, analyser = null, beatAnalyser = null, gainNode = null, audioReady = false;
+var equalizerFilters = [];
+var equalizerHeadroom = null;
+var equalizerLimiter = null;
+var equalizerAudioSupported = !!(window.AudioContext || window.webkitAudioContext);
 var MANUAL_AUDIO_UNLOCK_SRC = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQQAAAAAgICA';
 var manualAudioUnlockActive = false;
 var uiSfxCtx = null, lastShelfSelectSfxAt = 0;
@@ -18929,6 +18934,64 @@ async function doSearch(q, opts) {
 // ============================================================
 //  音频上下文 & 频谱分析
 // ============================================================
+function setEqualizerAudioParam(param, value, immediate) {
+  if (!param || !audioCtx) return;
+  var now = audioCtx.currentTime || 0;
+  param.cancelScheduledValues(now);
+  if (immediate) param.setValueAtTime(value, now);
+  else param.setTargetAtTime(value, now, 0.020);
+}
+
+function createEqualizerAudioGraph() {
+  var frequencies = window.MineradioEqualizer.BAND_FREQUENCIES;
+  var filters = frequencies.map(function createBand(frequency) {
+    var filter = audioCtx.createBiquadFilter();
+    filter.type = 'peaking';
+    filter.frequency.value = frequency;
+    filter.Q.value = 1.4;
+    filter.gain.value = 0;
+    return filter;
+  });
+  var headroom = audioCtx.createGain();
+  var limiter = audioCtx.createDynamicsCompressor();
+  limiter.threshold.value = -1;
+  limiter.knee.value = 0;
+  limiter.ratio.value = 1;
+  limiter.attack.value = 0.003;
+  limiter.release.value = 0.15;
+
+  for (var i = 0; i < filters.length - 1; i += 1) filters[i].connect(filters[i + 1]);
+  filters[filters.length - 1].connect(headroom);
+  headroom.connect(limiter);
+
+  equalizerFilters = filters;
+  equalizerHeadroom = headroom;
+  equalizerLimiter = limiter;
+}
+
+function applyEqualizerAudioState(immediate) {
+  if (!equalizerFilters.length || !equalizerHeadroom || !equalizerLimiter) return;
+  var state = typeof equalizerState === 'undefined'
+    ? window.MineradioEqualizer.defaultState()
+    : window.MineradioEqualizer.normalizeState(equalizerState);
+  var active = state.enabled;
+  var savedGains = window.MineradioEqualizer.gainsForState(state);
+  var gains = active ? savedGains : savedGains.map(function zeroGain() { return 0; });
+  equalizerFilters.forEach(function applyBand(filter, index) {
+    setEqualizerAudioParam(filter.gain, gains[index], immediate);
+  });
+  setEqualizerAudioParam(
+    equalizerHeadroom.gain,
+    Math.pow(10, (active ? window.MineradioEqualizer.calculateHeadroomDb(gains) : 0) / 20),
+    immediate,
+  );
+  setEqualizerAudioParam(
+    equalizerLimiter.ratio,
+    active && window.MineradioEqualizer.shouldEnableLimiter(gains) ? 20 : 1,
+    immediate,
+  );
+}
+
 function initAudio() {
   if (audioReady) return;
   audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -18942,7 +19005,21 @@ function initAudio() {
   beatAnalyser.smoothingTimeConstant = 0.10;
   source.connect(analyser);
   source.connect(beatAnalyser);
-  analyser.connect(gainNode);
+  try {
+    createEqualizerAudioGraph();
+    analyser.connect(equalizerFilters[0]);
+    equalizerLimiter.connect(gainNode);
+    equalizerAudioSupported = true;
+    applyEqualizerAudioState(true);
+  } catch (equalizerError) {
+    console.warn('equalizer audio graph unavailable:', equalizerError);
+    equalizerFilters = [];
+    equalizerHeadroom = null;
+    equalizerLimiter = null;
+    equalizerAudioSupported = false;
+    analyser.connect(gainNode);
+    if (typeof updateEqualizerUi === 'function') updateEqualizerUi();
+  }
   gainNode.connect(audioCtx.destination);
   applyVolumeToAudio();
   frequencyData.fill(0);
