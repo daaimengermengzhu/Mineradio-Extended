@@ -4,7 +4,7 @@
 
 ## 当前发布边界
 
-当前公开版本是 `v1.1.1` 扩展版预览。
+当前公开版本是 `v1.1.2` 扩展版预览。
 
 本仓库是非官方二创版本，Release 文案必须同时说明：
 
@@ -40,14 +40,14 @@ git diff --check
 npm run build:win
 ```
 
-构建产物位于 `dist/`。正式给普通用户分发时，以 `Mineradio-1.1.1-Setup.exe` 这类完整安装包为准，不要让普通用户下载 `Source code`、`.blockmap`、`latest.yml` 或 `win-unpacked`。
+构建产物位于 `dist/`。正式给普通用户分发时，以 `Mineradio-1.1.2-Setup.exe` 这类完整安装包为准，不要让普通用户下载 `Source code`、`.blockmap`、`latest.yml` 或 `win-unpacked`。
 
 ## GitHub Release 建议文案
 
 Release 标题可以使用：
 
 ```text
-Mineradio v1.1.1 扩展版预览
+Mineradio v1.1.2 扩展版预览
 ```
 
 Release 正文建议包含：
@@ -56,13 +56,17 @@ Release 正文建议包含：
 - 酷狗概念版和普通酷狗音乐新增登录、播放、歌单、红心、收藏、歌词、评论等能力。
 - 汽水音乐当前支持分享歌单导入；直接播放仍受平台返回音频格式影响，不承诺完整会员直连播放。
 - DIY 视觉增加“我的作品”和“形态工坊”，支持用户用点、线、环、曲线环、螺旋等基础粒子自己创建、导入、导出形态。
+- 软件内歌词默认显示下一句预览，可在歌词设置中关闭。
+- 新增十段均衡器，支持六种预设、自定义曲线、响度余量和峰值保护；默认关闭，不会修改歌曲文件。
+- 支持用户自行导入可信的落雪 API 2.0.0 自定义音源脚本，作为官方播放地址技术故障时的可选回退；仓库不内置或推荐第三方脚本。
+- 大歌单读取上限提高到 5000 首，并修复主页歌单数量和 3D 歌单架排序问题。
 - 本版本不包含二创作者个人实验形态。
-- 下载时请只下载 `Mineradio-1.1.1-Setup.exe`。
+- 下载时请只下载 `Mineradio-1.1.2-Setup.exe`。
 
 建议上传资产：
 
-- `dist/Mineradio-1.1.1-Setup.exe`
-- `dist/Mineradio-1.1.1-Setup.exe.blockmap`
+- `dist/Mineradio-1.1.2-Setup.exe`
+- `dist/Mineradio-1.1.2-Setup.exe.blockmap`
 - `dist/latest.yml`
 
 不要上传：
@@ -79,6 +83,6 @@ Release 正文建议包含：
 npm run build:win
 ```
 
-然后使用 `dist/Mineradio-1.1.1-Setup.exe` 安装，或直接运行 `dist/win-unpacked/Mineradio.exe` 做本地验证。
+然后使用 `dist/Mineradio-1.1.2-Setup.exe` 安装，或直接运行 `dist/win-unpacked/Mineradio.exe` 做本地验证。
 
 如果要替换本机正在用的安装版，建议通过安装包覆盖安装，而不是手动复制零散文件，避免 `resources/app`、桌面快捷方式和卸载信息不一致。

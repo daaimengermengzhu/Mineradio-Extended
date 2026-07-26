@@ -5,7 +5,7 @@
 ## 1. 下载和安装
 
 1. 打开最新版下载页：[Mineradio-Extended Releases](https://github.com/daaimengermengzhu/Mineradio-Extended/releases/latest)。
-2. 在 `Assets` 区域下载 `Mineradio-1.1.1-Setup.exe`。
+2. 在 `Assets` 区域下载 `Mineradio-1.1.2-Setup.exe`。
 3. 双击安装包，按提示安装。
 4. 安装完成后，从桌面快捷方式或开始菜单打开 Mineradio。
 
