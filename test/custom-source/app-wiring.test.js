@@ -20,10 +20,15 @@ test('desktop main and preload expose sender-checked custom source management', 
   assert.match(preload, /removeCustomSource/);
 });
 
-test('player presents a script manager and keeps official playback first', () => {
+test('player presents a script manager and checks official playback before source preference', () => {
   assert.match(page, /id="custom-source-btn"/);
   assert.match(page, /aria-label="第三方音源"/);
   assert.match(page, /第三方脚本可以向网络发送歌曲信息/);
+  assert.match(page, /id="custom-source-priority-list"/);
+  assert.match(page, /mineradio-custom-source-priority-v1/);
+  assert.match(page, /officialFirst/);
+  assert.match(page, /lxFirst/);
+  assert.match(page, /officialOnly/);
   assert.match(page, /function resolveOfficialPlaybackData\(/);
   assert.match(page, /function resolveOnlinePlaybackData\(/);
 
@@ -33,10 +38,25 @@ test('player presents a script manager and keeps official playback first', () =>
   assert.ok(resolver.indexOf('resolveOfficialPlaybackData') >= 0);
   assert.ok(resolver.indexOf('/api/custom-source/resolve') > resolver.indexOf('resolveOfficialPlaybackData'));
   assert.match(resolver, /officialResult/);
+  assert.match(resolver, /preference:\s*sourcePreference/);
+  assert.match(resolver, /playable:\s*!!officialResult\.url/);
+  assert.match(resolver, /trial:\s*officialResult\.trial === true/);
 });
 
 test('custom playback uses the ticket proxy directly and is visibly identified', () => {
   assert.match(page, /data\.thirdParty\s*\?\s*data\.url/);
   assert.match(page, /第三方音源/);
   assert.match(page, /currentPlaybackProvider\s*=\s*['"]lx-custom-source['"]/);
+});
+
+test('closing the main window quits hidden runtimes and reuses an active server port', () => {
+  assert.match(main, /function requestAppQuit\(\)/);
+  assert.match(main, /if \(win === mainWindow\) \{\s*requestAppQuit\(\)/);
+  assert.match(main, /mainWindow\.on\('closed',[\s\S]*?mainWindow = null;\s*if \(process\.platform !== 'darwin'\) requestAppQuit\(\)/);
+  assert.match(main, /const port = listeningServerPort\(localServer\) \|\| await findOpenPort\(3000\)/);
+  assert.match(main, /app\.on\('before-quit',[\s\S]*?customSourceManager\.dispose\(\)/);
+  assert.match(main, /function handleWindowCreateFailure\(scope, error\)[\s\S]*?requestAppQuit\(\)/);
+  assert.match(main, /Initial window creation failed:/);
+  assert.match(main, /Second instance window restore failed:/);
+  assert.match(main, /Activated window creation failed:/);
 });

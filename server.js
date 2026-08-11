@@ -6269,6 +6269,7 @@ const server = http.createServer(async (req, res) => {
       const result = await customSourceBridge.resolve({
         song: body && body.song && typeof body.song === 'object' ? body.song : {},
         quality: String(body && body.quality || 'hires'),
+        preference: String(body && body.preference || 'officialFirst'),
         officialResult: body && body.officialResult && typeof body.officialResult === 'object' ? body.officialResult : {},
         signal: controller.signal,
       });

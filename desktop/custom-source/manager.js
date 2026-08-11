@@ -222,9 +222,9 @@ class CustomSourceManager extends EventEmitter {
     return { active: true, activeId: this.activeId, sources: clone(this.sources) };
   }
 
-  async resolveFallback({ song, quality, officialResult, signal } = {}) {
+  async resolveFallback({ song, quality, officialResult, preference, signal } = {}) {
     if (!this.runtime || !this.activeId) return { attempted: false, reason: 'inactive' };
-    if (!shouldAttemptCustomSource({ enabled: true, officialResult })) {
+    if (!shouldAttemptCustomSource({ enabled: true, officialResult, preference })) {
       return { attempted: false, reason: 'policy_blocked' };
     }
     let lxSong;

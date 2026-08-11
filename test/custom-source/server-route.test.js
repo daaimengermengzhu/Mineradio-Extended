@@ -66,6 +66,7 @@ test('custom source bridge resolves with official failure context and proxies au
     body: {
       song: { provider: 'kugouMusic', hash: 'abc' },
       quality: 'lossless',
+      preference: 'lxFirst',
       officialResult: { url: '', reason: 'url_unavailable' },
     },
   });
@@ -74,6 +75,7 @@ test('custom source bridge resolves with official failure context and proxies au
   assert.equal(body.url, '/api/custom-source/audio?ticket=ticket-1');
   assert.equal(body.thirdParty, true);
   assert.equal(calls[0][1].officialResult.reason, 'url_unavailable');
+  assert.equal(calls[0][1].preference, 'lxFirst');
   assert.deepEqual(calls[1], ['issue', 'https://audio.example.com/song.flac']);
 
   const audio = await request(server.address().port, body.url, { headers: { range: 'bytes=0-3' } });

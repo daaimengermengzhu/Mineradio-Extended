@@ -66,6 +66,14 @@ test('uses an active source only after an eligible official technical failure', 
   });
   assert.equal(denied.attempted, false);
 
+  const preferred = await manager.resolveFallback({
+    song: { provider: 'kugouMusic', hash: 'ABC', id: 1 },
+    quality: 'hires',
+    preference: 'lxFirst',
+    officialResult: { playable: true },
+  });
+  assert.equal(preferred.url, 'https://audio.example.com/song.flac');
+
   const result = await manager.resolveFallback({
     song: { provider: 'kugouMusic', hash: 'ABC', id: 1 },
     quality: 'hires',

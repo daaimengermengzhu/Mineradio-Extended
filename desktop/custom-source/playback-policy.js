@@ -19,16 +19,38 @@ const TECHNICAL_FAILURES = new Set([
   'playback_error',
 ]);
 
+const CUSTOM_SOURCE_PREFERENCES = new Set(['officialFirst', 'lxFirst', 'officialOnly']);
+
 function resultCategory(result) {
   return String(result?.reason || result?.restriction?.category || '').trim().toLowerCase();
 }
 
-function shouldAttemptCustomSource({ enabled, officialResult } = {}) {
-  if (!enabled || !officialResult || officialResult.url) return false;
+function normalizeCustomSourcePreference(preference) {
+  return CUSTOM_SOURCE_PREFERENCES.has(preference) ? preference : 'officialFirst';
+}
+
+function officialPlaybackAvailable(result) {
+  return !!(result && (result.url || result.playable === true));
+}
+
+function shouldAttemptCustomSource({ enabled, officialResult, preference } = {}) {
+  if (!enabled || !officialResult) return false;
+  preference = normalizeCustomSourcePreference(preference);
+  if (preference === 'officialOnly') return false;
+  if (officialResult.trial === true) return false;
   const category = resultCategory(officialResult);
   if (RIGHTS_RESTRICTIONS.has(category)) return false;
+  if (officialPlaybackAvailable(officialResult)) return preference === 'lxFirst';
   if (TECHNICAL_FAILURES.has(category)) return true;
   return !category && !!officialResult.error;
 }
 
-module.exports = { RIGHTS_RESTRICTIONS, TECHNICAL_FAILURES, resultCategory, shouldAttemptCustomSource };
+module.exports = {
+  RIGHTS_RESTRICTIONS,
+  TECHNICAL_FAILURES,
+  CUSTOM_SOURCE_PREFERENCES,
+  resultCategory,
+  normalizeCustomSourcePreference,
+  officialPlaybackAvailable,
+  shouldAttemptCustomSource,
+};

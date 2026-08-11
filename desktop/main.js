@@ -27,6 +27,7 @@ let wallpaperState = {};
 let htmlFullscreenActive = false;
 let windowFullscreenActive = false;
 let mainWindowStateTimer = null;
+let appQuitRequested = false;
 const registeredGlobalHotkeys = new Map();
 
 const WINDOWED_ASPECT = 16 / 9;
@@ -126,6 +127,24 @@ function waitForServer(server) {
     server.once('listening', resolve);
     server.once('error', reject);
   });
+}
+
+function listeningServerPort(server) {
+  if (!server || !server.listening || typeof server.address !== 'function') return 0;
+  const address = server.address();
+  if (address && typeof address === 'object') return Number(address.port) || 0;
+  return mainServerPort || 0;
+}
+
+function requestAppQuit() {
+  if (appQuitRequested) return;
+  appQuitRequested = true;
+  app.quit();
+}
+
+function handleWindowCreateFailure(scope, error) {
+  console.error(scope, error);
+  requestAppQuit();
 }
 
 function sendWindowState(win) {
@@ -1123,7 +1142,12 @@ ipcMain.handle('desktop-window-get-state', (event) => {
 });
 
 ipcMain.handle('desktop-window-close', (event) => {
-  getSenderWindow(event)?.close();
+  const win = getSenderWindow(event);
+  if (win === mainWindow) {
+    requestAppQuit();
+    return;
+  }
+  win?.close();
 });
 
 ipcMain.handle('mineradio-hotkeys-configure-global', (_event, bindings) => {
@@ -1399,7 +1423,7 @@ ipcMain.handle('mineradio-wallpaper-update', async (_event, payload) => {
 async function createWindow() {
   htmlFullscreenActive = false;
   windowFullscreenActive = false;
-  const port = await findOpenPort(3000);
+  const port = listeningServerPort(localServer) || await findOpenPort(3000);
   mainServerPort = port;
 
   process.env.HOST = '127.0.0.1';
@@ -1502,6 +1526,7 @@ async function createWindow() {
     }
     closeOverlayWindows();
     mainWindow = null;
+    if (process.platform !== 'darwin') requestAppQuit();
   });
   mainWindow.on('enter-full-screen', () => {
     windowFullscreenActive = true;
@@ -1527,35 +1552,45 @@ app.setName(APP_NAME);
 if (process.platform === 'win32') app.setAppUserModelId(APP_USER_MODEL_ID);
 
 if (!gotSingleInstanceLock) {
-  app.quit();
+  requestAppQuit();
 } else {
   app.on('second-instance', () => {
+    if (appQuitRequested) return;
     if (!focusMainWindow()) {
-      app.whenReady().then(() => createWindow()).catch((e) => console.error('Second instance window restore failed:', e));
+      app.whenReady()
+        .then(() => createWindow())
+        .catch((error) => handleWindowCreateFailure('Second instance window restore failed:', error));
     }
   });
 
-  app.whenReady().then(async () => {
-    screen.on('display-metrics-changed', () => {
-      positionDesktopLyricsWindow();
-      positionWallpaperWindow();
-      scheduleWindowStateSend(mainWindow);
-    });
-    screen.on('display-added', () => scheduleWindowStateSend(mainWindow));
-    screen.on('display-removed', () => scheduleWindowStateSend(mainWindow));
-    await createWindow();
-  });
+  app.whenReady()
+    .then(async () => {
+      screen.on('display-metrics-changed', () => {
+        positionDesktopLyricsWindow();
+        positionWallpaperWindow();
+        scheduleWindowStateSend(mainWindow);
+      });
+      screen.on('display-added', () => scheduleWindowStateSend(mainWindow));
+      screen.on('display-removed', () => scheduleWindowStateSend(mainWindow));
+      await createWindow();
+    })
+    .catch((error) => handleWindowCreateFailure('Initial window creation failed:', error));
 
   app.on('activate', () => {
-    if (BrowserWindow.getAllWindows().length === 0) createWindow();
-    else focusMainWindow();
+    if (appQuitRequested) return;
+    if (BrowserWindow.getAllWindows().length === 0) {
+      createWindow().catch((error) => handleWindowCreateFailure('Activated window creation failed:', error));
+    } else {
+      focusMainWindow();
+    }
   });
 
   app.on('window-all-closed', () => {
-    if (process.platform !== 'darwin') app.quit();
+    if (process.platform !== 'darwin') requestAppQuit();
   });
 
   app.on('before-quit', () => {
+    appQuitRequested = true;
     unregisterMineradioGlobalHotkeys();
     closeOverlayWindows();
     if (localServer?.setCustomSourceBridge) localServer.setCustomSourceBridge(null);
