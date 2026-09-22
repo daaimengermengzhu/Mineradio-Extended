@@ -54,6 +54,7 @@ const zlib = require('zlib');
 const { once } = require('events');
 const { fileURLToPath } = require('url');
 const { analyzePodcastDjStream, analyzePodcastDjIntro } = require('./dj-analyzer');
+const qishuiIntegration = require('./qishui-integration');
 
 const PORT = process.env.PORT || 3000;
 const HOST = process.env.HOST || '0.0.0.0';
@@ -1882,7 +1883,7 @@ function mapKugouArtists(raw, fallbackName) {
 }
 function mapKugouSearchSong(record, session) {
   session = normalizeKugouSession(session);
-  record = (record && (record.info || record.base || record.audio_info || record.song || record)) || {};
+  record = record ? Object.assign({}, record, record.info || record.base || record.audio_info || record.song || {}) : {};
   const fileName = cleanKugouText(firstKugouValue(record.FileName, record.filename, record.file_name));
   let title = cleanKugouText(firstKugouValue(record.SongName, record.songname, record.song_name, record.name, record.title));
   let singerName = cleanKugouText(firstKugouValue(record.SingerName, record.singername, record.singer_name, record.author_name, record.AuthorName));
@@ -1892,7 +1893,8 @@ function mapKugouSearchSong(record, session) {
     if (!title || title === fileName || /\.(mp3|flac|wav|m4a|aac|ogg)$/i.test(title)) title = splitTitle.title;
   }
   title = stripKugouAudioSuffix(title || fileName);
-  const artists = mapKugouArtists(firstKugouValue(record.Singers, record.singers, record.authors), singerName);
+  const artistRows = [record.Singers, record.singers, record.singerinfo, record.authors].find(rows => Array.isArray(rows) && rows.length) || [];
+  const artists = mapKugouArtists(artistRows, singerName);
   const hash = cleanKugouText(firstKugouValue(
     record.FileHash,
     record.Hash,
@@ -1931,8 +1933,8 @@ function mapKugouSearchSong(record, session) {
     artist: artists.map(a => a.name).join(' / ') || singerName,
     artists,
     artistId: artists[0] && artists[0].id,
-    album: cleanKugouText(firstKugouValue(record.AlbumName, record.album_name, record.album, record.albumname)),
-    cover: normalizeKugouImage(firstKugouValue(record.Image, record.image, record.cover, record.pic, record.img), 400),
+    album: cleanKugouText(firstKugouValue(record.AlbumName, record.album_name, record.albuminfo && record.albuminfo.name, record.album, record.albumname)),
+    cover: normalizeKugouImage(firstKugouValue(record.Image, record.image, record.AlbumImage, record.cover, record.pic, record.img, record.album_cover, record.albuminfo && (record.albuminfo.img || record.albuminfo.cover || record.albuminfo.sizable_cover), record.trans_param && record.trans_param.union_cover), 400),
     duration,
     fee: Number(firstKugouValue(record.PayType, record.pay_type, record.AlbumPrivilege, record.privilege, 0)) || 0,
     playable: !!hash,
@@ -6244,6 +6246,8 @@ const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, 'http://localhost:' + PORT);
   const pn = url.pathname;
 
+  if (await qishuiIntegration.route(req, res, url)) return;
+
   if (pn === '/api/custom-source/resolve') {
     if (req.method !== 'POST') {
       sendJSON(res, { error: 'METHOD_NOT_ALLOWED' }, 405);
@@ -7787,3 +7791,4 @@ server.setCustomSourceBridge = bridge => {
 };
 
 module.exports = server;
+server.disposeQishui = qishuiIntegration.dispose;

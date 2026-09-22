@@ -2549,6 +2549,12 @@ html.control-glass-svg-ok #visual-guide-btn:hover{
         <button data-performance-background="keep">保持运行</button>
         <button data-performance-background="release">停止释放</button>
       </div>
+      <div class="fx-section-label">前台帧率</div>
+      <div class="fx-seg" id="foreground-fps-seg" title="降低帧率可减少占用，不改变粒子清晰度">
+        <button data-foreground-fps="30" onclick="setForegroundFps('30')">30 · 省电</button>
+        <button data-foreground-fps="60" onclick="setForegroundFps('60')">60 · 均衡</button>
+        <button data-foreground-fps="vsync" onclick="setForegroundFps('vsync')">跟随屏幕</button>
+      </div>
       <div class="fx-section-label">画质档位</div>
       <div class="fx-seg" id="performance-quality-seg" title="控制可见状态下的渲染像素预算，重启后保留">
         <button data-performance-quality="eco">低</button>
@@ -2839,6 +2845,7 @@ html.control-glass-svg-ok #visual-guide-btn:hover{
       <button id="login-provider-qq" class="qq" type="button" onclick="setLoginProvider('qq')">QQ 音乐</button>
       <button id="login-provider-kugou" class="kugou" type="button" onclick="setLoginProvider('kugou')">酷狗概念版</button>
       <button id="login-provider-kugou-music" class="kugouMusic" type="button" onclick="setLoginProvider('kugouMusic')">酷狗音乐</button>
+      <button id="login-provider-qishui" class="qishui" type="button" onclick="setLoginProvider('qishui')">汽水音乐</button>
     </div>
     <div class="login-intro">
       <div class="login-intro-kicker">Mineradio</div>
@@ -2882,6 +2889,7 @@ html.control-glass-svg-ok #visual-guide-btn:hover{
       <button id="user-provider-qq" class="qq" type="button" onclick="setActiveAccountProvider('qq')">QQ 音乐</button>
       <button id="user-provider-kugou" class="kugou" type="button" onclick="setActiveAccountProvider('kugou')">酷狗概念版</button>
       <button id="user-provider-kugouMusic" class="kugouMusic" type="button" onclick="setActiveAccountProvider('kugouMusic')">酷狗音乐</button>
+      <button id="user-provider-qishui" class="qishui" type="button" onclick="setActiveAccountProvider('qishui')">汽水音乐</button>
       <button id="user-provider-both" class="both" type="button" onclick="enableDualAccountView()">多平台</button>
     </div>
     <div class="account-modal-actions">
@@ -3084,6 +3092,8 @@ var qqLoginWasLoggedIn = false;
 var kugouLoginWasLoggedIn = false;
 var kugouMusicLoginWasLoggedIn = false;
 var loginProvider = 'netease';
+var qishuiLoginStatus = { provider: 'qishui', loggedIn: false }, qishuiPlaylists = [];
+var qishuiQrGeneration = 0, qishuiPollBusy = false;
 var activeAccountProvider = 'netease';
 var currentPlaybackProvider = '';
 var dualAccountMode = false;
@@ -3161,7 +3171,8 @@ var HOME_POSTER_STORE_KEY = 'mineradio-home-personal-poster-v1';
 var homePosterState = readHomePosterState();
 var PLAYLIST_DETAIL_SORT_STORE_KEY = 'mineradio-playlist-detail-sort-v1';
 var PLAYLIST_DETAIL_SORT_OPTIONS = [
-  { key: 'saved', label: '收藏时间' },
+  { key: 'saved', label: '平台顺序' },
+  { key: 'reverse', label: '反向顺序' },
   { key: 'artist', label: '歌手名' },
   { key: 'plays', label: '本地播放次数' },
   { key: 'platformPlays', label: '平台播放次数' },
@@ -3695,6 +3706,7 @@ var fxDefaults = {
   shelfAccentColor: '#ffffff',
   performanceBackground: 'auto',
   performanceQuality: 'high',
+  foregroundFps: '60',
   liveBackgroundKeep: false,
   cam: 'off',
 };
@@ -3763,6 +3775,7 @@ var PACKAGED_DEFAULT_FX_SNAPSHOT = Object.freeze({
   desktopLyricsFps: 60,
   performanceBackground: 'auto',
   performanceQuality: 'high',
+  foregroundFps: '60',
   liveBackgroundKeep: false,
   particleLyrics: true,
   backCover: false,
@@ -3802,7 +3815,7 @@ function readSavedPlaybackVisualPreset() {
   try {
     var raw = JSON.parse(localStorage.getItem(LYRIC_LAYOUT_STORE_KEY) || '{}') || {};
     if (!Object.prototype.hasOwnProperty.call(raw, 'preset')) return fxDefaults.preset;
-    var savedPreset = clampRange(Number(raw.preset) || 0, 0, 6);
+    var savedPreset = clampRange(Number(raw.preset) || 0, 0, 10);
     if (savedPreset === 3 && raw.visualPresetSchema !== VISUAL_PRESET_SCHEMA) savedPreset = 5;
     return savedPreset;
   } catch (e) {
@@ -6567,7 +6580,7 @@ void main(){
   //  Layered music-particle wallpaper: aurora ribbons, depth sparks,
   //  and cover-colored audio flow.
   // ====================================================
-  else {
+  else if (uPreset < 6.5) {
     float bassGlow = smoothstep(0.07, 0.78, uBass) * 0.34 + uBeat * 0.014;
     float midGlow = smoothstep(0.07, 0.62, uMid) * 0.42;
     float highGlow = smoothstep(0.04, 0.46, uTreble) * 0.46;
@@ -6638,6 +6651,132 @@ void main(){
     }
   }
 
+  // Adapted from XxHuberrr/Mineradio-paused d43de565 (GPL-3.0).
+  // ====================================================
+  //  Preset 7: ECLIPSE HALO — obsidian orbital reliquary
+  // ====================================================
+  else if (uPreset < 7.5) {
+float ringIndex = floor(aUv.y * 8.0);
+float ringLocal = fract(aUv.y * 8.0);
+float ringN = (ringIndex + 0.5) / 8.0;
+float ringSeed = hash11(ringIndex * 19.73 + 2.1);
+float theta = aUv.x * 2.0 * PI + ringIndex * 0.47 + t * (0.035 + ringN * 0.026);
+float eclipseDrive = smoothstep(0.06, 0.76, uBass) * 0.17 + uBeat * 0.08;
+float ridge = exp(-pow((ringLocal - 0.5) / (0.17 + ringSeed * 0.045), 2.0));
+float radius = 0.92 + ringN * 3.18 + (ringLocal - 0.5) * 0.24 + eclipseDrive * (0.18 + ringN * 0.34);
+float eccentric = 0.49 + ringN * 0.20;
+float xh = cos(theta) * radius * (1.18 + ringN * 0.10);
+float yh = sin(theta) * radius * eccentric;
+float zh = (ringN - 0.5) * 1.34 + sin(theta * 2.0 + ringSeed * 6.0) * (0.10 + ringN * 0.09);
+float tilt = -0.34 + ringN * 0.72;
+float ct = cos(tilt), st = sin(tilt);
+pos = vec3(xh, yh * ct - zh * st, yh * st + zh * ct);
+
+vec3 coldRim = vec3(0.48, 0.82, 1.0);
+vec3 antiqueGold = vec3(0.93, 0.72, 0.38);
+vec3 haloColor = mix(coldRim, antiqueGold, smoothstep(0.18, 0.84, ringN + sin(theta) * 0.08));
+haloColor = mix(haloColor, vec3(0.98, 0.96, 0.88), ridge * (0.28 + uTreble * 0.18));
+vColor = mix(coverColor * 0.72, haloColor, 0.62 + ridge * 0.20);
+float corona = pow(0.5 + 0.5 * sin(theta * (13.0 + ringIndex) - t * 0.52 + ringSeed * 9.0), 8.0);
+vAlpha = (0.18 + ridge * 0.74 + corona * (0.08 + uTreble * 0.18)) * smoothstep(0.02, 0.14, aUv.y) * (1.0 - smoothstep(0.93, 1.0, aUv.y));
+maxRippleAmp = max(maxRippleAmp, ridge * (0.12 + eclipseDrive * 0.20) + corona * uTreble * 0.13);
+  }
+
+  // ====================================================
+  //  Preset 8: NEON DRIZZLE — refracted city rain
+  // ====================================================
+  else if (uPreset < 8.5) {
+float column = floor(aUv.x * 52.0);
+float columnN = (column + 0.5) / 52.0;
+float columnLocal = fract(aUv.x * 52.0);
+float rainSeed = hash11(column * 41.17 + floor(columnLocal * 5.0) * 7.9);
+float rainSpeed = 0.026 + rainSeed * 0.052 + smoothstep(0.08, 0.76, uBass) * 0.014;
+float fall = fract(1.0 - aUv.y + t * rainSpeed + rainSeed * 0.87);
+float xRain = (columnN - 0.5) * 11.8 + (columnLocal - 0.5) * 0.11;
+float yRain = (0.5 - fall) * 8.8;
+float cityDepth = mix(-3.8, 2.6, hash11(column * 11.3 + 0.7));
+float wind = sin(t * 0.17 + column * 0.63 + fall * 3.4) * (0.08 + rainSeed * 0.12);
+float perspective = 0.76 + smoothstep(-3.8, 2.6, cityDepth) * 0.34;
+pos = vec3((xRain + wind) * perspective, yRain, cityDepth + sin(fall * PI * 2.0 + rainSeed * 7.0) * 0.05);
+
+float dash = pow(0.5 + 0.5 * sin(fall * (52.0 + rainSeed * 38.0) - t * 0.32), 10.0);
+float dropHead = pow(0.5 + 0.5 * sin(fall * 17.0 + rainSeed * 12.0), 18.0);
+vec3 neonA = vec3(0.20, 0.88, 1.0);
+vec3 neonB = vec3(1.0, 0.26, 0.63);
+vec3 neonC = vec3(1.0, 0.72, 0.30);
+vec3 rainColor = mix(neonA, neonB, smoothstep(0.18, 0.78, rainSeed));
+rainColor = mix(rainColor, neonC, smoothstep(0.84, 0.99, rainSeed));
+vColor = mix(coverColor * 0.82, rainColor, 0.58 + dash * 0.18);
+vAlpha = 0.09 + dash * 0.40 + dropHead * (0.22 + uTreble * 0.30);
+vAlpha *= 0.58 + perspective * 0.42;
+pos.x += dropHead * sin(t * 0.8 + rainSeed * 8.0) * uTreble * 0.055;
+maxRippleAmp = max(maxRippleAmp, dash * uMid * 0.10 + dropHead * (0.10 + uTreble * 0.22));
+  }
+
+  // ====================================================
+  //  Preset 9: PRISM FLOCK — folded spectral migration
+  // ====================================================
+  else if (uPreset < 9.5) {
+float flockIndex = floor(aUv.y * 12.0);
+float wingY = fract(aUv.y * 12.0) * 2.0 - 1.0;
+float wingX = aUv.x * 2.0 - 1.0;
+float flockSeed = hash11(flockIndex * 23.73 + 4.0);
+float gx = mod(flockIndex, 4.0) - 1.5;
+float gy = floor(flockIndex / 4.0) - 1.0;
+float migrate = t * (0.018 + flockSeed * 0.018);
+vec2 flockCenter = vec2(gx * 2.42 + sin(migrate + flockSeed * 8.0) * 0.48,
+                        gy * 2.10 + cos(migrate * 0.83 + flockSeed * 9.0) * 0.36);
+float ax = abs(wingX);
+float wingMask = 1.0 - smoothstep(0.72, 1.18, abs(wingY) + ax * 0.38);
+float bodyMask = exp(-pow(wingX / 0.075, 2.0)) * (1.0 - smoothstep(0.62, 1.0, abs(wingY)));
+float flap = sin(t * (0.72 + flockSeed * 0.35) + flockIndex * 1.7) * (0.34 + uMid * 0.42 + uBeat * 0.16);
+float lx = sign(wingX) * (0.12 + pow(ax, 0.76) * 0.88);
+float ly = wingY * (0.48 + (1.0 - ax) * 0.22);
+float lz = ax * (0.42 + flap) + (1.0 - abs(wingY)) * 0.08;
+float heading = -0.20 + (flockSeed - 0.5) * 0.70;
+float ch = cos(heading), sh = sin(heading);
+vec2 folded = mat2(ch, -sh, sh, ch) * vec2(lx, ly);
+pos = vec3(flockCenter + folded, (flockSeed - 0.5) * 3.4 + lz);
+
+vec3 prismLeft = vec3(0.42, 0.94, 0.82);
+vec3 prismRight = vec3(0.96, 0.62, 0.92);
+vec3 prism = mix(prismLeft, prismRight, smoothstep(-0.8, 0.8, wingX));
+prism = mix(prism, vec3(1.0, 0.91, 0.64), smoothstep(0.72, 1.0, ax));
+vColor = mix(coverColor * 0.78, prism, 0.60 + wingMask * 0.18);
+vAlpha = wingMask * (0.22 + (1.0 - ax) * 0.42 + uTreble * 0.16) + bodyMask * 0.68;
+maxRippleAmp = max(maxRippleAmp, wingMask * (0.07 + abs(flap) * 0.12) + bodyMask * uBass * 0.12);
+  }
+
+  // ====================================================
+  //  Preset 10: ABYSSAL BLOOM — bioluminescent tide crown
+  // ====================================================
+  else {
+float bloomR = pow(aUv.y, 0.72);
+float bloomTheta = aUv.x * 2.0 * PI + bloomR * 0.72 + t * 0.018;
+float petalWave = 0.5 + 0.5 * cos(bloomTheta * 9.0 - bloomR * 3.8);
+float bloomDrive = smoothstep(0.06, 0.74, uBass) * 0.26 + uBeat * 0.10;
+float radiusBloom = bloomR * (3.30 + bloomDrive) * (0.78 + petalWave * 0.34);
+float petalFold = sin(bloomTheta * 9.0 - bloomR * 5.4 + t * 0.13);
+float bowl = (1.0 - bloomR) * 1.12 - bloomR * bloomR * 0.52;
+pos.x = cos(bloomTheta) * radiusBloom;
+pos.y = sin(bloomTheta) * radiusBloom * 0.82;
+pos.z = bowl + petalFold * (0.13 + bloomR * 0.47) + sin(bloomTheta * 3.0 + t * 0.07) * 0.08;
+float bloomTilt = -0.30;
+float cb = cos(bloomTilt), sb = sin(bloomTilt);
+pos.yz = mat2(cb, -sb, sb, cb) * pos.yz;
+
+vec3 abyss = vec3(0.12, 0.58, 0.56);
+vec3 violet = vec3(0.38, 0.32, 0.95);
+vec3 pearl = vec3(0.82, 1.0, 0.94);
+vec3 bloomColor = mix(abyss, violet, smoothstep(0.18, 0.88, bloomR + petalWave * 0.10));
+float luminousEdge = smoothstep(0.64, 0.98, bloomR) * (0.55 + petalWave * 0.45);
+bloomColor = mix(bloomColor, pearl, luminousEdge * (0.32 + uTreble * 0.22));
+vColor = mix(coverColor * 0.72, bloomColor, 0.68);
+float filament = pow(0.5 + 0.5 * sin(bloomTheta * 18.0 + bloomR * 19.0 - t * 0.26), 7.0);
+vAlpha = (0.16 + petalWave * 0.31 + filament * 0.26 + luminousEdge * 0.30) * smoothstep(0.01, 0.10, bloomR);
+maxRippleAmp = max(maxRippleAmp, petalWave * bloomDrive * 0.18 + filament * uTreble * 0.17 + luminousEdge * uMid * 0.09);
+  }
+
   // ====================================================
   //  鼠标交互 (仅 SILK)
   // ====================================================
@@ -6703,6 +6842,7 @@ void main(){
   vBright = 0.82 + maxRippleAmp * 0.55 + uBass * 0.10 + edgeBoost * 0.30 + uEnergy * 0.05 + uBurstAmt * 0.40;
   if (uPreset > 4.5) {
     vBright = 0.94 + maxRippleAmp * 0.34 + uBass * 0.020 + uEnergy * 0.026 + uBurstAmt * 0.025;
+    if (uPreset > 6.5) vBright = 0.86 + maxRippleAmp * 0.52 + uEnergy * 0.045 + uBeat * 0.055;
   } else if (uPreset > 3.5) {
     vBright = 0.94 + maxRippleAmp * 0.64 + uBass * 0.08 + edgeBoost * 0.12 + uEnergy * 0.05 + uBeat * 0.16 + uBurstAmt * 0.16;
   }
@@ -6751,6 +6891,10 @@ void main(){
   if (uPreset > 4.5) {
     float flowDrive = uBass * 0.070 + uMid * 0.046 + uTreble * 0.060 + uBurstAmt * 0.090 + uBeat * 0.055;
     sz = clamp(depthSize * (1.05 + flowDrive), 1.00, 5.45);
+    if (uPreset > 6.5) {
+      float authoredDrive = uBass * 0.10 + uMid * 0.08 + uTreble * 0.12 + uBeat * 0.10;
+      sz = clamp(depthSize * (0.98 + authoredDrive), 1.00, 4.85);
+    }
   } else if (uPreset > 3.5) {
     float ringDrive = uBass * 0.30 + uMid * 0.18 + uTreble * 0.22 + uBeat * 0.30;
     sz = clamp(depthSize * (0.90 + ringDrive * 0.62), 1.05, 3.90);
@@ -7968,7 +8112,7 @@ function readSavedLyricLayout() {
   try {
     var savedLayoutRaw = localStorage.getItem(LYRIC_LAYOUT_STORE_KEY);
     var raw = savedLayoutRaw ? (JSON.parse(savedLayoutRaw) || {}) : packagedDefaultLyricLayoutRaw();
-    var savedPreset = clampRange(Number(raw.preset) || 0, 0, 6);
+    var savedPreset = clampRange(Number(raw.preset) || 0, 0, 10);
     if (savedPreset === 3 && raw.visualPresetSchema !== VISUAL_PRESET_SCHEMA) {
       savedPreset = 5;
     }
@@ -8046,6 +8190,7 @@ function readSavedLyricLayout() {
       desktopLyricsFps: desktopLyricsSchemaReady ? normalizeDesktopLyricsFps(raw.desktopLyricsFps) : fxDefaults.desktopLyricsFps,
       performanceBackground: normalizePerformanceBackgroundMode(raw.performanceBackground, raw.liveBackgroundKeep === true),
       performanceQuality: normalizePerformanceQuality(raw.performanceQuality),
+      foregroundFps: normalizeForegroundFps(raw.foregroundFps),
       liveBackgroundKeep: normalizePerformanceBackgroundMode(raw.performanceBackground, raw.liveBackgroundKeep === true) === 'keep',
       wallpaperMode: false,
       wallpaperOpacity: clampRange(raw.wallpaperOpacity == null ? fxDefaults.wallpaperOpacity : Number(raw.wallpaperOpacity), 0.35, 1),
@@ -8138,6 +8283,7 @@ function saveLyricLayout() {
       desktopLyricsFps: normalizeDesktopLyricsFps(fx.desktopLyricsFps),
       performanceBackground: normalizePerformanceBackgroundMode(fx.performanceBackground, fx.liveBackgroundKeep === true),
       performanceQuality: normalizePerformanceQuality(fx.performanceQuality),
+      foregroundFps: normalizeForegroundFps(fx.foregroundFps),
       liveBackgroundKeep: normalizePerformanceBackgroundMode(fx.performanceBackground, fx.liveBackgroundKeep === true) === 'keep',
       wallpaperMode: false,
       wallpaperOpacity: clampRange(fx.wallpaperOpacity == null ? fxDefaults.wallpaperOpacity : Number(fx.wallpaperOpacity), 0.35, 1),
@@ -10409,6 +10555,7 @@ function forceLoadingSettled(reason) {
   if (reason && window.__mineradioDebugLoading) console.log('[LoadingSettled]', reason);
 }
 function recoverVisualsAfterBackground(reason) {
+  if (typeof mainLoopRaf !== 'undefined') wakeMainLoop();
   applyRendererPowerMode();
   if (typeof scheduleMainRendererViewportRefresh === 'function') scheduleMainRendererViewportRefresh(reason || 'restore');
   if (audio && audio.src && !audio.paused && ((uniforms.uLoading.value || 0) > 0.015 || loadingTween || loadingHideTimer)) {
@@ -10947,9 +11094,10 @@ async function fetchBeatPrefetchAudioUrl(song) {
   var qualityParam = '&quality=' + encodeURIComponent(requestedQuality);
   var data = isQQ
     ? await apiJson('/api/qq/song/url?mid=' + encodeURIComponent(song.mid || song.songmid || song.id || '') + '&mediaMid=' + encodeURIComponent(song.mediaMid || song.media_mid || '') + qualityParam)
+    : provider === 'qishui' ? await apiJson('/api/qishui/song/url?id=' + encodeURIComponent(song.qishuiTrackId || song.id || '') + qualityParam)
     : (isKugou ? await apiJson(provider === 'kugouMusic' ? kugouMusicSongUrlApiPath(song, qualityParam) : kugouSongUrlApiPath(song, qualityParam)) : await apiJson('/api/song/url?id=' + encodeURIComponent(song.id) + qualityParam));
   if (!data || !data.url || data.trial) return null;
-  return '/api/audio?url=' + encodeURIComponent(data.url);
+  return data.localAudio ? data.url : '/api/audio?url=' + encodeURIComponent(data.url);
 }
 
 function scheduleQueueBeatPrefetch(fromIdx, delayMs, state) {
@@ -13655,7 +13803,7 @@ function makeShelfManager() {
         var provider = normalizePlaylistProvider(pl.provider);
         var sourceLabel = playlistProviderShortLabel(provider);
         return { type:'playlist', title: pl.name, sub:sourceLabel + ' · ' + (pl.trackCount||0)+' 首 · 播放 '+compactCount(pl.playCount||0),
-          cover: pl.cover || '', tag: pl.subscribed ? '收藏歌单' : '我的歌单', playlistId: playlistPanelProviderId(provider, pl.id), provider: provider };
+          cover: playlistCoverForProvider(pl, provider, 360), tag: pl.subscribed ? '收藏歌单' : '我的歌单', playlistId: playlistPanelProviderId(provider, pl.id), provider: provider };
       });
       if (shelfShowsPodcasts() && (shelfPane === 'mine' || shelfMergesCollections()) && myPodcastCollections.length) {
         myPodcastCollections.forEach(function(pc){
@@ -15044,13 +15192,14 @@ function makeContentListManager() {
       var qqPlaylistId = String(playlistId || '').indexOf('qq:') === 0 ? String(playlistId).slice(3) : '';
       var kugouPlaylistId = String(playlistId || '').indexOf('kugou:') === 0 ? String(playlistId).slice(6) : '';
       var kugouMusicPlaylistId = String(playlistId || '').indexOf('kugouMusic:') === 0 ? String(playlistId).slice(11) : '';
+      var qishuiPlaylistId = String(playlistId || '').indexOf('qishui:') === 0 ? String(playlistId).slice(7) : '';
       contentKind = podcastCollectionKey ? 'podcast' : 'playlist';
       // 拉取歌单/播客集合
       var r = null;
       try {
         r = podcastCollectionKey
           ? await apiJson('/api/podcast/my/items?key=' + encodeURIComponent(podcastCollectionKey) + '&limit=36')
-          : (qqPlaylistId
+          : qishuiPlaylistId ? await getQishuiPlaylistTracks(qishuiPlaylistId) : (qqPlaylistId
             ? await apiJson('/api/qq/playlist/tracks?id=' + encodeURIComponent(qqPlaylistId))
             : (kugouMusicPlaylistId
               ? await apiJson('/api/kugou-music/playlist/tracks?id=' + encodeURIComponent(kugouMusicPlaylistId))
@@ -15085,7 +15234,8 @@ function makeContentListManager() {
           syncRenderedRows(true);
           return;
         }
-        var detailProvider = qqPlaylistId ? 'qq' : (kugouMusicPlaylistId ? 'kugouMusic' : (kugouPlaylistId ? 'kugou' : 'netease'));
+        var detailProvider = qqPlaylistId ? 'qq' : (kugouMusicPlaylistId ? 'kugouMusic' : (kugouPlaylistId ? 'kugou' : (qishuiPlaylistId ? 'qishui' : 'netease')));
+        if (!podcastCollectionKey) rememberPlaylistCover(detailProvider, qqPlaylistId || kugouMusicPlaylistId || kugouPlaylistId || qishuiPlaylistId || playlistId, r);
         allTracks = podcastCollectionKey
           ? tracks
           : sortPlaylistTracksForDisplay(tracks.map(normalizePlaylistPanelTrack), detailProvider);
@@ -15770,16 +15920,19 @@ function isKugouQualityProvider(provider) {
   return provider === 'kugou' || provider === 'kugouMusic';
 }
 function providerPlaybackQualityValue(provider, value) {
+  if (provider === 'qishui') return 'hires';
   value = normalizePlaybackQuality(value);
   if (isKugouQualityProvider(provider) && value === 'jymaster') return 'hires';
   return value;
 }
 function providerAvailablePlaybackQualities(provider) {
+  if (provider === 'qishui') return ['hires'];
   return isKugouQualityProvider(provider)
     ? ['hires', 'lossless', 'exhigh', 'standard']
     : ['jymaster', 'hires', 'lossless', 'exhigh', 'standard'];
 }
 function providerQualityOptionMeta(provider, value) {
+  if (provider === 'qishui') return { label: '自动音质', short: '自动', sub: '选择当前账号可用的最高音质' };
   provider = provider || 'netease';
   value = normalizePlaybackQuality(value);
   var kugouLike = isKugouQualityProvider(provider);
@@ -15834,10 +15987,11 @@ function playbackResolvedQualityText(data, provider) {
 }
 function qualityProviderForCurrentTrack() {
   var song = typeof currentCoverSong === 'function' ? currentCoverSong() : null;
+  if (currentPlaybackProvider === 'qishui') return 'qishui';
   if (currentPlaybackProvider === 'netease' || currentPlaybackProvider === 'qq' || currentPlaybackProvider === 'kugou' || currentPlaybackProvider === 'kugouMusic') return currentPlaybackProvider;
   var provider = songProviderKey(song);
   if (provider === 'local' || provider === 'podcast') return '';
-  if (provider === 'qishui') return alternatePlaybackProvider(song);
+  if (provider === 'qishui') return 'qishui';
   if (provider === 'netease' || provider === 'qq' || provider === 'kugou' || provider === 'kugouMusic') return provider;
   if (hasPlatformLogin(activeAccountProvider)) return activeAccountProvider;
   return firstLoggedProvider();
@@ -16196,6 +16350,7 @@ function isProxyableCoverUrl(url) {
 }
 function coverProxySrc(url, cacheBust) {
   if (!url) return '';
+  if (/^\/assets\/(liked-playlist|playlist-placeholder)\.svg$/.test(url)) return url;
   if (isInlineCoverSrc(url)) return url;
   if (!isProxyableCoverUrl(url)) return '';
   return '/api/cover?url=' + encodeURIComponent(url) + (cacheBust ? '&v=' + Date.now() : '');
@@ -16744,7 +16899,7 @@ function renderHomeDiscover() {
     if (privateSub) privateSub.textContent = cardSongB ? (cardSongB.artist || songSourceLabel(cardSongB) || '推荐歌曲') : (homeDiscoverState.songs.length + ' 首 · 根据今日推荐与常听偏好');
     if (libTitle) libTitle.textContent = cardSongC ? cardSongC.name : (summary.topArtist ? summary.topArtist.name : '更多歌曲');
     if (libSub) libSub.textContent = cardSongC ? (cardSongC.artist || songSourceLabel(cardSongC) || '推荐歌曲') : (summary.topArtist ? ('歌手偏好 · ' + summary.topArtist.plays + ' 次') : '播放几首后生成你的偏好');
-    setHomeArt('home-weather-art', (libraryPlaylist && libraryPlaylist.cover) || (playlistItem && playlistItem.cover) || daily && daily.cover, 280);
+    setHomeArt('home-weather-art', playlistCoverForProvider(libraryPlaylist, libraryPlaylist && libraryPlaylist.provider, 280) || (playlistItem && playlistItem.cover) || daily && daily.cover, 280);
     setHomeArt('home-daily-art', daily && daily.cover, 280);
     setHomeArt('home-private-art', cardSongB && cardSongB.cover || daily && daily.cover || summary.recent && summary.recent.cover || playlistItem && playlistItem.cover, 280);
     setHomeArt('home-continue-art', summary.recent && summary.recent.cover || playlistItem && playlistItem.cover, 280);
@@ -17656,6 +17811,7 @@ function openTrackDetailModal(type, songOverride) {
     var detailCanLoadComments = isCloudSong(song) || detailIsQQ || ((detailIsKugou || detailIsKugouMusic) && !!detailKugouMixSongId);
     var detailCommentTitle = detailIsQQ ? 'QQ 音乐评论' : (detailIsKugouMusic ? '酷狗音乐评论' : (detailIsKugou ? '酷狗评论' : '网易云评论'));
     var detailEmptyText = detailIsQQ ? '当前 QQ 歌曲暂无评论' : (detailIsKugouMusic ? '当前酷狗音乐歌曲缺少评论 ID' : (detailIsKugou ? '当前酷狗歌曲缺少评论 ID' : '本地文件暂无网易云评论'));
+    if (songProviderKey(song) === 'qishui') { detailCommentTitle = '汽水音乐评论'; detailEmptyText = '汽水预览暂未接入评论'; }
     body.innerHTML =
       '<div class="detail-hero">' + coverHtml +
         '<div style="min-width:0;flex:1"><div class="detail-title">' + escHtml(title) + '</div>' +
@@ -18045,6 +18201,7 @@ function deleteCustomLyricForCurrent() {
 }
 function isCloudSong(song) {
   if (!song || !song.id) return false;
+  if (songProviderKey(song) === 'qishui') return false;
   if (song.provider === 'qq' || song.source === 'qq' || song.type === 'qq') return false;
   if (song.provider === 'kugouMusic' || song.source === 'kugouMusic' || song.type === 'kugouMusic') return false;
   if (song.type === 'local' || song.type === 'podcast' || song.source === 'podcast') return false;
@@ -18181,6 +18338,7 @@ function refreshSearchResultActionStates() {
 }
 async function toggleLikeSong(song) {
   var provider = songProviderKey(song);
+  if (provider === 'qishui') { showToast('汽水预览暂不支持写入红心，请在汽水 App 中操作'); return; }
   var isKugouProvider = provider === 'kugou' || provider === 'kugouMusic';
   var providerReady = isKugouProvider ? hasPlatformLogin(provider) : (provider === 'netease' && isCloudSong(song) && loginStatus.loggedIn);
   if (provider === 'qq') {
@@ -18240,6 +18398,7 @@ function toggleLikeQueueIndex(i) { if (playQueue[i]) toggleLikeSong(playQueue[i]
 function toggleLikeDetailSong(song) { toggleLikeSong(song); }
 function openCollectModal(song) {
   var provider = songProviderKey(song);
+  if (provider === 'qishui') { showToast('汽水预览暂不支持写入歌单，请在汽水 App 中操作'); return; }
   var isKugouProvider = provider === 'kugou' || provider === 'kugouMusic';
   var providerReady = isKugouProvider ? hasPlatformLogin(provider) : (provider === 'netease' && isCloudSong(song) && loginStatus.loggedIn);
   if (provider === 'qq') {
@@ -18463,7 +18622,7 @@ if (window.MutationObserver && $results) {
   new MutationObserver(syncSearchAreaResultState).observe($results, { childList: true, attributes: true, attributeFilter: ['class'] });
 }
 function isMusicSearchMode(mode) {
-  return mode !== 'podcast' && mode !== 'qishui';
+  return mode !== 'podcast';
 }
 function searchResultKey(q, mode) {
   return (mode || searchMode || 'song') + '|' + String(q || '').trim();
@@ -18564,7 +18723,7 @@ function updateSearchModeTabs() {
     podcastBtn.setAttribute('aria-selected', searchMode === 'podcast' ? 'true' : 'false');
   }
   if ($input) {
-    if (searchMode === 'qishui') $input.placeholder = '粘贴汽水音乐分享链接或 track_id...';
+    if (searchMode === 'qishui') $input.placeholder = '搜索汽水歌曲、歌手，或粘贴分享链接...';
     else $input.placeholder = searchMode === 'podcast'
       ? '搜索播客、电台...'
       : (searchMode === 'qq' ? '搜索 QQ 音乐...' : (searchMode === 'kugou' ? '搜索酷狗概念版...' : (searchMode === 'kugouMusic' ? '搜索酷狗音乐...' : (searchMode === 'netease' ? '搜索网易云音乐...' : '搜索歌曲、歌手...'))));
@@ -18584,7 +18743,7 @@ function setSearchMode(mode) {
     if (q) doSearch(q);
     else loadPodcastHot();
   } else if (searchMode === 'qishui') {
-    if (q) importQishuiShare(q);
+    if (q) doSearch(q);
     else renderQishuiSharePrompt();
   } else if (q) {
     doSearch(q);
@@ -18594,7 +18753,7 @@ function setSearchMode(mode) {
 }
 function looksLikeQishuiShareInput(text) {
   text = String(text || '').trim();
-  return /^(\d{16,24})$/.test(text) || /汽水|qishui|luna|soda|track[_-]?id|trackId/i.test(text);
+  return /^(\d{16,24})$/.test(text) || (/https?:\/\//i.test(text) && /qishui|luna|soda|iesdouyin|snssdk/i.test(text)) || /track[_-]?id[=:]/i.test(text);
 }
 function renderQishuiSharePrompt(text) {
   playlist = [];
@@ -18604,8 +18763,9 @@ function renderQishuiSharePrompt(text) {
   var sample = String(text || '').trim();
   $results.innerHTML =
     '<div class="search-empty">' +
-      '<div style="font-weight:750;color:rgba(255,255,255,.82);margin-bottom:6px">汽水音乐实验音源</div>' +
-      '<div style="line-height:1.65;color:rgba(255,255,255,.48)">粘贴汽水音乐歌曲或歌单分享链接，然后按 Enter 导入。第一阶段只做分享链接导入和尝试播放，不支持汽水账号登录、收藏和个人歌单。</div>' +
+      '<div style="font-weight:750;color:rgba(255,255,255,.82);margin-bottom:6px">汽水音乐 · 预览</div>' +
+      '<div style="line-height:1.65;color:rgba(255,255,255,.48)">输入歌名或歌手即可搜索，也可以粘贴分享链接导入。支持扫码登录与歌单读取；免费歌曲可通过汽水网页通道完整播放，部分歌曲仅提供试听。</div>' +
+      (!qishuiLoginStatus.loggedIn ? '<button class="modal-btn" onclick="openProviderLogin(\'qishui\')" style="margin-top:12px">登录汽水音乐</button>' : '') +
       (sample ? '<div style="margin-top:8px;color:rgba(244,210,138,.72)">按 Enter 导入当前链接</div>' : '') +
     '</div>';
   $results.classList.add('show');
@@ -18613,7 +18773,7 @@ function renderQishuiSharePrompt(text) {
 function qishuiCredentialHint(data) {
   var missing = data && Array.isArray(data.missing) ? data.missing : [];
   if (!missing.length) return '';
-  return '需要配置汽水电脑版凭证: ' + missing.join(', ');
+  return qishuiLoginStatus.loggedIn ? '' : '登录汽水音乐后可尝试直接播放';
 }
 function qishuiImportedPlaylistId(text, songs) {
   var raw = String(text || '');
@@ -18714,6 +18874,13 @@ function getQishuiImportedPlaylistTracks(pid) {
   qishuiImportedPlaylists = readQishuiImportedPlaylists();
   var pl = getQishuiImportedPlaylist(pid);
   return { provider: 'qishui', loggedIn: true, playlist: pl || { id: pid, provider: 'qishui', name: '汽水音乐歌单', trackCount: 0 }, tracks: pl ? (pl.tracks || []) : [] };
+}
+async function getQishuiPlaylistTracks(pid) {
+  qishuiImportedPlaylists = readQishuiImportedPlaylists();
+  if (getQishuiImportedPlaylist(pid)) return getQishuiImportedPlaylistTracks(pid);
+  var result = await apiJson('/api/qishui/playlist/tracks?id=' + encodeURIComponent(pid));
+  if (result.error) throw new Error(result.message || '汽水歌单读取失败');
+  return result;
 }
 function hasQishuiImportedPlaylists() {
   return !!(qishuiImportedPlaylists && qishuiImportedPlaylists.length);
@@ -18901,7 +19068,7 @@ $input.addEventListener('input', function(){
     else renderSearchHistory();
     return;
   }
-  if (searchMode === 'qishui') {
+  if (searchMode === 'qishui' && looksLikeQishuiShareInput(q)) {
     renderQishuiSharePrompt(q);
     return;
   }
@@ -18982,7 +19149,7 @@ function searchResultMetaText(song) {
   if (songProviderKey(song) === 'qq' && !song.playable) bits.push('QQ 播放需会话/授权');
   if (songProviderKey(song) === 'kugou' && !song.playable) bits.push('酷狗播放需会话/授权');
   if (songProviderKey(song) === 'kugouMusic' && !song.playable) bits.push('酷狗音乐播放需会话/授权');
-  if (songProviderKey(song) === 'qishui' && !song.playable) bits.push(song.needsCredentials ? '汽水需配置电脑版凭证' : '汽水播放地址待解析');
+  if (songProviderKey(song) === 'qishui' && !song.playable) bits.push('汽水网页通道 · 部分歌曲仅试听');
   return bits.join('  ·  ') || songSourceLabel(song);
 }
 function searchResultMetaHtml(song, index) {
@@ -18993,7 +19160,7 @@ function searchResultMetaHtml(song, index) {
   if (songProviderKey(song) === 'qq' && !song.playable) bits.push('QQ 播放需会话/授权');
   if (songProviderKey(song) === 'kugou' && !song.playable) bits.push('酷狗播放需会话/授权');
   if (songProviderKey(song) === 'kugouMusic' && !song.playable) bits.push('酷狗音乐播放需会话/授权');
-  if (songProviderKey(song) === 'qishui' && !song.playable) bits.push(song.needsCredentials ? '汽水需配置电脑版凭证' : '汽水播放地址待解析');
+  if (songProviderKey(song) === 'qishui' && !song.playable) bits.push('汽水网页通道 · 部分歌曲仅试听');
   var tail = bits.length ? (' · ' + escHtml(bits.join('  ·  '))) : '';
   if (!artist) return escHtml(searchResultMetaText(song));
   return '<button class="search-artist-link" type="button" onclick="event.stopPropagation();openSearchResultArtist(' + index + ')">' + escHtml(artist) + '</button>' + tail;
@@ -19117,6 +19284,11 @@ function mergeSongSearchResults(neteaseSongs, qqSongs, kugouSongs, kugouMusicSon
   return out.slice(0, limit);
 }
 async function fetchMusicSearchResults(q, mode) {
+  if (mode === 'qishui') {
+    var qsOnly = await apiJson('/api/qishui/search?keywords=' + encodeURIComponent(q));
+    if (qsOnly.error && !(qsOnly.songs || []).length) throw new Error(qsOnly.message || '汽水搜索暂时不可用');
+    return qsOnly.songs || [];
+  }
   if (mode === 'qq') {
     var qqOnly = await apiJson('/api/qq/search?keywords=' + encodeURIComponent(q) + '&limit=12');
     return mergeSongSearchResults([], qqOnly.songs || [], [], [], 18, q);
@@ -19193,10 +19365,6 @@ async function doSearch(q, opts) {
     return;
   }
   if (searchMode !== 'netease' && looksLikeQishuiShareInput(q)) {
-    importQishuiShare(q, opts);
-    return;
-  }
-  if (searchMode === 'qishui') {
     importQishuiShare(q, opts);
     return;
   }
@@ -19792,7 +19960,7 @@ async function resolveOfficialPlaybackData(song, requestedQuality) {
   var result = isQQ
     ? await apiJson('/api/qq/song/url?mid=' + encodeURIComponent(song.mid || song.songmid || song.id || '') + '&mediaMid=' + encodeURIComponent(song.mediaMid || song.media_mid || '') + qualityParam)
     : (isQishui
-      ? await apiJson('/api/qishui/song/url?id=' + encodeURIComponent(song.qishuiTrackId || song.id || '') + '&mediaType=' + encodeURIComponent(song.qishuiMediaType || song.mediaType || 'track'))
+      ? await apiJson('/api/qishui/song/url?id=' + encodeURIComponent(song.qishuiTrackId || song.id || '') + '&mediaType=' + encodeURIComponent(song.qishuiMediaType || song.mediaType || 'track') + qualityParam)
       : (isKugou
         ? await apiJson(playbackProvider === 'kugouMusic' ? kugouMusicSongUrlApiPath(song, qualityParam) : kugouSongUrlApiPath(song, qualityParam))
         : await apiJson('/api/song/url?id=' + encodeURIComponent(song.id) + qualityParam)));
@@ -20241,7 +20409,8 @@ async function playQueueAt(idx, opts) {
     }
     if (data.trial) {
       var txt;
-      if (data.loggedIn && data.vipLevel === 'svip') txt = '此歌曲需要单曲、专辑购买或更高权限';
+      if (data.provider === 'qishui' && data.trialMessage) txt = data.trialMessage;
+      else if (data.loggedIn && data.vipLevel === 'svip') txt = '此歌曲需要单曲、专辑购买或更高权限';
       else if (data.loggedIn && data.vipLevel === 'vip') txt = '此歌曲需要 SVIP 或购买 · 当前仅播放试听片段';
       else if (data.loggedIn) txt = '此歌曲需 VIP · 当前仅播放试听片段';
       else txt = '当前未登录 · 仅播放试听片段';
@@ -20263,7 +20432,7 @@ async function playQueueAt(idx, opts) {
     bindPlaybackProgressEvents(audio);
     releaseManualAudioPlaybackPrime();
     applyVolumeToAudio();
-    var proxyAudioUrl = data.thirdParty ? data.url : '/api/audio?url=' + encodeURIComponent(data.url);
+    var proxyAudioUrl = data.thirdParty || data.localAudio ? data.url : '/api/audio?url=' + encodeURIComponent(data.url);
     audio.src = proxyAudioUrl;
     updatePlaybackProgressUi();
     audio.onended = function(){
@@ -20284,7 +20453,11 @@ async function playQueueAt(idx, opts) {
     cancelBeatAnalysisTimer();
     beatMapToken++;
     var bmTok = beatMapToken;
-    if (podcastDjMode) {
+    if (isQishuiPlayback && data.trial) {
+      // A server-cut preview must not read/write the full song's beat cache.
+      // Live audio analysis continues to drive the visuals for this short clip.
+      hideBeatChip();
+    } else if (podcastDjMode) {
       // 播客走独立 DJ 离线锁拍系统, 不写入普通歌曲 beatMap.
       djBeatMapToken++;
       cancelDjBeatAnalysisTimer();
@@ -20359,7 +20532,7 @@ async function playQueueAt(idx, opts) {
         applyPreferredLyricsForCurrent(true);
       });
     } else {
-      fetchLyric(song, token);
+      fetchLyric(song, token, data);
     }
     safeRenderQueuePanel('play-queue-at');
     scheduleShelfRebuild('play-queue-at', true);
@@ -20771,12 +20944,29 @@ function clearPlayerControlFocusState(reason) {
 // ============================================================
 //  歌词
 // ============================================================
-async function fetchLyric(songOrId, token) {
+function lyricsForPlaybackClip(lines, playback) {
+  if (!playback || playback.provider !== 'qishui' || !playback.trial) return lines;
+  var start = Math.max(0, Number(playback.clipStart) || 0);
+  var end = start + Math.max(0, Number(playback.duration) || 0);
+  return lines.filter(function(line, i){
+    var next = lines[i + 1];
+    var lineEnd = next ? next.t : line.t + (line.duration || 4.8);
+    return line.t < end && lineEnd > start;
+  }).map(function(line){
+    var copy = cloneLyricLine(line);
+    copy.t -= start;
+    if (copy.words) copy.words.forEach(function(word){ word.t -= start; });
+    return copy;
+  });
+}
+async function fetchLyric(songOrId, token, playback) {
   try {
     var song = (songOrId && typeof songOrId === 'object') ? songOrId : null;
     var provider = songProviderKey(song);
     var endpoint;
-    if (provider === 'qq') {
+    if (provider === 'qishui') {
+      endpoint = '/api/qishui/lyric?id=' + encodeURIComponent(song.qishuiTrackId || song.id || '');
+    } else if (provider === 'qq') {
       var mid = song.mid || song.songmid || song.id || '';
       var qqId = song.qqId || (/^\d+$/.test(String(song.id || '')) ? song.id : '');
       endpoint = '/api/qq/lyric?mid=' + encodeURIComponent(mid) + '&id=' + encodeURIComponent(qqId);
@@ -20810,7 +21000,7 @@ async function fetchLyric(songOrId, token) {
     var lrcLines = parseLyricText(r.lyric || '');
     var hasNativeKaraoke = nativeLines.some(function(line){ return line.words && line.words.length; });
     var timingSource = hasNativeKaraoke ? 'yrc-word' : (nativeLines.length ? 'yrc-line' : (lrcLines.length ? 'lrc-line' : 'fallback'));
-    var lines = withLyricFallback(nativeLines.length ? nativeLines : lrcLines);
+    var lines = withLyricFallback(lyricsForPlaybackClip(nativeLines.length ? nativeLines : lrcLines, playback));
     if (lines.length && lines[0].fallback) timingSource = 'fallback';
     setOriginalLyricsState(lines, hasNativeKaraoke, timingSource);
     applyPreferredLyricsForCurrent(true);
@@ -21196,7 +21386,7 @@ function renderQueuePanel(opts) {
 }
 async function refreshUserPlaylists(force) {
   qishuiImportedPlaylists = readQishuiImportedPlaylists();
-  if (!loginStatus.loggedIn && !qqLoginStatus.loggedIn && !kugouLoginStatus.loggedIn && !kugouMusicLoginStatus.loggedIn && !hasQishuiImportedPlaylists()) {
+  if (!hasAnyPlatformLogin() && !hasQishuiImportedPlaylists()) {
     resetPlaylistPanelRenderLimit();
     document.getElementById('pl-list').innerHTML = '<div style="text-align:center;padding:24px 0;color:rgba(255,255,255,.32);font-size:11.5px">登录后显示个人歌单</div>';
     var podcastListLoggedOut = document.getElementById('podcast-list');
@@ -21210,7 +21400,8 @@ async function refreshUserPlaylists(force) {
   var needsQQRefresh = qqLoginStatus.loggedIn && !hasCachedQQPlaylists;
   var needsKugouRefresh = kugouLoginStatus.loggedIn && !hasCachedKugouPlaylists;
   var needsKugouMusicRefresh = kugouMusicLoginStatus.loggedIn && !hasCachedKugouMusicPlaylists;
-  if (!force && !needsQQRefresh && !needsKugouRefresh && !needsKugouMusicRefresh && (userPlaylists.length || myPodcastCollections.length)) {
+  var needsQishuiRefresh = qishuiLoginStatus.loggedIn && !qishuiPlaylists.length;
+  if (!force && !needsQQRefresh && !needsKugouRefresh && !needsKugouMusicRefresh && !needsQishuiRefresh && (userPlaylists.length || myPodcastCollections.length)) {
     var cachedAnimate = isPlaylistPanelVisibleForRender();
     renderUserPlaylistsList({ animate: cachedAnimate });
     renderMyPodcastCollections({ animate: cachedAnimate });
@@ -21229,14 +21420,17 @@ async function refreshUserPlaylists(force) {
       loginStatus.loggedIn ? apiJson('/api/podcast/my') : Promise.resolve({ collections: [], loggedIn: false }),
       qqLoginStatus.loggedIn ? apiJson('/api/qq/user/playlists') : Promise.resolve({ playlists: [] }),
       kugouLoginStatus.loggedIn ? apiJson('/api/kugou/user/playlists') : Promise.resolve({ playlists: [] }),
-      kugouMusicLoginStatus.loggedIn ? apiJson('/api/kugou-music/user/playlists') : Promise.resolve({ playlists: [] })
+      kugouMusicLoginStatus.loggedIn ? apiJson('/api/kugou-music/user/playlists') : Promise.resolve({ playlists: [] }),
+      qishuiLoginStatus.loggedIn ? apiJson('/api/qishui/user/playlists').catch(function(){ return { playlists: qishuiPlaylists, error: true }; }) : Promise.resolve({ playlists: [] })
     ]);
     var neteaseLists = (result[0].playlists || []).map(function(pl){ pl.provider = 'netease'; pl.source = 'netease'; return pl; });
     qqPlaylists = (result[2].playlists || []).map(function(pl){ pl.provider = 'qq'; pl.source = 'qq'; return pl; });
     kugouPlaylists = (result[3].playlists || []).map(function(pl){ pl.provider = 'kugou'; pl.source = 'kugou'; return pl; });
     kugouMusicPlaylists = (result[4].playlists || []).map(function(pl){ pl.provider = 'kugouMusic'; pl.source = 'kugouMusic'; return pl; });
+    if (result[5].error) showToast('汽水歌单同步失败，请稍后刷新');
+    else qishuiPlaylists = (result[5].playlists || []).map(function(pl){ pl.provider = 'qishui'; pl.source = 'qishui'; return pl; });
     qishuiImportedPlaylists = readQishuiImportedPlaylists();
-    userPlaylists = neteaseLists.concat(qqPlaylists, kugouPlaylists, kugouMusicPlaylists, qishuiImportedPlaylists);
+    userPlaylists = neteaseLists.concat(qqPlaylists, kugouPlaylists, kugouMusicPlaylists, qishuiPlaylists, qishuiImportedPlaylists);
     myPodcastCollections = result[1].collections || [];
     var animatePanel = isPlaylistPanelVisibleForRender();
     renderUserPlaylistsList({ animate: animatePanel, reset: true });
@@ -21259,7 +21453,7 @@ function loadPlaylistDetailSortMode() {
 }
 function playlistDetailSortLabel(mode) {
   var option = PLAYLIST_DETAIL_SORT_OPTIONS.find(function(item){ return item.key === mode; });
-  return option ? option.label : '收藏时间';
+  return option ? option.label : '平台顺序';
 }
 function playlistDetailCurrentProvider() {
   return normalizePlaylistProvider(playlistPanelDetailState && playlistPanelDetailState.playlist && playlistPanelDetailState.playlist.provider);
@@ -21339,9 +21533,10 @@ function setPlaylistDetailSortMode(mode) {
 }
 function playlistDetailSongArtist(song) {
   if (!song) return '';
-  if (song.artist) return String(song.artist).trim();
+  if (song.artist && String(song.artist).trim()) return String(song.artist).trim();
   if (Array.isArray(song.artists)) {
-    return song.artists.map(function(artist){ return artist && (artist.name || artist.title || artist); }).filter(Boolean).join(' / ');
+    var names = song.artists.map(function(artist){ return typeof artist === 'string' ? artist : artist && (artist.name || artist.title); }).filter(Boolean).join(' / ');
+    if (names) return names;
   }
   var split = playlistDetailSplitFileTitle(song.name || song.title || song.filename);
   if (split) return split.artist;
@@ -21376,6 +21571,7 @@ function playlistDetailSongStatKeys(song) {
 }
 function normalizePlaylistPanelTrack(song) {
   var cloned = cloneSong(song || {});
+  cloned.artist = playlistDetailSongArtist(cloned);
   var parsed = playlistDetailSplitFileTitle(cloned.name || cloned.title || cloned.filename);
   if (parsed) {
     if (!cloned.artist) cloned.artist = parsed.artist;
@@ -21454,7 +21650,8 @@ function sortPlaylistTracksForDisplay(tracks, provider) {
   tracks = Array.isArray(tracks) ? tracks : [];
   provider = normalizePlaylistProvider(provider);
   var sortMode = effectivePlaylistDetailSortMode(provider);
-  if (sortMode === 'saved') return tracks.slice().reverse();
+  if (sortMode === 'saved') return tracks.slice();
+  if (sortMode === 'reverse') return tracks.slice().reverse();
   var rows = tracks.map(function(song, index){
     var stat = playlistDetailSongStats(song) || {};
     var platformPlays = playlistDetailSongPlatformPlayCount(song, provider);
@@ -21523,7 +21720,22 @@ function playlistProviderLabel(provider) {
   return provider === 'qq' ? 'QQ 音乐' : (provider === 'kugou' ? '酷狗概念版' : (provider === 'kugouMusic' ? '酷狗音乐' : (provider === 'qishui' ? '汽水音乐' : '网易云音乐')));
 }
 function playlistCoverForProvider(pl, provider, size) {
-  return pl && pl.cover ? coverUrlWithSize(pl.cover, size || 88) : '';
+  if (!pl) return '';
+  if (pl.cover) return coverUrlWithSize(pl.cover, size || 88);
+  return Number(pl.specialType) === 5 || /我喜欢|我的喜欢|喜欢的音乐|默认收藏|liked/i.test(pl.name || '')
+    ? '/assets/liked-playlist.svg' : '/assets/playlist-placeholder.svg';
+}
+function rememberPlaylistCover(provider, id, result) {
+  if (!result) return;
+  var song = (result.tracks || []).find(function(track){ return track && track.cover; });
+  var cover = result.playlist && result.playlist.cover || song && song.cover;
+  if (!cover) return;
+  var key = playlistPanelKey(provider, id);
+  var playlist = userPlaylists.find(function(pl){ return playlistPanelKey(pl.provider, pl.id) === key; });
+  if (playlist && !playlist.cover) playlist.cover = cover;
+  if (playlistPanelDetailState.key === key && playlistPanelDetailState.playlist && !playlistPanelDetailState.playlist.cover) {
+    playlistPanelDetailState.playlist.cover = cover;
+  }
 }
 function playlistPanelKey(provider, id) {
   return normalizePlaylistProvider(provider) + ':' + String(id || '');
@@ -21627,7 +21839,7 @@ async function openPlaylistPanelDetail(provider, pid, title) {
   scrollPlaylistPanelDetailIntoView(key);
   try {
     var r = provider === 'qishui'
-      ? getQishuiImportedPlaylistTracks(pid)
+      ? await getQishuiPlaylistTracks(pid)
       : (provider === 'qq'
         ? await apiJson('/api/qq/playlist/tracks?id=' + encodeURIComponent(pid))
         : (provider === 'kugouMusic'
@@ -21636,6 +21848,7 @@ async function openPlaylistPanelDetail(provider, pid, title) {
           ? await apiJson('/api/kugou/playlist/tracks?id=' + encodeURIComponent(pid))
           : await apiJson('/api/playlist/tracks?id=' + encodeURIComponent(pid)))));
     if (playlistPanelDetailState.token !== token) return;
+    rememberPlaylistCover(provider, pid, r);
     playlistPanelDetailState.loading = false;
     playlistPanelDetailState.tracks = (r && r.tracks || []).map(normalizePlaylistPanelTrack);
     if (provider === 'kugou' && isLikedPlaylistContext(pid, title, r && r.playlist)) markSongsLiked(playlistPanelDetailState.tracks, true);
@@ -21967,7 +22180,7 @@ async function loadPlaylistIntoQueueById(id, autoplay, title) {
   var r = null;
   try {
     r = qishuiPlaylistId
-      ? getQishuiImportedPlaylistTracks(qishuiPlaylistId)
+      ? await getQishuiPlaylistTracks(qishuiPlaylistId)
       : (qqPlaylistId
         ? await apiJson('/api/qq/playlist/tracks?id=' + encodeURIComponent(qqPlaylistId))
         : (kugouMusicPlaylistId
@@ -21984,6 +22197,7 @@ async function loadPlaylistIntoQueueById(id, autoplay, title) {
   try {
     if (r.error) { showToast('歌单加载失败: ' + r.error); return; }
     if (!r.tracks || !r.tracks.length) { showToast('歌单为空'); return; }
+    rememberPlaylistCover(provider, qqPlaylistId || kugouPlaylistId || kugouMusicPlaylistId || qishuiPlaylistId || id, r);
     playQueue = playlistTracksForPlayback(r.tracks, provider);
     if (!qqPlaylistId && !kugouPlaylistId && !kugouMusicPlaylistId && isLikedPlaylistContext(id, title, r.playlist)) markSongsLiked(playQueue, true);
     if (kugouPlaylistId && isLikedPlaylistContext(kugouPlaylistId, title, r.playlist)) markSongsLiked(playQueue, true);
@@ -22219,6 +22433,10 @@ var presetMeta = [
   { name: '唱片', desc: '唱片 · 圆形封面' },
   { name: '星河', desc: '壁纸粒子 · 音乐律动' },
   { name: '安魂', desc: '骷髅·YUI7W', descHtml: '骷髅·<span class="pc-yui7w">YUI7W</span>' },
+  { name: '月蚀圣环', nameHtml: '月蚀圣环 <span class="pc-name-en">ECLIPSE HALO</span>', desc: '黑曜轨道 · 冷金日冕', premiumVisual: true, accent: '#e8c98d', accent2: '#8fd8ff' },
+  { name: '雨幕霓虹', nameHtml: '雨幕霓虹 <span class="pc-name-en">NEON DRIZZLE</span>', desc: '城市雨丝 · 色谱残光', premiumVisual: true, accent: '#67efff', accent2: '#ff6bb5' },
+  { name: '折光蝶群', nameHtml: '折光蝶群 <span class="pc-name-en">PRISM FLOCK</span>', desc: '折纸翼阵 · 光谱迁徙', premiumVisual: true, accent: '#f0d7ff', accent2: '#75e6d1' },
+  { name: '深海绽放', nameHtml: '深海绽放 <span class="pc-name-en">ABYSSAL BLOOM</span>', desc: '生物荧光 · 潮汐花冠', premiumVisual: true, accent: '#75f0d0', accent2: '#8178ff' },
 ];
 var presetIcons = [
   '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 14c3-2 5-2 8 0s5 2 8 0M3 10c3-2 5-2 8 0s5 2 8 0M3 18c3-2 5-2 8 0s5 2 8 0"/></svg>',
@@ -22228,8 +22446,12 @@ var presetIcons = [
   '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.4"/><path d="M16.5 5.2c2.1.9 3.4 2.4 4 4.5"/><path d="M18.8 3.2l1.5 4.8"/></svg>',
   '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 15c2.2-4.4 4.4-4.4 6.6 0s4.4 4.4 6.6 0S20.6 10.6 23 15"/><path d="M3 9c2.2 2.2 4.4 2.2 6.6 0s4.4-2.2 6.6 0S20.6 11.2 23 9"/><circle cx="12" cy="12" r="1.7" fill="currentColor"/></svg>',
   '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3.2h4v6.2h4.2v3.8H14v7.6h-4v-7.6H5.8V9.4H10z"/></svg>',
+  '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.45"><ellipse cx="12" cy="12" rx="9" ry="3.8" transform="rotate(-18 12 12)"/><ellipse cx="12" cy="12" rx="6.3" ry="2.2" transform="rotate(24 12 12)"/><circle cx="12" cy="12" r="2.2" fill="currentColor" stroke="none"/></svg>',
+  '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.45" stroke-linecap="round"><path d="M5 3v8M9 2v15M13 5v8M17 2v18M21 6v9"/><path d="M4 19c4-3 8 3 16-1" opacity=".7"/></svg>',
+  '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linejoin="round"><path d="M12 12 3 6l3 9 6-3 6 3 3-9-9 6Z"/><path d="M12 12V4M6 15l3 4 3-7 3 7 3-4"/></svg>',
+  '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round"><path d="M12 20c-1-5-7-5-7-10 4 0 6 2 7 5 1-3 3-5 7-5 0 5-6 5-7 10Z"/><path d="M12 15c-3-3-2-7 0-11 2 4 3 8 0 11Z"/><circle cx="12" cy="15" r="1.2" fill="currentColor" stroke="none"/></svg>',
 ];
-var presetDisplayOrder = [0, 6, 5, 4, 2, 1, 3];
+var presetDisplayOrder = [0, 7, 8, 9, 10, 6, 5, 4, 2, 1, 3];
 var lyricColorPresets = [
   { name:'雾蓝', color:'#a9b8c8' },
   { name:'银蓝', color:'#9db8cf' },
@@ -23433,6 +23655,7 @@ function normalizeFxArchiveSnapshot(raw) {
     desktopLyricsFps: normalizeDesktopLyricsFps(Object.prototype.hasOwnProperty.call(raw, 'desktopLyricsFps') ? raw.desktopLyricsFps : fxDefaults.desktopLyricsFps),
     performanceBackground: normalizePerformanceBackgroundMode(raw.performanceBackground, raw.liveBackgroundKeep === true),
     performanceQuality: normalizePerformanceQuality(raw.performanceQuality),
+      foregroundFps: normalizeForegroundFps(raw.foregroundFps),
     liveBackgroundKeep: normalizePerformanceBackgroundMode(raw.performanceBackground, raw.liveBackgroundKeep === true) === 'keep',
     particleLyrics: raw.particleLyrics !== false,
     backCover: !!raw.backCover,
@@ -25458,8 +25681,14 @@ function setPreset(p, opts) {
     else if (p === 4) { orbit.userRadius = 6.5; orbit.userPhi = 0.04; orbit.userTheta = 0.0; orbit.baselineRadius = 6.5; orbit.baselinePhi = 0.04; }
     else if (p === 5) { orbit.userRadius = 9.4; orbit.userPhi = 0.34; orbit.userTheta = -0.52; orbit.baselineRadius = 9.4; orbit.baselinePhi = 0.34; }
     else if (p === 6) { orbit.userRadius = 7.4; orbit.userPhi = 0.10; orbit.userTheta = 0.18; orbit.baselineRadius = 7.4; orbit.baselinePhi = 0.10; }
+    else if (p >= 7 && p <= 10) {
+      var viewpoints = [[-0.08, 0.12, 7.4], [0, 0.02, 7.15], [0.10, 0.11, 7.0], [-0.12, 0.18, 7.35]];
+      var viewpoint = viewpoints[p - 7];
+      orbit.userTheta = viewpoint[0]; orbit.userPhi = viewpoint[1]; orbit.userRadius = viewpoint[2];
+      orbit.baselinePhi = viewpoint[1]; orbit.baselineRadius = viewpoint[2];
+    }
     else              { orbit.userRadius = 6.6; orbit.userPhi = 0.08; orbit.userTheta = 0.0; orbit.baselineRadius = 6.6; orbit.baselinePhi = 0.08; }
-    orbit.baselineTheta = p === 5 ? -0.52 : (p === 6 ? 0.18 : 0.0);
+    orbit.baselineTheta = orbit.userTheta;
   }
   if (changed && !opts.silent) showToast('视觉预设: ' + presetMeta[p].name);
   var shouldCommitPlaybackPreset = !!opts.commitPlaybackPreset || !opts.noSave;
@@ -25579,7 +25808,19 @@ function updateDesktopLyricsFpsControls() {
     btn.classList.toggle('active', normalizeDesktopLyricsFps(btn.getAttribute('data-desktop-lyrics-fps')) === fps);
   });
 }
+function normalizeForegroundFps(value) {
+  return /^(30|60|vsync)$/.test(String(value)) ? String(value) : '60';
+}
+function setForegroundFps(value) {
+  fx.foregroundFps = normalizeForegroundFps(value);
+  updatePerformanceControls();
+  saveLyricLayout();
+  renderPerfState.lastRenderAt = 0;
+}
 function updatePerformanceControls() {
+  document.querySelectorAll('[data-foreground-fps]').forEach(function(btn){
+    btn.classList.toggle('active', btn.getAttribute('data-foreground-fps') === normalizeForegroundFps(fx.foregroundFps));
+  });
   fx.performanceBackground = normalizePerformanceBackgroundMode(fx.performanceBackground, fx.liveBackgroundKeep === true);
   fx.liveBackgroundKeep = fx.performanceBackground === 'keep';
   fx.performanceQuality = normalizePerformanceQuality(fx.performanceQuality);
@@ -27436,18 +27677,21 @@ function onUserBtnClick() {
   else showLoginModal();
 }
 function normalizeAccountProvider(provider) {
+  if (provider === 'qishui') return 'qishui';
   if (provider === 'qq') return 'qq';
   if (provider === 'kugou') return 'kugou';
   if (provider === 'kugouMusic') return 'kugouMusic';
   return 'netease';
 }
 function platformMeta(provider) {
+  if (provider === 'qishui') return { key: 'qishui', short: 'QS', label: '汽水音乐', app: '抖音 App', dot: 'qishui' };
   if (provider === 'kugouMusic') return { key: 'kugouMusic', short: 'KGM', label: '酷狗音乐', app: '酷狗音乐 App', dot: 'kugouMusic' };
   if (provider === 'kugou') return { key: 'kugou', short: 'KG', label: '酷狗概念版', app: '酷狗概念版 App', dot: 'kugou' };
   if (provider === 'qq') return { key: 'qq', short: 'QQ', label: 'QQ 音乐', app: 'QQ 音乐 App', dot: 'qq' };
   return { key: 'netease', short: 'NE', label: '网易云音乐', app: '网易云音乐 App', dot: 'netease' };
 }
 function platformStatus(provider) {
+  if (provider === 'qishui') return qishuiLoginStatus;
   if (provider === 'kugouMusic') return kugouMusicLoginStatus;
   if (provider === 'kugou') return kugouLoginStatus;
   return provider === 'qq' ? qqLoginStatus : loginStatus;
@@ -27491,10 +27735,10 @@ function hasPlatformLogin(provider) {
   return !!(st && st.loggedIn);
 }
 function hasAnyPlatformLogin() {
-  return hasPlatformLogin('netease') || hasPlatformLogin('qq') || hasPlatformLogin('kugou') || hasPlatformLogin('kugouMusic');
+  return hasPlatformLogin('netease') || hasPlatformLogin('qq') || hasPlatformLogin('kugou') || hasPlatformLogin('kugouMusic') || hasPlatformLogin('qishui');
 }
 function loggedProviderCount() {
-  return ['netease', 'qq', 'kugou', 'kugouMusic'].filter(function(provider){ return hasPlatformLogin(provider); }).length;
+  return ['netease', 'qq', 'kugou', 'kugouMusic', 'qishui'].filter(function(provider){ return hasPlatformLogin(provider); }).length;
 }
 function firstLoggedProvider() {
   if (hasPlatformLogin(activeAccountProvider)) return activeAccountProvider;
@@ -27502,6 +27746,7 @@ function firstLoggedProvider() {
   if (hasPlatformLogin('qq')) return 'qq';
   if (hasPlatformLogin('kugou')) return 'kugou';
   if (hasPlatformLogin('kugouMusic')) return 'kugouMusic';
+  if (hasPlatformLogin('qishui')) return 'qishui';
   return 'netease';
 }
 function providerAvatarSrc(provider, status) {
@@ -27541,7 +27786,7 @@ async function refreshLoginStatus(force) {
       syncLikeStatusForSongs(playQueue.concat(playlist || []));
     } else {
       qishuiImportedPlaylists = readQishuiImportedPlaylists();
-      userPlaylists = qqPlaylists.concat(kugouPlaylists, kugouMusicPlaylists, qishuiImportedPlaylists);
+      userPlaylists = qqPlaylists.concat(kugouPlaylists, kugouMusicPlaylists, qishuiPlaylists, qishuiImportedPlaylists);
       myPodcastCollections = [];
       myPodcastItems = {};
       likedSongMap = {};
@@ -27715,6 +27960,20 @@ function startQQLoginStatusAutoRefresh() {
     refreshQQLoginStatus().catch(function(e){ console.warn('QQ login auto refresh failed:', e); });
   }, 45000);
 }
+async function refreshQishuiLoginStatus() {
+  try {
+    var info = await apiJson('/api/qishui/status');
+    if (info.error && !info.reauthRequired) return qishuiLoginStatus;
+    qishuiLoginStatus = info;
+    if (!info.loggedIn) {
+      qishuiPlaylists = [];
+      userPlaylists = userPlaylists.filter(function(pl){ return pl.provider !== 'qishui' || !!getQishuiImportedPlaylist(pl.id); });
+    }
+    if (!hasPlatformLogin(activeAccountProvider)) activeAccountProvider = firstLoggedProvider();
+    renderUserBtn();
+  } catch (e) { /* Preserve an existing session during a temporary network failure. */ }
+  return qishuiLoginStatus;
+}
 function startKugouLoginStatusAutoRefresh() {
   if (kugouLoginAutoRefreshTimer) clearInterval(kugouLoginAutoRefreshTimer);
   kugouLoginAutoRefreshTimer = setInterval(function(){
@@ -27736,7 +27995,7 @@ function renderUserBtn() {
     btn.classList.add('logged-in', 'multi-account');
     btn.classList.remove('logged-out');
     btn.title = '账号信息 · 双平台登录状态';
-    btn.innerHTML = renderTopAccountPill('netease') + renderTopAccountPill('qq') + renderTopAccountPill('kugou') + renderTopAccountPill('kugouMusic');
+    btn.innerHTML = renderTopAccountPill('netease') + renderTopAccountPill('qq') + renderTopAccountPill('kugou') + renderTopAccountPill('kugouMusic') + renderTopAccountPill('qishui');
   } else if (hasAnyPlatformLogin()) {
     activeAccountProvider = firstLoggedProvider();
     var st = platformStatus(activeAccountProvider);
@@ -27764,10 +28023,14 @@ async function showLoginModal(opts) {
   await refreshQr();
 }
 function closeLoginModal() {
+  qishuiQrGeneration++;
+  if (loginProvider === 'qishui') apiJson('/api/qishui/login/cancel', { method: 'POST' }).catch(function(){});
   stopQrPoll();
   closeGsapModal(document.getElementById('login-modal'));
 }
 function setLoginProvider(provider, silent) {
+  qishuiQrGeneration++;
+  if (loginProvider === 'qishui' && provider !== 'qishui') apiJson('/api/qishui/login/cancel', { method: 'POST' }).catch(function(){});
   loginProvider = normalizeAccountProvider(provider);
   updateLoginProviderUi();
   if (!silent && document.getElementById('login-modal').classList.contains('show')) refreshQr();
@@ -27777,7 +28040,7 @@ function updateLoginProviderUi() {
   var isQQ = loginProvider === 'qq';
   var isKugou = loginProvider === 'kugou';
   var isKugouMusic = loginProvider === 'kugouMusic';
-  var isKugouQr = isKugou || isKugouMusic;
+  var isKugouQr = isKugou || isKugouMusic || loginProvider === 'qishui';
   var title = document.getElementById('login-modal-title');
   var desc = document.getElementById('login-modal-desc');
   var shell = document.getElementById('qr-shell');
@@ -27796,8 +28059,9 @@ function updateLoginProviderUi() {
   if (qqBtn) qqBtn.classList.toggle('active', isQQ);
   if (kugouBtn) kugouBtn.classList.toggle('active', isKugou);
   if (kugouMusicBtn) kugouMusicBtn.classList.toggle('active', isKugouMusic);
+  document.getElementById('login-provider-qishui').classList.toggle('active', loginProvider === 'qishui');
   if (title) title.textContent = '扫码登录' + meta.label;
-  if (desc) desc.innerHTML = isQQ
+  if (desc) desc.innerHTML = loginProvider === 'qishui' ? '使用 <b>抖音 App</b> 扫码，读取账号与歌单。免费歌曲支持汽水原生播放，部分歌曲仅提供网页试听。' : isQQ
     ? (canOpenQQWeb
       ? '打开 <b>QQ 音乐官方网页登录窗口</b> 扫码，成功后会自动同步账号会话。'
       : '使用 <b>QQ 或 QQ 音乐 App</b> 扫码，成功后会自动同步账号会话。')
@@ -27842,6 +28106,26 @@ function updateLoginProviderUi() {
 async function refreshQr() {
   stopQrPoll();
   updateLoginProviderUi();
+  if (loginProvider === 'qishui') {
+    var qsGeneration = ++qishuiQrGeneration;
+    qrKey = null;
+    var qsStatus = document.getElementById('qr-status');
+    var qsImg = document.getElementById('qr-img');
+    qsImg.removeAttribute('src');
+    try {
+      var qsQr = await apiJson('/api/qishui/login/qrcode', { method: 'POST' });
+      if (qsGeneration !== qishuiQrGeneration || loginProvider !== 'qishui') return;
+      if (!qsQr.token || !qsQr.qrcode) throw new Error(qsQr.message || '二维码生成失败');
+      qrKey = qsQr.token;
+      qsImg.src = qsQr.qrcode;
+      qsStatus.textContent = '请使用抖音 App 扫码并确认登录';
+      startQrPoll();
+    } catch (e) {
+      if (qsGeneration !== qishuiQrGeneration) return;
+      qsStatus.textContent = e.message; qsStatus.className = 'fail';
+    }
+    return;
+  }
   if (loginProvider === 'qq') {
     qrKey = null;
     var qqStatus = document.getElementById('qr-status');
@@ -28064,6 +28348,28 @@ async function submitQQCookieLogin() {
 }
 async function checkQr() {
   if (!qrKey) return;
+  if (loginProvider === 'qishui') {
+    if (qishuiPollBusy) return;
+    qishuiPollBusy = true;
+    var qsToken = qrKey, qsGeneration = qishuiQrGeneration;
+    try {
+      var qs = await apiJson('/api/qishui/login/check?token=' + encodeURIComponent(qsToken), { method: 'POST' });
+      if (qsGeneration !== qishuiQrGeneration || loginProvider !== 'qishui') return;
+      var qsSt = document.getElementById('qr-status');
+      if (qs.loggedIn && qs.status === 'confirmed') {
+        qishuiLoginStatus = qs;
+        activeAccountProvider = 'qishui';
+        stopQrPoll(); renderUserBtn(); refreshUserPlaylists(true); closeLoginModal();
+        showToast('汽水音乐已登录');
+      } else if (qs.status === 'expired' || qs.status === 'rate_limited' || qs.error) {
+        qsSt.textContent = qs.status === 'rate_limited' ? '请求较频繁，请稍后刷新二维码' : (qs.message || '二维码已过期，请刷新');
+        qsSt.className = 'fail'; stopQrPoll();
+      } else qsSt.textContent = qs.status === 'scanned' ? '已扫码，请在手机上确认' : qs.status === 'verifying' ? '正在验证账号，请稍候' : '请使用抖音 App 扫码';
+    } catch (e) {
+      if (qsGeneration === qishuiQrGeneration) { document.getElementById('qr-status').textContent = '登录检查失败，请刷新重试'; stopQrPoll(); }
+    } finally { qishuiPollBusy = false; }
+    return;
+  }
   if (loginProvider === 'qq') {
     try {
       var qq = await apiJson('/api/qq/login/qr/check?key=' + encodeURIComponent(qrKey) + '&t=' + Date.now());
@@ -28196,13 +28502,16 @@ function updateUserModalUi() {
       var kgVipLabel = hasProviderVip('kugou', st) ? '酷狗会员' : '酷狗概念版会话';
       vipEl.textContent = 'UID: ' + ((st && st.userId) || '-') + '  ·  ' + kgVipLabel;
       vipEl.style.color = hasProviderVip('kugou', st) ? 'rgba(92,204,166,0.86)' : 'rgba(92,204,166,0.58)';
+    } else if (activeAccountProvider === 'qishui') {
+      vipEl.textContent = 'UID: ' + (st.userId || '-') + '  ·  ' + (st.vipLabel || '汽水音乐账号');
+      vipEl.style.color = 'rgba(244,210,138,.86)';
     } else {
       var kgmVipLabel = hasProviderVip('kugouMusic', st) ? '酷狗音乐会员' : '酷狗音乐会话';
       vipEl.textContent = 'UID: ' + ((st && st.userId) || '-') + '  ·  ' + kgmVipLabel;
       vipEl.style.color = hasProviderVip('kugouMusic', st) ? 'rgba(106,166,255,0.86)' : 'rgba(106,166,255,0.58)';
     }
   }
-  ['netease','qq','kugou','kugouMusic','both'].forEach(function(key){
+  ['netease','qq','kugou','kugouMusic','qishui','both'].forEach(function(key){
     var btn = document.getElementById('user-provider-' + key);
     if (btn) btn.classList.toggle('active', key === 'both' ? dualAccountMode : (!dualAccountMode && activeAccountProvider === key));
   });
@@ -28211,6 +28520,7 @@ function updateUserModalUi() {
   if (addKugou) addKugou.textContent = hasPlatformLogin('kugou') ? '查看酷狗' : '补登酷狗';
   if (addKugouMusic) addKugouMusic.textContent = hasPlatformLogin('kugouMusic') ? '查看酷狗音乐' : '补登酷狗音乐';
   if (logoutBtn) logoutBtn.textContent = activeAccountProvider === 'qq' ? '退出 QQ 音乐' : (activeAccountProvider === 'kugou' ? '退出酷狗概念版' : (activeAccountProvider === 'kugouMusic' ? '退出酷狗音乐' : '退出网易云'));
+  if (logoutBtn && activeAccountProvider === 'qishui') logoutBtn.textContent = '退出汽水音乐';
   if (hint) hint.textContent = dualAccountMode
     ? '右上角已切换为双平台并排展示。'
     : '可切换右上角展示的平台；“我两个都要”会并排放两个登录状态。';
@@ -28256,6 +28566,18 @@ function openProviderLogin(provider) {
   showLoginModal({ provider: provider });
 }
 async function logoutActiveAccount() {
+  if (activeAccountProvider === 'qishui') {
+    try {
+      var qs = await apiJson('/api/qishui/logout', { method: 'POST' });
+      if (qs.error) throw new Error(qs.message);
+      qishuiLoginStatus = { provider: 'qishui', loggedIn: false }; qishuiPlaylists = [];
+      userPlaylists = userPlaylists.filter(function(pl){ return pl.provider !== 'qishui' || !!getQishuiImportedPlaylist(pl.id); });
+      activeAccountProvider = firstLoggedProvider(); dualAccountMode = loggedProviderCount() >= 2;
+      renderUserBtn(); closeUserModal(); renderUserPlaylistsList(); scheduleShelfRebuild('qishui-logout', true);
+      showToast('已退出汽水音乐');
+    } catch (e) { showToast('退出失败，请重试'); }
+    return;
+  }
   if (activeAccountProvider === 'kugouMusic') {
     try { await apiJson('/api/kugou-music/logout'); } catch (e) {}
     kugouMusicLoginStatus = { provider: 'kugouMusic', platform: 'music', loggedIn: false, nickname: '酷狗音乐', userId: '', avatar: '', vipType: 0, tokenReady: false, deviceReady: false };
@@ -28313,7 +28635,7 @@ async function doLogout() {
   dualAccountMode = loggedProviderCount() >= 2;
   activeAccountProvider = firstLoggedProvider();
   qishuiImportedPlaylists = readQishuiImportedPlaylists();
-  userPlaylists = qqPlaylists.concat(kugouPlaylists, kugouMusicPlaylists, qishuiImportedPlaylists);
+  userPlaylists = qqPlaylists.concat(kugouPlaylists, kugouMusicPlaylists, qishuiPlaylists, qishuiImportedPlaylists);
   myPodcastCollections = [];
   myPodcastItems = {};
   likedSongMap = {};
@@ -31280,7 +31602,7 @@ if (fx.floatLayer) createFloatLayer();
 if (fx.particleLyrics) createLyricsParticles();
 if (fx.backCover) createBackCoverLayer();
 initIdleGuideCanvas();
-var startupLoginStatusPromise = Promise.all([refreshLoginStatus(), refreshQQLoginStatus(), refreshKugouLoginStatus(), refreshKugouMusicLoginStatus()]);
+var startupLoginStatusPromise = Promise.all([refreshLoginStatus(), refreshQQLoginStatus(), refreshKugouLoginStatus(), refreshKugouMusicLoginStatus(), refreshQishuiLoginStatus()]);
 startQQLoginStatusAutoRefresh();
 startKugouLoginStatusAutoRefresh();
 startKugouMusicLoginStatusAutoRefresh();
@@ -31340,6 +31662,8 @@ function isMainSceneCoveredBySplash() {
 }
 function getAdaptiveRenderFps() {
   if (isDeepBackgroundMode()) return 1;
+  var mode = normalizeForegroundFps(fx.foregroundFps);
+  if (mode !== 'vsync') return Number(mode);
   if (RENDER_VISIBLE_VSYNC) return 0;
   var tier = (typeof getRenderLoadTier === 'function') ? getRenderLoadTier() : 0;
   if (typeof isRenderInteractionActive === 'function' && isRenderInteractionActive()) {
@@ -31359,11 +31683,12 @@ function shouldSkipAdaptiveRenderFrame(now) {
     return false;
   }
   var minGap = 1000 / fps;
-  if (now - renderPerfState.lastRenderAt < minGap) {
+  var elapsed = now - renderPerfState.lastRenderAt;
+  if (elapsed + 0.01 < minGap) {
     renderPerfState.skipped += 1;
     return true;
   }
-  renderPerfState.lastRenderAt = now;
+  renderPerfState.lastRenderAt += Math.floor((elapsed + 0.01) / minGap) * minGap;
   return false;
 }
 function sampleRenderPerf(now, dt) {
@@ -31376,9 +31701,34 @@ function sampleRenderPerf(now, dt) {
   }
   maybeTrimRuntimeCaches(now);
 }
+var mainLoopRaf = 0;
+var mainLoopTimer = 0;
+function scheduleMainLoop() {
+  if (isDeepBackgroundMode()) {
+    if (!mainLoopTimer) mainLoopTimer = setTimeout(function(){
+      mainLoopTimer = 0;
+      animate();
+    }, 1000);
+  } else if (!mainLoopRaf) {
+    mainLoopRaf = requestAnimationFrame(animate);
+  }
+}
+function wakeMainLoop() {
+  if (mainLoopTimer) { clearTimeout(mainLoopTimer); mainLoopTimer = 0; }
+  if (!mainLoopRaf) mainLoopRaf = requestAnimationFrame(animate);
+}
+document.addEventListener('visibilitychange', wakeMainLoop);
 function animate() {
-  requestAnimationFrame(animate);
+  mainLoopRaf = 0;
+  scheduleMainLoop();
   var now = performance.now();
+  if (isDeepBackgroundMode()) {
+    prevTime = now;
+    renderPerfState.mode = 'sleep';
+    renderPerfState.fps = 0;
+    maybeTrimRuntimeCaches(now);
+    return;
+  }
   if (shouldSkipAdaptiveRenderFrame(now)) return;
   var dt = Math.min((now - prevTime) / 1000, 0.05);
   prevTime = now;
@@ -31556,6 +31906,11 @@ function animate() {
       mid = Math.min(mid, 0.40 * fx.intensity);
       treble = Math.min(treble, 0.36 * fx.intensity);
       beatPulse *= 0.34;
+    } else if (fx.preset >= 7 && fx.preset <= 10) {
+      bass = Math.min(bass, 0.72 * fx.intensity);
+      mid = Math.min(mid, 0.62 * fx.intensity);
+      treble = Math.min(treble, 0.58 * fx.intensity);
+      beatPulse *= 0.72;
     }
   }
   if (djMode.active) {

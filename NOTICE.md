@@ -20,6 +20,14 @@ https://github.com/XxHuberrr/Mineradio
 - music-tempo
 - NeteaseCloudMusicApi
 - mpg123-decoder
+- node-qrcode (MIT)
+
+## 2026-09-22 上游能力移植
+
+- 月蚀圣环、雨幕霓虹、折光蝶群、深海绽放四个视觉预设，以及汽水目录/歌单/歌词/播放适配与音频解码模块，移植自 [XxHuberrr/Mineradio-paused](https://github.com/XxHuberrr/Mineradio-paused)，提交 `d43de565acabfdc1a9c9820a27e81a98ccbebcef`，沿用 GPL-3.0。
+- 汽水 Passport 扫码桥接来自 [Wx2yZx/Mineradio-Qishui-QR-Login](https://github.com/Wx2yZx/Mineradio-Qishui-QR-Login)，原始提交 `aaadaab7d011714f94fbe45b382ba8dcc7cf17b9`，GPL-3.0-only。保留上游署名与安全组件来源标注。
+- `qishui-auth-v6` 中的 React / ReactDOM 沿用文件内 MIT 许可声明；汽水官方登录安全组件保留其原有归属。适配代码的许可不改变第三方组件的权利。
+- 扩展版新增本地账号界面适配、短期音频票据、单曲缓存上限、后台休眠及歌单修复，包含于 v1.1.4。
 
 ## Custom Source Compatibility References
 

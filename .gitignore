@@ -20,6 +20,9 @@ win-unpacked/
 .qq-cookie
 .kugou-cookie
 .kugou-music-cookie
+.qishui-qr-login.json
+.qishui-token
+.qishui-oauth.json
 updates/
 backups/
 *.log

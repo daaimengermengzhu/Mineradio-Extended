@@ -44,7 +44,12 @@ test('player presents a script manager and checks official playback before sourc
 });
 
 test('custom playback uses the ticket proxy directly and is visibly identified', () => {
-  assert.match(page, /data\.thirdParty\s*\?\s*data\.url/);
+  const route = page.match(/var proxyAudioUrl = ([^;]+);/);
+  assert.ok(route);
+  const resolve = new Function('data', 'return ' + route[1]);
+  assert.equal(resolve({ thirdParty: true, url: '/api/custom-source/audio?ticket=test' }), '/api/custom-source/audio?ticket=test');
+  assert.equal(resolve({ localAudio: true, url: '/api/qishui/audio?ticket=test' }), '/api/qishui/audio?ticket=test');
+  assert.equal(resolve({ url: 'https://example.test/song.mp3' }), '/api/audio?url=https%3A%2F%2Fexample.test%2Fsong.mp3');
   assert.match(page, /第三方音源/);
   assert.match(page, /currentPlaybackProvider\s*=\s*['"]lx-custom-source['"]/);
 });

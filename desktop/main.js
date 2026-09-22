@@ -1430,6 +1430,8 @@ async function createWindow() {
   process.env.PORT = String(port);
   process.env.COOKIE_FILE = path.join(app.getPath('userData'), '.cookie');
   process.env.QQ_COOKIE_FILE = path.join(app.getPath('userData'), '.qq-cookie');
+  process.env.QISHUI_QR_CONFIG_FILE = path.join(app.getPath('userData'), '.qishui-qr-login.json');
+  process.env.QISHUI_TOKEN_FILE = path.join(app.getPath('userData'), '.qishui-token');
   process.env.MINERADIO_UPDATE_DIR = getUpdateDownloadDir();
   try {
     const legacyQQCookie = path.join(__dirname, '..', '.qq-cookie');
@@ -1594,6 +1596,7 @@ if (!gotSingleInstanceLock) {
     unregisterMineradioGlobalHotkeys();
     closeOverlayWindows();
     if (localServer?.setCustomSourceBridge) localServer.setCustomSourceBridge(null);
+    if (localServer?.disposeQishui) void localServer.disposeQishui();
     customSourceAudioProxy?.clear();
     if (customSourceManager) void customSourceManager.dispose();
     if (localServer && localServer.close) localServer.close();
