@@ -24,6 +24,8 @@ Mineradio 不应收集或上传用户 Cookie。用户登录状态应保存在本
 
 - `.cookie`
 - `.qq-cookie`
+- `.kugou-cookie`、`.kugou-music-cookie`
+- `.qishui-qr-login.json`、`.qishui-token`
 - 本地音乐文件
 - 用户账号截图
 - 调试日志中的 Cookie、Token 或隐私路径
